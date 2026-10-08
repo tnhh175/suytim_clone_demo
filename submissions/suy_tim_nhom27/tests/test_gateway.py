@@ -46,7 +46,7 @@ def test_documented_origin_and_explicit_dev_server_cors_preflight():
     assert '"/api/v1/auth/logout"' in web
     assert "item.recorded_at || item.created_at || item.occurred_at" in web
     assert "expected_revision: Number(state.selectedCase && state.selectedCase.revision)" in web
-    logout_body = web[web.index("async function logout"):web.index('$("#logoutButton")')]
+    logout_body = web[web.index("async function logout"):web.index('$("#logoutButton").addEventListener')]
     request_at = logout_body.index('apiRequest("/api/v1/auth/logout"')
     assert request_at < logout_body.index('endSession("Đã đăng xuất khỏi phiên demo.")', request_at)
     assert "Không thể xác nhận thu hồi phiên trên máy chủ" in logout_body
