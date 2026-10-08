@@ -1,442 +1,286 @@
-# SRS v1.0 — Hệ thống quản lý bệnh nhân suy tim cao tuổi
+# Đặc tả yêu cầu phần mềm hệ thống quản lý bệnh nhân suy tim cao tuổi
+ 
+**Nhóm:** 27  
+**Môn học:** Kỹ thuật Phần mềm Ứng dụng ET3260  
+**Phiên bản tài liệu:** v1.0    
+**Trạng thái:** Bản nháp theo bộ 34 FR và 13 NFR đã thống nhất. Chưa hoàn tất User Stories, BDD, Use Cases, DFD và các liên kết RTM.
 
-- **Môn học:** Kỹ thuật Phần mềm Ứng dụng
-- **Trạng thái:** Bản review Tuần 2
-- **Chuẩn tham chiếu:** IEEE 830 / ISO/IEC/IEEE 29148
-- **Nhóm:** nhom27
+Tài liệu đặc tả yêu cầu cho một ứng dụng web quản lý bệnh nhân suy tim cao tuổi và hỗ trợ nhân viên y tế đánh giá, điều trị, theo dõi. Bản nháp tổng hợp phần đã thống nhất trong báo cáo hiện tại; các phần chưa có nội dung được ghi rõ, chưa dùng để xác nhận hoàn thành tuần 2.
 
+Cấu trúc ba chương dựa trên khung IEEE 830 trong bài giảng.
 ## 1. Giới thiệu
 
-### 1.1. Mục đích
+### 1.1. Mục đích tài liệu
 
-Tài liệu đặc tả yêu cầu cho hệ thống hỗ trợ bác sĩ đánh giá và quản lý
-quyết định lâm sàng liên quan đến suy tim ở người cao tuổi. Hệ thống
-tổng hợp dữ liệu, đưa ra gợi ý có căn cứ và ghi nhận phản hồi của bác sĩ.
-Hệ thống không tự ban hành chẩn đoán, y lệnh hoặc thay đổi thuốc.
-Bác sĩ quyết định việc áp dụng các gợi ý.
+SRS thống nhất phạm vi, người dùng, yêu cầu chức năng, yêu cầu chất lượng và ràng buộc để nhóm thiết kế, lập trình và kiểm thử cùng một hệ thống. Giảng viên và người hỗ trợ chuyên môn dùng tài liệu để xem xét các yêu cầu, chỉ ra điểm cần điều chỉnh và đối chiếu khi nghiệm thu.
 
-### 1.2. Phạm vi MVP
+Mã FR và NFR là mã tham chiếu chung cho báo cáo, Product Backlog, Use Cases, RTM, thiết kế dữ liệu và API. Những chức năng được mô tả là yêu cầu cần thực hiện, không phải báo cáo kết quả đã triển khai.
 
-MVP gồm bốn phân hệ:
+34 FR và 13 NFR ở chương 3 là các yêu cầu bắt buộc đã thống nhất trong nhóm. 
+### 1.2. Phạm vi sản phẩm
 
-1. **Diagnosis:** kiểm tra dữ liệu, phân loại kiểu hình theo EF và nêu dữ liệu còn thiếu.
-2. **Lab/Test:** gợi ý cận lâm sàng còn thiếu, xếp mức ưu tiên và tránh gợi ý trùng.
-3. **Treatment:** đưa ra hướng điều trị tham khảo theo kiểu hình và khả năng dung nạp.
-4. **MedSafety:** kiểm tra đơn thuốc, tập trung vào cảnh báo NSAID và nguy cơ tăng kali khi phối hợp ARNI/ACEI với MRA.
+Hệ thống hướng đến quản lý bệnh nhân cao tuổi , gồm ca nghi ngờ và ca đã được chẩn đoán suy tim. Trong đồ án, hồ sơ và tình huống đều là dữ liệu giả lập. Hệ thống ưu tiên bối cảnh điều trị nội trú tại bệnh viện và hỗ trợ cả khám, theo dõi ngoại trú.
 
-Ngoài phạm vi MVP: Bản demo hiện được nhóm đề xuất sử dụng dữ liệu synthetic và nguồn
-HIS/EMR mô phỏng. Mức tích hợp thực tế, yêu cầu sử dụng ML/LLM và
-phạm vi đầu ra của từng phân hệ đang chờ xác nhận.
-Hệ thống không tự ban hành y lệnh, tự thay đổi thuốc hoặc thay thế
-quyết định chuyên môn của bác sĩ.
+**Trong phạm vi MVP:**
 
-### 1.3. Thuật ngữ
+- Quản lý tài khoản, vai trò, phạm vi truy cập, danh mục và phiên bản quy tắc.
+- Quản lý hồ sơ, lần khám ngoại trú, đợt điều trị nội trú, dữ liệu lâm sàng, thuốc và diễn biến theo thời gian.
+- Tiếp nhận dữ liệu bằng nhập thủ công, file theo mẫu và API mô phỏng; kiểm tra dữ liệu trước khi sử dụng để đánh giá.
+- Cung cấp bốn module hỗ trợ: Diagnosis, Lab/Test, Treatment và MedSafety trong phạm vi quy tắc được lựa chọn và phê duyệt.
+- Ghi nhận ý kiến dược sĩ, quyết định của bác sĩ, kế hoạch điều trị, ra viện, tái khám và lịch sử thao tác.
 
-| Thuật ngữ | Ý nghĩa |
-|---|---|
-| CDSS | Clinical Decision Support System |
-| EF | Phân suất tống máu thất trái |
-| HFrEF | Suy tim EF giảm, EF ≤40% |
-| HFmrEF | Suy tim EF giảm nhẹ, EF 41–49% |
-| HFpEF | Suy tim EF bảo tồn, EF ≥50% |
-| PII/PHI | Dữ liệu nhận diện/cá nhân và dữ liệu sức khỏe nhạy cảm |
-| Rule version | Phiên bản bất biến của bộ quy tắc được dùng tại thời điểm đánh giá |
+Treatment bao gồm gợi ý thuốc hoặc nhóm thuốc, liều khởi đầu, đường dùng, tần suất và điều chỉnh/tăng liều theo FR-24, FR-25. Việc chọn thuốc và liều cụ thể phải dựa trên danh mục quy tắc đã phê duyệt, không áp dụng cho mọi thuốc hoặc mọi tình huống bệnh.
+
+**Ngoài phạm vi MVP:** kết nối hệ thống bệnh viện production; sử dụng hồ sơ bệnh nhân thật; tự động kê đơn, tạo y lệnh hoặc ngừng thuốc; mô hình ML dự báo tử vong/tái nhập viện; cổng đăng nhập bệnh nhân/người chăm sóc; triển khai lâm sàng thực tế.
+
+Bệnh nhân và người chăm sóc là đối tượng hưởng lợi và cung cấp thông tin qua nhân viên y tế. Chức năng tự đăng nhập, tự nhập dữ liệu và nhận nhắc nhở thuộc hướng mở rộng, không phải chức năng của phiên bản này.
+
+### 1.3. Định nghĩa và từ viết tắt
+
+| Thuật ngữ | Ý nghĩa trong tài liệu |
+| --- | --- |
+| SRS | Software Requirements Specification, tài liệu đặc tả yêu cầu phần mềm. |
+| MVP | Phiên bản tối thiểu thực hiện phạm vi đã chọn của đồ án. |
+| FR / NFR | Yêu cầu chức năng / yêu cầu phi chức năng. |
+| Customer | Bên quyết định hoặc xác nhận nhu cầu, phạm vi và việc chấp nhận sản phẩm. |
+| End-user | Người trực tiếp thao tác trên hệ thống. |
+| CDSS | Hệ thống hỗ trợ quyết định lâm sàng. |
+| Diagnosis | Module hỗ trợ đánh giá suy tim và mô tả tình trạng bệnh khi đủ dữ liệu. |
+| Lab/Test | Module gợi ý xét nghiệm hoặc thăm dò bổ sung. |
+| Treatment | Module gợi ý điều trị, thuốc/liều và theo dõi theo quy tắc đã chọn. |
+| MedSafety | Module rà soát thuốc và đưa ra cảnh báo an toàn. |
+| Synthetic | Dữ liệu giả lập phục vụ phát triển, kiểm thử và demo. |
+| Rule Engine | Thành phần áp dụng các quy tắc có điều kiện, kết quả và căn cứ được khai báo. |
+| HIS / EMR | Hệ thống thông tin bệnh viện / hồ sơ bệnh án điện tử. |
+| LIS / PACS | Hệ thống thông tin xét nghiệm / hệ thống lưu trữ và truyền hình ảnh y khoa. |
+| EF | Phân suất tống máu thất trái. |
+| HFrEF / HFmrEF / HFpEF | Suy tim có EF giảm / giảm nhẹ / bảo tồn; không đồng nghĩa chẩn đoán chỉ từ EF. |
+| BNP / NT-proBNP | Các xét nghiệm được dùng trong đánh giá suy tim. |
+| eGFR | Mức lọc cầu thận ước tính. |
+| BP / HR / SpO₂ | Huyết áp / nhịp tim / độ bão hòa oxy ngoại vi. |
+| Frailty | Tình trạng dễ bị tổn thương ở người cao tuổi. |
+| ADL / IADL | Đánh giá hoạt động sinh hoạt hằng ngày / hoạt động sinh hoạt có sử dụng công cụ. |
+| RBAC | Kiểm soát truy cập dựa trên vai trò, kết hợp phạm vi hồ sơ được cấp. |
+| BDD / Gherkin | Mô tả tiêu chí nghiệm thu bằng Given, When, Then. |
+| RTM | Ma trận liên kết yêu cầu với User Story, Use Case, dữ liệu và API. |
+| Audit Trail | Nhật ký giúp truy lại người, thời điểm, đối tượng và hành động. |
 
 ### 1.4. Tài liệu tham chiếu
 
-- Bộ Y tế, *Hướng dẫn chẩn đoán và điều trị suy tim cấp và mạn*, 2022.
-- Bệnh viện Hữu Nghị, *Tổng hợp các khuyến cáo về suy tim ở người cao tuổi*.
-- Tài liệu `SUY TIM.docx` mô tả input/output cho bốn module AI-CDSS.
-- Schema tối thiểu AI-CDSS và bảng biến giao diện bác sĩ — phần suy tim.
-- Bài giảng KTPMUD Chương 1, Chương 2 và hướng dẫn Sprint 1 Tuần 2–3.
+| Mã | Tài liệu | Cách sử dụng |
+| --- | --- | --- |
+| REF-01 | Bài giảng KTPMUD và hướng dẫn Sprint 1 tuần 2–3 do giảng viên cung cấp. | Cấu trúc SRS, cách đặc tả yêu cầu và sản phẩm bàn giao. |
+| REF-02 | Hướng dẫn chẩn đoán và điều trị suy tim cấp và mạn của Bộ Y tế, bản năm 2022 đã cung cấp. | Nguồn chuyên môn ưu tiên khi xây dựng quy tắc. |
+| REF-03 | Quy trình chẩn đoán và điều trị bệnh suy tim ở người cao tuổi, tài liệu có tên Bệnh viện Hữu Nghị do nhóm nhận. | Bổ sung đặc điểm và các vấn đề chăm sóc người cao tuổi; không coi tên file là bằng chứng đã khảo sát bệnh viện. |
+| REF-04 | `SUY TIM.docx`. | Mô tả đầu vào, đầu ra của bốn module hỗ trợ. |
+| REF-05 | `DATA_DICTIONARY_SUY_TIM_AI_CDSS` bản được cung cấp. | Đối chiếu trường dữ liệu, kiểu, đơn vị và danh mục đầu vào phần suy tim. |
+| REF-06 | Bảng biến bác sĩ AI-CDSS cho 5 mặt bệnh, phần suy tim. | Đối chiếu thông tin được trình bày và trao đổi trong luồng nghiệp vụ. |
+| REF-07 | Schema tối thiểu AI-CDSS cho 5 mặt bệnh, phần suy tim. | Đối chiếu dữ liệu và các nguồn tích hợp tối thiểu. |
+
+Liên kết học phần: [Hướng dẫn đồ án KTPMUD](https://fossbk-spec.github.io/ktpmud-book/do_an_mon_hoc). Sáu tài liệu đầu vào chuyên môn và dữ liệu tương ứng REF-02 đến REF-07. Chỉ sử dụng phần suy tim trong các tài liệu chứa nhiều bệnh.
+
+Nhóm ưu tiên hướng dẫn Bộ Y tế, sau đó đối chiếu tài liệu tổng hợp về người cao tuổi. Khi có khác biệt về nội dung áp dụng, nhóm phải ghi nhận để xác nhận trước khi đưa thành quy tắc; không tự kết hợp các ngưỡng không thống nhất.
 
 ## 2. Mô tả tổng quan
 
-### 2.1. Problem Statement
-
-Dữ liệu suy tim cao tuổi nằm ở nhiều nhóm: triệu chứng, sinh hiệu, xét nghiệm, chẩn đoán hình ảnh, bệnh đồng mắc, đánh giá lão khoa và thuốc. Việc rà soát thủ công dễ bỏ sót dữ liệu thiếu, nhầm nhánh đánh giá theo EF hoặc bỏ qua cảnh báo thuốc. Nhóm cần một hệ thống tập hợp dữ liệu, chạy các quy tắc có phiên bản và trình bày căn cứ để bác sĩ kiểm tra.
-
-### 2.2. Customer và End-user
-
-| Nhóm | Vai trò |
-|---|---|
-| Customer | Giảng viên/chuyên gia cung cấp yêu cầu, xác nhận phạm vi, rule, ngưỡng và tiêu chí nghiệm thu. |
-| End-user chính | Bác sĩ nhập ca bệnh, xem và quyết định với khuyến nghị. |
-| End-user phụ | Dược sĩ rà soát thuốc; quản trị viên quản lý quyền, rule version và audit. |
-
-### 2.3. Ràng buộc và giả định
-
-- Chỉ dùng dữ liệu synthetic trong đồ án.
-- Rule lâm sàng phải có nguồn, phiên bản và người duyệt.
-- Ngưỡng chưa được xác nhận phải để cấu hình và gắn trạng thái `pending_review`.
-- Nếu dùng quy tắc chưa duyệt để minh họa trong môi trường thử nghiệm, đầu ra phải ghi rõ trạng thái thử nghiệm.
-- Hệ thống phải trả `Chưa đủ dữ liệu` thay vì tự suy đoán.
-- Trạng thái thiếu dữ liệu được xác định theo từng quyết định; một phần thiếu dữ liệu không mặc định làm dừng toàn bộ hệ thống.
-- Bác sĩ có quyền chấp nhận, điều chỉnh hoặc từ chối và phải ghi lý do khi cần.
-
-### 2.4. Giao diện ngoài
-
-- **UI:** định hướng hiển thị gợi ý trong màn hình bệnh án điện tử dưới dạng Smart Panel. Bản demo dự kiến mô phỏng môi trường này; mức tích hợp thực tế chờ xác nhận.
-- **Nguồn dữ liệu:** HIS/EMR, LIS, PACS/RIS theo phạm vi được thống nhất.Trong bản demo, các nguồn có thể được mô phỏng bằng dữ liệu synthetic, biểu mẫu hoặc mock service.
-- **API:** REST/JSON qua API Gateway; OpenAPI được thiết kế ở Tuần 3.
-- **Bảo mật:** HTTPS khi triển khai, RBAC, mật khẩu băm, không ghi PII vào log.
-
-## 3. Yêu cầu nghiệp vụ và người dùng
-
-### 3.1. Business Requirements
-
-| ID | Yêu cầu |
-|---|---|
-| BR-01 | Chuẩn hóa quy trình đánh giá ca suy tim cao tuổi trên một giao diện. |
-| BR-02 | Giảm nguy cơ bỏ sót dữ liệu và cảnh báo an toàn thuốc cốt lõi. |
-| BR-03 | Khuyến nghị phải giải thích được và do bác sĩ kiểm soát. |
-| BR-04 | Thực hiện Zero PII/PHI trong đồ án. |
-| BR-05 | Tạo nền tảng mở rộng bốn module Diagnosis, Lab/Test, Treatment, MedSafety. |
-
-### 3.2. User Requirements
-
-| ID | Actor | Nhu cầu |
-|---|---|---|
-| UR-01 | Bác sĩ | Tạo và cập nhật ca bệnh synthetic. |
-| UR-02 | Bác sĩ | Biết trường nào thiếu, sai hoặc quá cũ. |
-| UR-03 | Bác sĩ | Nhận phân loại kiểu hình/bệnh cảnh kèm căn cứ. |
-| UR-04 | Bác sĩ | Nhận gợi ý cận lâm sàng còn thiếu theo mức ưu tiên. |
-| UR-05 | Bác sĩ | Xem hướng điều trị tham khảo theo kiểu hình và khả năng dung nạp. |
-| UR-06 | Bác sĩ/Dược sĩ | Kiểm tra đơn thuốc và nhận cảnh báo có mức độ. |
-| UR-07 | Bác sĩ | Xác nhận, điều chỉnh hoặc từ chối và ghi lý do. |
-| UR-08 | Quản trị | Quản lý quyền, rule version và Audit Trail. |
-
-## 4. Yêu cầu chức năng
-
-| ID | Module | Yêu cầu | Ưu tiên |
-|---|---|---|---|
-| FR-01 | Tài khoản | Đăng nhập và phân quyền Bác sĩ, Dược sĩ, Quản trị viên. | Must |
-| FR-02 | Ca bệnh | Tạo ca bằng mã synthetic và mã lượt khám. | Must |
-| FR-03 | Ca bệnh | Nhập/sửa triệu chứng, dấu hiệu, sinh hiệu, bệnh đồng mắc và đánh giá lão khoa. | Must |
-| FR-04 | Dữ liệu | Kiểm tra kiểu, đơn vị, miền giá trị hợp lệ và thời điểm. Phân biệt dữ liệu không hợp lệ với dữ liệu hợp lệ nhưng bất thường; biểu diễn rõ trạng thái chưa có/chưa đánh giá. | Must |
-| FR-05 | Dữ liệu | Ghi nhận xét nghiệm và chẩn đoán hình ảnh kèm đơn vị, thời điểm, nguồn. | Must |
-| FR-06 | Thuốc | Ghi nhận thuốc hiện tại và đơn mới theo hoạt chất, liều, đường dùng, tần suất. | Must |
-| FR-07 | Dữ liệu | Hiển thị dữ liệu thiếu theo mục tiêu; không đổi giá trị thiếu thành 0. | Must |
-| FR-08 | Diagnosis | Hỗ trợ đánh giá kiểu hình suy tim khi có đủ căn cứ theo quy tắc đã duyệt. Nếu thiếu căn cứ, nêu rõ phần chưa đánh giá được.| Must |
-| FR-09 | Diagnosis | Ước tính Stage A–D khi đủ tiêu chí đã duyệt. | Should |
-| FR-10 | Diagnosis | Phân loại mới khởi phát, mạn ổn định, worsening hoặc mất bù theo rule. | Should |
-| FR-11 | Diagnosis | Phát hiện dữ liệu gợi ý cấp cứu và yêu cầu bác sĩ đánh giá ngay. | Must |
-| FR-12 | Diagnosis | Cảnh báo bệnh giả suy tim hoặc nguyên nhân cần phân biệt. | Should |
-| FR-13 | Lab/Test | Gợi ý BNP/NT-proBNP, ECG, siêu âm, X-quang và xét nghiệm máu còn thiếu. | Must |
-| FR-14 | Lab/Test | Xếp mức ưu tiên cấp cứu/24 giờ/đợt khám/định kỳ. | Should |
-| FR-15 | Lab/Test | Cảnh báo xét nghiệm trùng trong cửa sổ thời gian cấu hình. | Should |
-| FR-16 | Treatment | Chọn Strategy tham khảo theo HFrEF, HFmrEF hoặc HFpEF. | Must |
-| FR-17 | Treatment | Hiển thị bốn nhóm thuốc nền tảng để bác sĩ đánh giá ở HFrEF. | Must |
-| FR-18 | Treatment | Gợi ý xem xét lợi tiểu khi sung huyết; không tự kê đơn. | Must |
-| FR-19 | MedSafety | Phát hiện thuốc thuộc danh mục NSAID cần cảnh báo theo quy tắc đã duyệt; nêu hoạt chất, lý do và mức cảnh báo. | Must |
-| FR-20 | MedSafety | Cảnh báo vàng khi ARNI/ACEI phối hợp MRA và có nguy cơ tăng kali theo rule. | Must |
-| FR-21 | MedSafety | Cảnh báo nguy cơ digoxin khi suy thận, nhịp chậm hoặc điều kiện cấu hình. | Could |
-| FR-22 | Giải thích | Hiển thị input kích hoạt, căn cứ, mức cảnh báo và rule version. | Must |
-| FR-23 | Quyết định | Cho bác sĩ chấp nhận, điều chỉnh hoặc từ chối và nhập lý do. | Must |
-| FR-24 | Audit | Lưu mã ca/lượt khám, mã lần đánh giá, tham chiếu phiên bản dữ liệu đầu vào, phiên bản quy tắc, khuyến nghị và quyết định; kèm người thao tác, thời điểm và lý do khi có. | Must |
-| FR-25 | Lịch sử | Xem lại các lần đánh giá và quyết định trước của cùng ca. | Should |
-| FR-26 | Báo cáo | Xuất tóm tắt không chứa PII/PHI thật. | Could |
-|FR-27  | Quản trị quy tắc | Hỗ trợ vòng đời quy tắc: nháp, kiểm thử, phê duyệt và kích hoạt. Quyền soạn, duyệt và kích hoạt thực hiện theo phân quyền được xác nhận; không mặc định quản trị kỹ thuật có quyền duyệt chuyên môn. | Should |
-
-## 5. Yêu cầu phi chức năng theo ISO 25010
-
-| ID | Thuộc tính | Tiêu chí định lượng | Xác minh |
-|---|---|---|---|
-| NFR-01 | Hiệu năng | Rule cảnh báo lõi p95 ≤200 ms/100 lượt gọi trên môi trường demo. | Performance test |
-| NFR-02 | Hiệu năng | Một lần đánh giá đầy đủ ≤10 giây/ca. | API test |
-| NFR-03 | Tin cậy | Cùng input + rule version cho cùng output trong 100/100 lần. | Repeat test |
-| NFR-04 | Tính đúng | Rule EF, NSAID, tăng kali đạt 100% gold cases đã duyệt. | Integration test |
-| NFR-05 | Sẵn sàng | Mục tiêu deploy ≥99,9%; MVP mô phỏng health check. | Monitoring |
-| NFR-06 | Bảo mật | HTTPS; dữ liệu lưu mã hóa AES-256 khi môi trường hỗ trợ. | Config test |
-| NFR-07 | Bảo mật | RBAC, mật khẩu băm, chặn 100% ca truy cập trái quyền trong bộ test. | Security test |
-| NFR-08 | Riêng tư | 0 PII thật trong repo, log và dữ liệu test. | CI scan |
-| NFR-09 | Truy vết | 100% khuyến nghị và quyết định có Audit Trail. | Data reconciliation |
-| NFR-10 | Khả dụng | Nhập ca mẫu ≤5 phút sau hướng dẫn ngắn. | Usability test |
-| NFR-11 | Bảo trì | Core Rule Engine có unit-test coverage ≥80%; rule tách UI. | Coverage report |
-| NFR-12 | Tương thích | Hỗ trợ hai phiên bản mới nhất của Chrome và Edge. | Browser test |
-
-## 6. Product Backlog và INVEST
-
-| ID | User Story | FR |
-|---|---|---|
-| US-01 | Là bác sĩ, tôi muốn tạo ca synthetic để không dùng PII thật. | FR-02 |
-| US-02 | Là bác sĩ, tôi muốn nhập và kiểm tra dữ liệu để biết trường sai. | FR-03–07 |
-| US-03 | Là bác sĩ, tôi muốn xem nhóm EF và mức độ đầy đủ của bằng chứng để không nhầm phân nhóm EF với kết luận suy tim. | FR-08 |
-| US-04 | Là bác sĩ, tôi muốn nhận trạng thái chưa đủ dữ liệu. | FR-07–12 |
-| US-05 | Là bác sĩ, tôi muốn nhận gợi ý cận lâm sàng theo mức ưu tiên. | FR-13–15 |
-| US-06 | Là bác sĩ, tôi muốn xem hướng điều trị tham khảo theo kiểu hình. | FR-16–18 |
-| US-07 | Là bác sĩ/dược sĩ, tôi muốn cảnh báo đỏ khi có NSAID. | FR-19 |
-| US-08 | Là bác sĩ/dược sĩ, tôi muốn cảnh báo nguy cơ tăng kali. | FR-20–21 |
-| US-09 | Là bác sĩ, tôi muốn xem căn cứ của khuyến nghị. | FR-22 |
-| US-10 | Là bác sĩ, tôi muốn xác nhận/từ chối và ghi lý do. | FR-23–24 |
-| US-11 | Là quản trị viên, tôi muốn quản lý tài khoản, vai trò và vòng đời rule version để chỉ người có quyền và quy tắc đã duyệt được sử dụng. | FR-01,24,27 |
-| US-12 | Là bác sĩ, tôi muốn xem lịch sử và xuất tóm tắt. | FR-25–26 |
-
-Mỗi story đạt INVEST: độc lập theo giá trị người dùng, chi tiết còn thương lượng, có giá trị, ước lượng được, đủ nhỏ trong Sprint và có tiêu chí kiểm thử.
-
-## 7. Acceptance Criteria BDD
-
-Mỗi story có ít nhất một happy path và một exception/edge case:
-
-```gherkin
-# US-01
-Given bác sĩ đã đăng nhập
-When tạo ca mới
-Then hệ thống sinh mã synthetic và không yêu cầu PII
-
-Given dữ liệu chứa CCCD hoặc số điện thoại
-When lưu ca
-Then hệ thống chặn/che dữ liệu và không ghi giá trị nhạy cảm vào audit
-
-# US-02
-Given dữ liệu đúng kiểu và đơn vị
-When lưu
-Then hệ thống chấp nhận và đánh dấu hợp lệ
-
-Given kali ngoài miền cấu hình hoặc thiếu đơn vị
-When lưu
-Then hệ thống chỉ rõ trường lỗi và không chạy module phụ thuộc
-
-# US-03
-Given ca có giá trị EF hợp lệ
-When bác sĩ yêu cầu đánh giá
-Then hệ thống hiển thị nhóm EF tương ứng và các bằng chứng đã dùng
-
-Given ca chỉ có EF nhưng thiếu bằng chứng cần thiết theo rule đã duyệt
-When bác sĩ yêu cầu đánh giá
-Then hệ thống hiển thị "Chưa đủ dữ liệu để kết luận kiểu hình suy tim"
-And liệt kê bằng chứng còn thiếu
-
-# US-04
-Given ca chưa có EF
-When đánh giá kiểu hình
-Then trả Chưa đủ dữ liệu và gợi ý siêu âm tim
-
-Given bằng chứng cần thiết cho kết luận còn thiếu
-When đánh giá
-Then hệ thống nêu trường thiếu và không tự suy đoán
-
-# US-05
-Given ca nghi suy tim chưa có BNP/NT-proBNP
-When chạy Lab/Test
-Then đề xuất peptide lợi niệu kèm mức ưu tiên
-
-Given xét nghiệm tương đương còn hiệu lực
-When chạy Lab/Test
-Then không đề xuất lặp mà không có lý do
-
-# US-06
-Given ca HFrEF có đủ HA, eGFR và kali
-When chạy Treatment
-Then hiển thị lựa chọn tham khảo và chuyển đơn dự kiến sang MedSafety
-
-Given thiếu dữ liệu an toàn
-When chạy Treatment
-Then không gợi ý liều và yêu cầu bổ sung dữ liệu
-
-# US-07
-Given danh sách thuốc có NSAID cấu hình
-When chạy MedSafety
-Then sinh cảnh báo đỏ và nêu hoạt chất kích hoạt
-
-Given tên thuốc không ánh xạ được
-When kiểm tra
-Then yêu cầu xác nhận hoạt chất và không tự coi là an toàn
-
-# US-08
-Given có ARNI hoặc ACEI phối hợp MRA và thỏa rule kali/eGFR
-When chạy MedSafety
-Then sinh cảnh báo vàng và kế hoạch theo dõi
-
-Given thiếu kali hoặc eGFR
-When kiểm tra
-Then báo chưa đủ dữ liệu và đề xuất xét nghiệm bổ sung
-
-# US-09
-Given một cảnh báo đã kích hoạt
-When mở chi tiết
-Then hiển thị input, căn cứ, mức và rule version
-
-Given nguồn căn cứ chưa cấu hình
-When mở chi tiết
-Then đánh dấu Chờ xác minh và không coi là khuyến cáo đã duyệt
-
-# US-10
-Given có khuyến nghị
-When bác sĩ chấp nhận hoặc điều chỉnh
-Then lưu trạng thái, user UUID, timestamp và lý do điều chỉnh
-
-Given bác sĩ từ chối nhưng chưa nhập lý do
-When hoàn tất
-Then hệ thống yêu cầu lý do và chưa hoàn tất quyết định
-
-# US-11
-Given quản trị viên có quyền
-When phát hành rule version mới
-Then lưu phiên bản, người duyệt và thời điểm hiệu lực
-
-Given người dùng không có quyền quản trị
-When sửa rule
-Then từ chối và ghi sự kiện truy cập
-
-# US-12
-Given ca có nhiều lần đánh giá
-When mở lịch sử
-Then hiển thị theo thời gian, gồm kết quả và quyết định
-
-Given người dùng không có quyền với ca
-When mở lịch sử
-Then từ chối và không trả dữ liệu
-```
-
-## 8. Use Case
-Sơ đồ tổng thể và theo vai trò:
-
-![01-use-case-tong-the](architecture/01-use-case-tong-the.png)
-
-![02-use-case-bac-si](architecture/02-use-case-bac-si.png)
-
-![03-use-case-duoc-si](architecture/03-use-case-duoc-si.png)
-
-![04-use-case-quan-tri](architecture/04-use-case-quan-tri.png)
-
-### 8.1. Danh sách
-
-| ID | Use Case | Actor |
-|---|---|---|
-| UC-01 | Đăng nhập và phân quyền | Bác sĩ/Dược sĩ/Quản trị |
-| UC-02 | Tạo và cập nhật ca bệnh | Bác sĩ |
-| UC-03 | Đánh giá chẩn đoán | Bác sĩ |
-| UC-04 | Gợi ý cận lâm sàng | Bác sĩ |
-| UC-05 | Tạo hướng điều trị tham khảo | Bác sĩ |
-| UC-06 | Kiểm tra an toàn thuốc | Bác sĩ/Dược sĩ |
-| UC-07 | Xác nhận hoặc từ chối | Bác sĩ |
-| UC-08 | Xem lịch sử và Audit Trail | Bác sĩ/Quản trị |
-| UC-09 | Quản lý quy tắc và phiên bản | Quản trị |
-| UC-10 | Xuất tóm tắt đánh giá | Bác sĩ |
-
-### 8.2. Đặc tả rút gọn
-
-| ID | Tiền điều kiện | Luồng chính | Ngoại lệ | Hậu điều kiện |
-|---|---|---|---|---|
-| UC-01 | Tài khoản hoạt động | Xác thực → nạp vai trò → mở màn hình | Sai/khóa: từ chối và audit | Phiên đúng quyền |
-| UC-02 | Đã đăng nhập | Sinh mã → nhập → kiểm tra → lưu | Trường sai: chặn module phụ thuộc | Ca và audit được lưu |
-| UC-03 | Có dữ liệu tối thiểu | Kiểm completeness → Strategy EF → rule → kết quả | Thiếu EF: Chưa đủ dữ liệu; cấp cứu: ưu tiên cảnh báo | Kết quả/căn cứ được lưu |
-| UC-04 | Có ca hoặc kết quả UC-03 | Kiểm dữ liệu thiếu/lịch sử → rule → ưu tiên | Trùng/chống chỉ định: nêu lý do | Danh sách xét nghiệm |
-| UC-05 | Có kiểu hình và dữ liệu an toàn | Chọn Strategy → kiểm HA/eGFR/K → hướng tham khảo | Thiếu dữ liệu: không gợi ý liều | Chuyển UC-06 |
-| UC-06 | Có danh sách thuốc | Chuẩn hóa → kiểm tra → phân tầng cảnh báo | Không nhận diện thuốc: yêu cầu xác nhận | Cảnh báo có căn cứ |
-| UC-07 | Có khuyến nghị | Đọc → chấp nhận/điều chỉnh/từ chối → ghi lý do | Từ chối thiếu lý do: chưa hoàn tất | Audit quyết định |
-| UC-08 | Có quyền ca/audit | Lọc → đọc lịch sử → hiển thị | Không quyền: từ chối | Không sửa dữ liệu nguồn |
-| UC-09 | Có quyền quản trị | Nháp → test → duyệt → kích hoạt | Test fail/thiếu duyệt: không kích hoạt | Rule version có truy vết |
-| UC-10 | Có kết quả và quyền | Chọn → kiểm Zero PII → tạo tệp → audit | Có PII: chặn xuất | Tệp tóm tắt an toàn |
-
-## 9. DFD
-
-### 9.1. Context (Level 0)
-
-Tiến trình duy nhất là **Hệ thống hỗ trợ quyết định suy tim**. Bác sĩ/dược sĩ gửi dữ liệu ca và đơn thuốc, nhận kết quả/cảnh báo. Nguồn synthetic gửi hồ sơ và kết quả. Quản trị viên gửi cấu hình/rule và nhận audit.
-
-![DFD Context](architecture/05-dfd-context.png)
-
-### 9.2. Level 1
-
-| Process | Input/Output chính | Data Store |
-|---|---|---|
-| P1 Quản lý ca bệnh | Dữ liệu ca hợp lệ/trạng thái thiếu | D1 Hồ sơ ca, D2 Cận lâm sàng |
-| P2 Diagnosis & Lab/Test | Dữ liệu lâm sàng → phân loại/gợi ý xét nghiệm | D1, D2, D3 Rule |
-| P3 Treatment & MedSafety | Kết quả + thuốc → hướng tham khảo/cảnh báo | D1 Hồ sơ/thuốc, D2, D3 |
-| P4 Quyết định & Audit | Khuyến nghị + quyết định bác sĩ, quy tắc đã dùng | D3 Rule, D4 Khuyến nghị/Audit |
-
-![DFD Level 1](architecture/06-dfd-level-1.png)
-
-## 10. Requirements Traceability Matrix
-
-### 10.1. FR → User Story → Use Case → Module → Schema
-
-| FR | User Story | Use Case | Module | Bảng CSDL thiết kế |
-|---|---|---|---|---|
-| FR-01 | US-11 | UC-01 | Identity/RBAC | app_user, role, user_role |
-| FR-02 | US-01 | UC-02 | Case | patient_case, encounter |
-| FR-03 | US-02 | UC-02 | Case | observation, observation_type, patient_case |
-| FR-04 | US-02 | UC-02 | Validation | observation_type, observation |
-| FR-05 | US-02 | UC-02 | Clinical Data | observation, observation_type |
-| FR-06 | US-02 | UC-02 | Medication | ingredient, medication |
-| FR-07 | US-04 | UC-02 | Completeness | observation, result_missing_field |
-| FR-08 | US-03 | UC-03 | Diagnosis | evaluation, module_result, rule_version |
-| FR-09 | US-04 | UC-03 | Diagnosis | evaluation, module_result, rule_version |
-| FR-10 | US-04 | UC-03 | Diagnosis | evaluation, module_result, rule_version |
-| FR-11 | US-04 | UC-03 | Diagnosis | module_result, recommendation, rule_version |
-| FR-12 | US-04 | UC-03 | Diagnosis | module_result, recommendation, rule_version |
-| FR-13 | US-05 | UC-04 | Lab/Test | observation, recommendation |
-| FR-14 | US-05 | UC-04 | Lab/Test | recommendation, module_result |
-| FR-15 | US-05 | UC-04 | Lab/Test | observation, recommendation |
-| FR-16 | US-06 | UC-05 | Treatment | module_result, recommendation, rule_version |
-| FR-17 | US-06 | UC-05 | Treatment | module_result, recommendation, rule_version |
-| FR-18 | US-06 | UC-05 | Treatment | observation, module_result, recommendation |
-| FR-19 | US-07 | UC-06 | MedSafety | medication, ingredient, module_result, recommendation |
-| FR-20 | US-08 | UC-06 | MedSafety | medication, observation, module_result, recommendation |
-| FR-21 | US-08 | UC-06 | MedSafety | medication, observation, module_result, recommendation |
-| FR-22 | US-09 | UC-03–06 | Explainability | evaluation, module_result, recommendation, rule_version |
-| FR-23 | US-10 | UC-07 | Decision | clinical_decision, audit_event |
-| FR-24 | US-10 | UC-07 | Audit | evaluation, module_result, clinical_decision, audit_event |
-| FR-25 | US-12 | UC-08 | History | encounter, evaluation, clinical_decision, audit_event |
-| FR-26 | US-12 | UC-10 | Export | evaluation, module_result, clinical_decision |
-| FR-27 | US-11 | UC-09 | Rule Versioning | rule_version, rule_approval, audit_event |
-
-Các bảng là **đích thiết kế** trong [schema.sql](../database/schema.sql), không chứng minh FR đã được Gateway stub triển khai. Kết quả xuất báo cáo (FR-26) được dựng từ các bảng đã liệt kê, chưa có bảng `report` riêng. NFR có RTM riêng ở mục 10.2.
-
-### 10.2. NFR → User Story → Use Case → Module
-
-| NFR | User Story | Use Case | Module |
-|---|---|---|---|
-| NFR-01 | US-07 | UC-06 | API/Rule Engine |
-| NFR-02 | US-03–08 | UC-03–06 | API Gateway |
-| NFR-03 | US-09 | UC-03–06 | Rule Versioning |
-| NFR-04 | US-03,07,08 | UC-03,06 | Gold-case Test |
-| NFR-05 | US-01 | UC-01–02 | Monitoring |
-| NFR-06 | US-01 | UC-01–02 | Security |
-| NFR-07 | US-11 | UC-01,09 | Identity/RBAC |
-| NFR-08 | US-01 | UC-02,10 | Privacy/CI |
-| NFR-09 | US-10 | UC-07–09 | Audit |
-| NFR-10 | US-02 | UC-02 | Clinical Web |
-| NFR-11 | US-11 | UC-09 | Core Rule Engine |
-| NFR-12 | US-01–12 | UC-01–10 | Clinical Web |
-
-## 11. Quy trình phát triển và kiểm soát chất lượng
-
-- Chọn **Agile/Scrum** theo Sprint 1–2 tuần vì yêu cầu và dữ liệu còn được cập nhật.
-- Dùng tư duy **V-Model** cho rule lâm sàng: viết ca kiểm thử ngay khi đặc tả rule.
-- Product Owner chốt ưu tiên; Scrum Master theo dõi Sprint; Development Team thực hiện; giảng viên/chuyên gia xác nhận rule.
-- Definition of Ready: có mã, nguồn, actor, input/output, BDD, phụ thuộc và dữ liệu mẫu.
-- Definition of Done: đã review, cập nhật RTM/tài liệu, không PII, có test/cách kiểm chứng và PR rõ ràng.
-- Nợ kỹ thuật có mã TD, ảnh hưởng, owner, deadline và issue; dành khoảng 15% năng lực Sprint để trả nợ. Không hoãn lỗi PII, phân quyền hoặc sai rule lâm sàng.
-- Nội dung do GenAI hỗ trợ phải được đánh dấu, đối chiếu nguồn, review chéo, chạy test/gold cases và được người phụ trách chấp thuận.
-
-## 12. Vấn đề cần giảng viên xác nhận
-
-Các mục dưới đây chưa được xem là yêu cầu lâm sàng đã phê duyệt. Nhóm dùng dữ liệu synthetic và ghi `pending_review` cho rule chưa được xác nhận. Câu trả lời của thầy sẽ được cập nhật vào SRS và các tài liệu thiết kế tuần 3.
-
-1. **Người dùng:** Trong phạm vi đồ án, người dùng trực tiếp có đúng là bác sĩ, dược sĩ và quản trị viên không? Dược sĩ tham gia ở bước nào của quy trình khám?
-
-2. **Dữ liệu đầu vào:** Trong các file thầy cung cấp, file và phiên bản nào là danh mục biến chính thức cho phần suy tim? Với từng module, biến nào bắt buộc, biến nào tùy chọn; đơn vị, thời điểm đo và cách ghi dữ liệu chưa có được quy định theo nguồn nào?
-
-3. **Rule và ngưỡng:** Nhóm phải dùng tài liệu/phiên bản nào cho ngưỡng EF, kali, eGFR, các điều kiện cảnh báo thuốc và mức cảnh báo? Nếu các tài liệu khác nhau, nguồn nào được ưu tiên và ai duyệt rule cuối cùng?
-
-4. **Đầu ra bốn module:** Diagnosis cần trả nhóm EF tham khảo hay kết luận kiểu hình suy tim khi đủ bằng chứng? Lab/Test cần mức ưu tiên đến đâu? Treatment chỉ đưa ra hướng điều trị hay phải đề xuất thuốc và liều? MedSafety cần tối thiểu những cảnh báo nào?
-
-5. **Phương pháp AI:** Rule-based có được chấp nhận cho Case 2 không? Có bắt buộc dùng ML/LLM hoặc trả xác suất 0–100% không? Nếu có, kết quả sẽ được đánh giá bằng tiêu chí nào?
-
-6. **Dữ liệu kiểm thử:** Thầy có cung cấp ca synthetic kèm kết quả chuẩn (gold labels) không? Nếu nhóm tự tạo, cần tối thiểu bao nhiêu ca và ai xác nhận kết quả kỳ vọng?
-
-7. **Tích hợp và phê duyệt:** HIS/EMR, LIS, PACS/RIS chỉ cần mô phỏng hay phải kết nối thật? Ai có quyền duyệt chuyên môn và ai có quyền kích hoạt rule version?
-
-Sau khi được xác nhận, nhóm ghi nguồn, ngày xác nhận và quyết định vào tài liệu liên quan; đồng thời cập nhật các User Story, BDD, Data Dictionary và test case bị ảnh hưởng.
-
-
-
-## 13. Lịch sử phiên bản
-
-| Phiên bản | Nội dung | Trạng thái |
-|---|---|---|
-| 0.1 | Khung phạm vi và yêu cầu ban đầu | Nội bộ |
-| 1.0 | SRS Tuần 2: FR/NFR, backlog, BDD, Use Case, DFD, RTM | Chờ giảng viên review |
+### 2.1. Bối cảnh sản phẩm và vấn đề cần giải quyết
+
+Quản lý bệnh nhân suy tim cao tuổi cần theo dõi nhiều nhóm thông tin: triệu chứng, sinh hiệu, khám lâm sàng, xét nghiệm, thăm dò tim mạch, thuốc, bệnh đồng mắc và yếu tố lão khoa. Một hồ sơ có thể tiếp tục được cập nhật trong đợt điều trị và qua các lần khám sau. Vì vậy, dữ liệu phải gắn đúng bệnh nhân, đúng lần khám hoặc đợt điều trị, có nguồn và thời điểm ghi nhận.
+
+Hệ thống tập hợp những thông tin này, giúp nhân viên y tế xem diễn biến, nhận diện dữ liệu còn thiếu và đối chiếu gợi ý hỗ trợ với dữ liệu đã có. Mục tiêu là hỗ trợ việc quản lý và cá thể hóa chăm sóc; bác sĩ vẫn chịu trách nhiệm đánh giá và quyết định lâm sàng.
+
+Nhóm chưa khảo sát trực tiếp tại bệnh viện. Những khó khăn và quy trình trong bản này được phân tích từ tài liệu, cần được xác nhận với người có chuyên môn. Chưa có số liệu để khẳng định hệ thống đã giảm thời gian thao tác, sai sót hoặc cải thiện kết quả điều trị.
+
+Hệ thống dự kiến là ứng dụng web có phân quyền. Trong môi trường đồ án, HIS/LIS/PACS/EMR là các nguồn mô phỏng bên ngoài. Yêu cầu web độc lập hay Smart Panel nhúng vào EMR cần được xác nhận theo tài liệu tích hợp của giảng viên.
+
+### 2.2. Mục tiêu và tóm tắt chức năng
+
+| Mục tiêu nghiệp vụ | Nội dung hệ thống cần hỗ trợ | FR liên quan |
+| --- | --- | --- |
+| OB1. Quản lý hồ sơ tập trung | Tổ chức hồ sơ, lần khám/đợt điều trị, dữ liệu lâm sàng, thuốc và các nguồn nhập dữ liệu. | FR-06 đến FR-14, FR-16, FR-17 |
+| OB2. Theo dõi diễn biến theo thời gian | Xem lịch sử, so sánh dữ liệu và phân biệt các lần đánh giá. | FR-15, FR-33 |
+| OB3. Phân tầng và mô tả tình trạng | Kiểm tra dữ liệu, hỗ trợ đánh giá suy tim và gợi ý thăm dò bổ sung. | FR-18 đến FR-22 |
+| OB4. Hỗ trợ an toàn và cá thể hóa điều trị | Gợi ý điều trị/thuốc/liều, rà soát an toàn và trình bày căn cứ. | FR-23 đến FR-29 |
+| OB5. Phối hợp chăm sóc và theo dõi | Ghi nhận ý kiến dược sĩ, quyết định và kế hoạch của bác sĩ. | FR-09, FR-11, FR-30 đến FR-32 |
+
+Các chức năng tài khoản, quyền, danh mục, quy tắc và nhật ký tại FR-01 đến FR-05, FR-34 phục vụ kiểm soát và truy vết các hoạt động trên.
+
+Hệ thống gồm các nhóm chức năng: quản trị; quản lý hồ sơ và quá trình khám/điều trị; tiếp nhận và kiểm tra dữ liệu; bốn module hỗ trợ chuyên môn; ghi nhận ý kiến, quyết định và lịch sử.
+
+**Luồng nghiệp vụ dự kiến:**
+
+1. Tìm hoặc tạo hồ sơ giả lập; tạo lần khám ngoại trú hoặc đợt điều trị nội trú.
+2. Nhân viên y tế ghi nhận thông tin theo quyền; tiếp nhận thêm kết quả từ file hoặc API mô phỏng khi cần.
+3. Bác sĩ yêu cầu đánh giá. Hệ thống kiểm tra dữ liệu của module/quy tắc; phần dữ liệu thiếu không ngăn việc lưu hồ sơ hợp lệ, nhưng hạn chế gợi ý phụ thuộc vào dữ liệu đó.
+4. Hệ thống trả kết quả hỗ trợ kèm căn cứ. Dược sĩ rà soát thuốc và ghi nhận ý kiến trong phạm vi được phân công.
+5. Bác sĩ chấp nhận, điều chỉnh hoặc từ chối gợi ý, lập kế hoạch và tiếp tục theo dõi. Hệ thống lưu các lần đánh giá và quyết định.
+
+Luồng trên mô tả hoạt động chung, không bắt buộc bốn module chạy tuần tự như một dây chuyền. Các module sử dụng dữ liệu liên quan và chỉ đưa ra đầu ra khi đáp ứng điều kiện của quy tắc.
+
+### 2.3. Người dùng và các bên liên quan
+
+| Nhóm | Vai trò và phạm vi |
+| --- | --- |
+| Bác sĩ | Người dùng trực tiếp, ghi nhận khám/chẩn đoán, yêu cầu đánh giá, xem diễn biến và cảnh báo, quyết định cuối cùng và lập kế hoạch điều trị. |
+| Điều dưỡng | Người dùng trực tiếp, cập nhật sinh hiệu, cân nặng, triệu chứng và diễn biến chăm sóc theo quyền. |
+| Dược sĩ lâm sàng | Người dùng trực tiếp, xem dữ liệu liên quan, rà soát thuốc và ghi nhận ý kiến để bác sĩ xem xét. |
+| Quản trị hệ thống | Người dùng trực tiếp, quản lý tài khoản, quyền, danh mục và cấu hình kỹ thuật. Quyền quản trị không tự kèm quyền quyết định y khoa. |
+| Người được cấp quyền phê duyệt chuyên môn | Quyền đặc biệt để duyệt nội dung y khoa của quy tắc theo FR-05. Có thể được gán cho người dùng đủ chuyên môn; không mặc định là một vai trò thứ năm hoặc mọi bác sĩ đều có quyền này. |
+| Bệnh nhân và người chăm sóc | Đối tượng hưởng lợi và cung cấp thông tin qua nhân viên y tế; chưa có tài khoản trong MVP. |
+| Giảng viên | Bên giao yêu cầu và đánh giá đồ án; hỗ trợ xác nhận phạm vi và kết nối người có chuyên môn. |
+| Customer trong bối cảnh bệnh viện | Đại diện có thẩm quyền quyết định phạm vi và chấp nhận hệ thống; chưa xác định cá nhân, khoa hoặc bệnh viện cụ thể. |
+
+Bác sĩ, điều dưỡng, dược sĩ và quản trị viên là bốn vai trò MVP. Một tài khoản có thể được cấp nhiều quyền phù hợp, nhưng từng thao tác vẫn phải kiểm tra vai trò và phạm vi hồ sơ ở phía máy chủ. Quyền chi tiết đối với cập nhật thuốc, nhập dữ liệu và phê duyệt quy tắc sẽ được thống nhất trong đặc tả Use Case và phân quyền.
+
+### 2.4. Ràng buộc chung
+
+- Chỉ sử dụng dữ liệu giả lập trong phát triển, kiểm thử và demo; không chứa tên, số điện thoại, CCCD, BHYT hoặc địa chỉ thật.
+- Dữ liệu lâm sàng được tổ chức theo bệnh nhân và lần khám/đợt điều trị. Danh mục dữ liệu nghiệp vụ chưa đồng nghĩa với các bảng CSDL.
+- Lưu hồ sơ và chạy đánh giá là hai thao tác khác nhau. Hồ sơ thiếu dữ liệu lâm sàng vẫn được lưu nếu định danh và liên kết bắt buộc hợp lệ.
+- Kết quả hỗ trợ phải nêu căn cứ, dữ liệu thiếu, thời điểm và phiên bản quy tắc; dữ liệu thiết yếu thiếu không được coi là âm tính hoặc giá trị bình thường.
+- Quyết định của bác sĩ phải được lưu cùng gợi ý ban đầu và lý do. Hệ thống không tự tạo y lệnh hoặc ngừng thuốc.
+- Việc quản lý kỹ thuật và phê duyệt chuyên môn của quy tắc phải tách quyền.
+
+### 2.5. Giả định và phụ thuộc
+
+| Nội dung | Trạng thái |
+| --- | --- |
+| Bối cảnh nội trú ưu tiên, có ngoại trú; đối tượng người cao tuổi; bốn vai trò MVP; bệnh nhân/người chăm sóc ở phần mở rộng. | Đã thống nhất trong nhóm; chưa xác nhận qua khảo sát trực tiếp. |
+| Dữ liệu nhập tay, file theo mẫu và API mô phỏng. | Phạm vi đã chọn; cấu trúc file, bản tin và quy tắc đối chiếu định danh còn cần đặc tả. |
+| Rule Engine có thể giải thích là hướng thực hiện ban đầu. | Yêu cầu bắt buộc ML/LLM còn chờ giảng viên xác nhận. |
+| Web độc lập có phân quyền và mô phỏng tích hợp. | Cần xác nhận yêu cầu Smart Panel, vị trí nhúng và hợp đồng tích hợp. |
+| Danh mục quy tắc, thuốc/liều, ngưỡng và dữ liệu bắt buộc theo từng module. | Cần đối chiếu tài liệu đầu vào, ghi nguồn/phiên bản và xác nhận chuyên môn trước khi sử dụng làm quy tắc chuẩn. |
+| Ca bệnh giả lập và kết quả kỳ vọng dùng nghiệm thu. | Chưa ghi nhận bộ ca và đáp án đã được chuyên môn duyệt trong báo cáo hiện tại. |
+| Customer và người hỗ trợ xác nhận nghiệp vụ. | Chưa xác định đại diện bệnh viện cụ thể. |
+
+Các điểm còn mở không làm mất phạm vi 34 FR/13 NFR đã chọn, nhưng phải được làm rõ khi đặc tả trường dữ liệu, quy tắc, hợp đồng API và các tình huống nghiệm thu liên quan.
+
+## 3. Yêu cầu chi tiết
+
+### 3.1. Các giao diện bên ngoài
+
+| Giao diện | Yêu cầu |
+| --- | --- |
+| Giao diện web | Cung cấp thao tác phù hợp quyền bác sĩ, điều dưỡng, dược sĩ và quản trị. Trên màn hình hồ sơ/đánh giá phải nhận diện bệnh nhân và lần khám/đợt điều trị đang thao tác theo NFR-08. |
+| File nhập dữ liệu | Tiếp nhận file theo mẫu tại FR-16; thông báo dòng/trường lỗi và kết quả nhập. Loại file, tên cột, mã danh mục và cách xử lý bản ghi trùng chưa được chốt trong bản nháp. |
+| API nguồn dữ liệu mô phỏng | Tiếp nhận dữ liệu HIS/LIS/PACS/EMR, gắn đúng bệnh nhân và lần khám/đợt điều trị theo FR-17. Định dạng và cơ chế trao đổi phải được đối chiếu tài liệu đầu vào và đặc tả API tuần 3. |
+| API của ứng dụng | Khung REST API Gateway và OpenAPI được thiết kế trong tuần 3. Khi truyền qua mạng phải sử dụng HTTPS theo NFR-03; HTTP tại localhost chỉ phục vụ phát triển. |
+| Trình duyệt và thiết bị | Kiểm thử các luồng chính trên Chrome/Edge ở chiều rộng 1.366 px và 768 px theo NFR-13. Chưa cam kết cổng bệnh nhân hoặc ứng dụng di động riêng. |
+
+Danh mục endpoints, request/response và mã HTTP thuộc đặc tả OpenAPI. SRS quy định hành vi và ràng buộc mà các giao diện đó phải đáp ứng, không thay thế OpenAPI.
+
+### 3.2. Yêu cầu chức năng và mô hình nghiệp vụ
+
+#### 3.2.1. Danh mục yêu cầu chức năng
+
+Các mã và phạm vi FR giữ theo bảng đã chốt trong báo cáo. Cách diễn đạt được chuẩn hóa bằng từ “phải” để thể hiện yêu cầu bắt buộc.
+
+| Mã | Phân hệ | Yêu cầu chức năng |
+| --- | --- | --- |
+| FR-01 | Tài khoản/phân quyền | Hệ thống phải cho phép người dùng đăng nhập, đăng xuất bằng tài khoản được cấp |
+| FR-02 | Tài khoản/phân quyền | Hệ thống phải cho phép quản trị viên tạo, cập nhật, khóa và mở khóa tài khoản. |
+| FR-03 | Tài khoản/phân quyền | Hệ thống phải cho phép gán vai trò và phạm vi truy cập hồ sơ; kiểm soát thao tác theo quyền được cấp. |
+| FR-04 | Danh mục | Hệ thống phải cho phép quản trị viên quản lý danh mục khoa, chỉ số và đơn vị đo, thuốc và hoạt chất. |
+| FR-05 | Quy tắc hỗ trợ | Hệ thống phải quản lý nội dung, phiên bản, nguồn tham chiếu và trạng thái phê duyệt của quy tắc. Chỉ người được cấp quyền phê duyệt chuyên môn mới được duyệt nội dung y khoa; quyền quản lý kỹ thuật không mặc nhiên bao gồm quyền này. |
+| FR-06 | Hồ sơ bệnh nhân | Hệ thống phải cho phép tạo, tìm kiếm và cập nhật hồ sơ bệnh nhân giả lập bằng mã định danh duy nhất. Cho phép lưu hồ sơ chưa đầy đủ thông tin lâm sàng khi các trường định danh và liên kết bắt buộc hợp lệ; hiển thị thông tin còn thiếu. |
+| FR-07 | Lần khám / đợt điều trị | Hệ thống phải cho phép tạo, cập nhật và kết thúc lần khám ngoại trú hoặc đợt điều trị nội trú; gắn với bệnh nhân, khoa, bác sĩ phụ trách, trạng thái và thời gian bắt đầu/kết thúc. |
+| FR-08 | Tiền sử | Hệ thống phải cho phép ghi nhận và cập nhật tiền sử, bệnh đồng mắc của bệnh nhân. |
+| FR-09 | Theo dõi và chăm sóc | Hệ thống phải cho phép điều dưỡng cập nhật sinh hiệu, cân nặng, triệu chứng và diễn biến chăm sóc trong phạm vi được phân quyền. |
+| FR-10 | Khám và chẩn đoán | Hệ thống phải cho phép bác sĩ ghi nhận dấu hiệu khám, đánh giá lâm sàng và chẩn đoán của từng lần khám hoặc đợt điều trị. |
+| FR-11 | Đánh giá lão khoa | Hệ thống phải cho phép ghi nhận frailty, nhận thức, ADL/IADL, dinh dưỡng và các nguy cơ theo danh mục đã chọn. |
+| FR-12 | Cận lâm sàng | Hệ thống phải cho phép lưu và xem xét nghiệm, siêu âm, điện tim và báo cáo liên quan, kèm nguồn, thời điểm và đơn vị khi áp dụng. |
+| FR-13 | Thuốc | Hệ thống phải cho phép cập nhật danh sách thuốc đang dùng, gồm hoạt chất, hàm lượng, liều, đường dùng, tần suất và thời gian sử dụng. |
+| FR-14 | Dị ứng/phản ứng thuốc | Hệ thống phải cho phép ghi nhận dị ứng và phản ứng có hại của thuốc; phân biệt “chưa rõ” với “đã xác nhận không có”. |
+| FR-15 | Theo dõi diễn biến | Hệ thống phải cho phép xem lịch sử và so sánh triệu chứng, chỉ số và thuốc giữa các thời điểm, lần khám hoặc đợt điều trị. |
+| FR-16 | Nhập dữ liệu | Hệ thống phải cho phép nhập file theo mẫu; thông báo dòng/trường lỗi và kết quả nhập dữ liệu. |
+| FR-17 | Tiếp nhận qua API | Hệ thống phải cho phép nhận dữ liệu từ API mô phỏng HIS/LIS/PACS/EMR và liên kết với đúng bệnh nhân, lần khám hoặc đợt điều trị. |
+| FR-18 | Kiểm tra dữ liệu | Hệ thống phải kiểm tra trường bắt buộc, kiểu dữ liệu, giá trị, đơn vị và liên kết hồ sơ theo từng module/quy tắc. Chỉ rõ dữ liệu thiếu hoặc không hợp lệ; không đưa ra kết luận hoặc gợi ý phụ thuộc vào dữ liệu thiết yếu chưa có. |
+| FR-19 | Diagnosis | Khi bác sĩ yêu cầu, hệ thống phải sử dụng dữ liệu hiện có để đưa ra đánh giá hỗ trợ suy tim và căn cứ; trả trạng thái chưa đủ dữ liệu khi không thể đánh giá. |
+| FR-20 | Diagnosis | Hệ thống phải hỗ trợ mô tả thể suy tim và giai đoạn A-D khi đủ điều kiện của quy tắc; không kết luận mắc suy tim chỉ từ EF. |
+| FR-21 | Lab/Test | Hệ thống phải gợi ý xét nghiệm hoặc thăm dò cần bổ sung, kèm lý do và mức ưu tiên theo quy tắc áp dụng. |
+| FR-22 | Lab/Test | Hệ thống phải đối chiếu kết quả đã có và thời điểm thực hiện để nhận diện đề xuất có thể trùng lặp; nêu lý do nếu vẫn cần thực hiện lại. |
+| FR-23 | Treatment | Hệ thống phải đưa ra gợi ý hướng điều trị và theo dõi dựa trên tình trạng bệnh, thuốc, bệnh đồng mắc và các chỉ số liên quan, theo bộ quy tắc được chọn. |
+| FR-24 | Treatment | Hệ thống phải gợi ý thuốc/nhóm thuốc, liều khởi đầu, đường dùng và tần suất trong danh mục quy tắc được phê duyệt khi đủ dữ liệu; kèm căn cứ, điều kiện áp dụng và lưu ý. |
+| FR-25 | Treatment | Hệ thống phải gợi ý điều chỉnh hoặc tăng liều theo quy tắc được phê duyệt, dựa trên diễn biến và khả năng dung nạp; kèm điều kiện và thời điểm đánh giá lại. |
+| FR-26 | MedSafety | Hệ thống phải rà soát thuốc đang dùng hoặc được đề xuất để phát hiện trùng lặp, tương tác, dị ứng và chống chỉ định trong phạm vi bộ quy tắc. |
+| FR-27 | MedSafety | Hệ thống phải cảnh báo nguy cơ liên quan đến thuốc và dữ liệu người bệnh, như chức năng thận, điện giải, huyết áp hoặc nhịp tim; nêu mức độ và căn cứ. |
+| FR-28 | MedSafety | Hệ thống phải kiểm tra liều đang dùng hoặc được đề xuất theo quy tắc; chỉ rõ thuốc, liều và dữ liệu khiến liều cần được bác sĩ xem xét. |
+| FR-29 | Hiển thị kết quả hỗ trợ | Mỗi kết quả phải thể hiện module, gợi ý/cảnh báo, căn cứ, dữ liệu thiếu, thời điểm đánh giá và phiên bản quy tắc. |
+| FR-30 | Ý kiến dược sĩ | Hệ thống phải cho phép dược sĩ xem thông tin liên quan và ghi nhận nhận xét, đề xuất để bác sĩ xem xét. |
+| FR-31 | Quyết định bác sĩ | Hệ thống phải cho phép bác sĩ chấp nhận, điều chỉnh hoặc từ chối gợi ý; lưu gợi ý ban đầu, quyết định, nội dung điều chỉnh, lý do, người xác nhận và thời điểm. |
+| FR-32 | Kế hoạch điều trị | Hệ thống phải cho phép bác sĩ lập và cập nhật kế hoạch điều trị, theo dõi, ra viện và tái khám. Gợi ý của hệ thống chỉ được đưa vào kế hoạch sau khi bác sĩ xác nhận; không tự động tạo y lệnh hoặc ngừng thuốc. |
+| FR-33 | Lịch sử đánh giá | Hệ thống phải lưu các lần đánh giá, dữ liệu đầu vào đã sử dụng và quyết định liên quan; cho phép đánh giá lại khi dữ liệu thay đổi, đồng thời phân biệt kết quả cũ với kết quả mới. |
+| FR-34 | Nhật ký | Hệ thống phải ghi nhận người thực hiện, thời gian, đối tượng và hành động đối với các thay đổi quan trọng; cho phép tra cứu theo quyền. |
+
+#### 3.2.2. User Stories và Product Backlog
+
+**Chưa hoàn thiện.** Mục 4.4.1 trong báo cáo hiện tại mới có tiêu đề, chưa có danh sách User Stories để đưa vào SRS.
+
+Nội dung cần có là mã User Story, vai trò, hành động và lợi ích, FR/NFR liên quan và mức ưu tiên trong Product Backlog. Các stories phải đủ nhỏ để thực hiện và kiểm thử, phù hợp INVEST. Chưa gán mã US hoặc tạo liên kết RTM thay cho nội dung chưa được nhóm thống nhất.
+
+#### 3.2.3. Tiêu chí nghiệm thu BDD
+
+**Chưa hoàn thiện.** Mục 4.4.2 trong báo cáo hiện tại chưa có kịch bản nghiệm thu.
+
+Mỗi User Story phải có tiêu chí Given–When–Then cho luồng chuẩn và ngoại lệ/ca biên tương ứng. Giá trị và kết quả y khoa trong kịch bản phải dựa trên quy tắc và đáp án đã được duyệt; không lấy thiếu dữ liệu làm căn cứ tạo một kết luận giả định.
+
+#### 3.2.4. Use Case Diagram
+
+**Chưa hoàn thiện.** Các mục 4.3.1 và 4.3.2 trong báo cáo hiện tại chưa có sơ đồ.
+
+Cần sơ đồ tổng thể và phân rã theo bốn vai trò MVP. Sơ đồ phải phân biệt chức năng người dùng với các nguồn dữ liệu/hệ thống ngoài. Các quyền phê duyệt chuyên môn phải được thể hiện phù hợp FR-05.
+
+Tệp ảnh và nguồn chỉnh sửa sẽ đặt trong `docs/architecture/`; chỉ chèn liên kết ảnh khi đã có tệp thực tế và đã kiểm tra đường dẫn.
+
+#### 3.2.5. Đặc tả Use Case
+
+**Chưa hoàn thiện.** Mục 4.3.3 trong báo cáo hiện tại chưa có bảng đặc tả.
+
+Mỗi Use Case cần mã, mục tiêu, tác nhân, tiền điều kiện, hậu điều kiện, luồng chính và luồng phụ/ngoại lệ. Quyền truy cập và liên kết hồ sơ phải nhất quán với FR-03, FR-06, FR-07 và NFR-01, NFR-04. Chưa dùng lại mã UC của tài liệu cũ trước khi đối chiếu bộ yêu cầu mới.
+
+#### 3.2.6. DFD Context và DFD Level 1
+
+**Chưa hoàn thiện.** Mục 3.3.2 và 3.3.3 trong báo cáo hiện tại chưa có sơ đồ.
+
+DFD Context phải mô tả dữ liệu trao đổi giữa hệ thống và các tác nhân/nguồn ngoài. DFD Level 1 phải thể hiện tiến trình và kho dữ liệu, cân bằng luồng với sơ đồ Context. Các mũi tên biểu diễn dữ liệu; không dùng DFD để buộc bốn module chạy tuần tự.
+
+Sơ đồ phân cấp chức năng đã có trong báo cáo không thay thế Use Case Diagram hoặc DFD.
+
+### 3.3. Yêu cầu phi chức năng
+
+Các yêu cầu sau áp dụng cho môi trường thử nghiệm đồ án. Đây là tiêu chí phải kiểm tra, chưa phải kết quả kiểm thử đã đạt hoặc cam kết vận hành bệnh viện. Nhóm chất lượng giữ theo bảng đã thống nhất.
+
+| Mã | Nhóm chất lượng | Yêu cầu và tiêu chí kiểm tra |
+| --- | --- | --- |
+| NFR-01 | Bảo mật truy cập | Kiểm tra quyền ở phía máy chủ cho mọi API được bảo vệ. Toàn bộ ca kiểm thử truy cập trái quyền phải bị từ chối và không trả dữ liệu hồ sơ. |
+| NFR-02 | Bảo vệ thông tin xác thực | Không lưu mật khẩu dạng rõ; không ghi mật khẩu hoặc token vào log. Kiểm tra dữ liệu lưu và log trong các kịch bản đăng nhập. |
+| NFR-03 | Bảo mật truyền dữ liệu | Khi triển khai qua mạng, sử dụng HTTPS cho truy cập và trao đổi dữ liệu. HTTP tại localhost chỉ dùng để phát triển. |
+| NFR-04 | Toàn vẹn dữ liệu | Không chấp nhận bản ghi tham chiếu đến bệnh nhân/lần khám không tồn tại. Các kiểm thử vi phạm liên kết và ràng buộc bắt buộc phải bị từ chối. |
+| NFR-05 | Độ tin cậy lưu trữ | Dữ liệu đã thông báo lưu thành công phải còn nguyên sau khi khởi động lại ứng dụng và CSDL; kiểm tra với hồ sơ, kết quả và quyết định bác sĩ. |
+| NFR-06 | Hiệu năng thao tác | Với 10 người dùng đồng thời và 1.000 hồ sơ giả lập, ít nhất 95% yêu cầu xem/tìm hồ sơ hoàn thành trong 2 giây. Ghi rõ cấu hình máy và dữ liệu khi đo. |
+| NFR-07 | Hiệu năng đánh giá | Trong bộ thử nghiệm đã chọn, yêu cầu hỗ trợ phải trả kết quả hoặc trạng thái lỗi/không đủ dữ liệu trong tối đa 10 giây. Nếu quá hạn, giao diện phải thông báo thay vì chờ vô thời hạn. |
+| NFR-08 | Khả năng sử dụng | Mỗi màn hình hồ sơ và đánh giá phải hiển thị mã bệnh nhân, lần khám/đợt điều trị đang thao tác. Lỗi nhập liệu phải chỉ rõ trường và cách sửa. |
+| NFR-09 | Khả năng giải thích | 100% kết quả hỗ trợ trong bộ kiểm thử phải truy được dữ liệu đầu vào, quy tắc và nguồn tham chiếu đã sử dụng; không hiển thị phần trăm tin cậy chưa có phương pháp xác định. |
+| NFR-10 | An toàn chức năng | Các kịch bản thiếu dữ liệu thiết yếu phải hạn chế gợi ý tương ứng và nêu lý do. Không có thao tác nào tự biến gợi ý thành đơn thuốc hoặc tự ngừng thuốc. |
+| NFR-11 | Khả năng phục hồi | Hệ thống phải hỗ trợ sao lưu và phục hồi CSDL thử nghiệm; sau phục hồi, số bản ghi và các liên kết phải khớp bản sao lưu. Mục tiêu phục hồi demo: tối đa 30 phút. |
+| NFR-12 | Khả năng bảo trì | Quy tắc có mã và phiên bản. Thay đổi quy tắc phải kiểm thử được mà không sửa giao diện; kết quả cũ vẫn truy được phiên bản đã dùng. |
+| NFR-13 | Khả năng tương thích | Các luồng chính hoạt động trên Chrome và Edge tại thời điểm kiểm thử. Giao diện sử dụng được ở chiều rộng 1.366 px và 768 px, không che nút thao tác chính. |
+
+### 3.4. Ràng buộc thiết kế và tuân thủ
+
+- Thiết kế và hiện thực phải giữ các ràng buộc tại mục 2.4 và đáp ứng 34 FR, 13 NFR. Công nghệ hoặc cách chia thành phần không được làm mất chức năng đã chọn.
+- Mỗi quy tắc y khoa dùng trong đánh giá phải quản lý nội dung, phiên bản, nguồn và trạng thái phê duyệt theo FR-05. Mỗi kết quả phải truy lại dữ liệu và quy tắc đã dùng theo FR-29, FR-33, NFR-09, NFR-12.
+- Thuốc, liều, ngưỡng và điều kiện áp dụng trong Treatment/MedSafety phải có phạm vi được lựa chọn và phê duyệt. Bản này chưa ban hành một danh mục ngưỡng hay bảng liều lâm sàng thay cho tài liệu chuyên môn.
+- Phân quyền phải thực hiện phía máy chủ; kiểm tra quyền quyết định lâm sàng và quyền phê duyệt nội dung quy tắc độc lập với quyền quản trị kỹ thuật.
+- Không sử dụng dữ liệu bệnh nhân thật trong đồ án và không coi kết quả demo là đủ điều kiện triển khai lâm sàng.
+- IEC 62304 trong ví dụ bài giảng không tự động trở thành yêu cầu đã áp dụng cho đề tài. Nếu giảng viên yêu cầu tiêu chuẩn cụ thể, nhóm sẽ bổ sung phạm vi và tiêu chí tương ứng sau khi xác nhận.
+
+### 3.5. Ma trận truy vết yêu cầu
+
+Ma trận đầy đủ nằm trong [RTM.md](RTM.md):
+
+**Mã yêu cầu → User Story → Use Case → Schema CSDL → API.**
+
+Mỗi FR/NFR có một dòng riêng. NFR liên kết với các luồng chịu ảnh hưởng; trường hợp không áp dụng trực tiếp với schema hoặc API phải ghi lý do. Danh mục FR ở mục 3.2.1 vẫn xác định phân hệ của yêu cầu.
+
+**Trạng thái đối chiếu:** đã có 34 FR và 13 NFR, nhưng chưa có mã US/UC được đối chiếu theo bộ yêu cầu mới trong báo cáo này. RTM hiện chưa chứng minh độ phủ 100%. Schema và API ở tuần 3 cần đối chiếu lại với bộ yêu cầu đã chốt trước khi ghi thành liên kết hoàn chỉnh.
