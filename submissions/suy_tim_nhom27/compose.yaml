@@ -1,17 +1,11 @@
 services:
-  gateway:
-    build: .
-    ports:
-      - "127.0.0.1:8000:8000"
-    environment:
-      DEMO_PASSWORD: ${DEMO_PASSWORD:?Set DEMO_PASSWORD locally}
   db:
     image: postgres:16
-    profiles: [database]
     environment:
       POSTGRES_DB: hf_demo
       POSTGRES_USER: hf_demo
       POSTGRES_PASSWORD: ${DB_PASSWORD:-local-synthetic-demo-only}
+      HF_RUNTIME_PASSWORD: ${DB_RUNTIME_PASSWORD:-local-runtime-demo-only}
       TZ: Asia/Ho_Chi_Minh
       PGTZ: Asia/Ho_Chi_Minh
     ports:
@@ -21,5 +15,22 @@ services:
       - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
       - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
       - ./database/portal_permissions.sql:/docker-entrypoint-initdb.d/03-portal-permissions.sql:ro
+      - ./database/migrations/001_result_integrity.sql:/docker-entrypoint-initdb.d/04-result-integrity.sql:ro
+      - ./database/runtime_roles.sql:/docker-entrypoint-initdb.d/05-runtime-roles.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hf_demo -d hf_demo"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  gateway:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      DATABASE_URL: postgresql://hf_demo_runtime:${DB_RUNTIME_PASSWORD:-local-runtime-demo-only}@db:5432/hf_demo
+      DB_POOL_MAX_SIZE: 8
 volumes:
   hf_data:
