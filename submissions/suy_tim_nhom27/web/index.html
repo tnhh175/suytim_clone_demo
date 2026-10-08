@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#ffffff">
-  <title>Demo quản lý bệnh nhân suy tim</title>
+  <title>HF Care — Quản lý bệnh nhân suy tim</title>
   <link rel="stylesheet" href="./styles.css">
   <script src="./app.js" defer></script>
 </head>
@@ -13,43 +13,31 @@
     <span class="banner-mark" aria-hidden="true">
       <svg viewBox="0 0 20 20" focusable="false"><rect x="1" y="1" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 10h10M10 5v10" stroke="currentColor" stroke-width="2"/></svg>
     </span>
-    <strong>Demo — Synthetic Data — Not for Clinical Use</strong>
-    <span class="banner-side">Dữ liệu giả lập</span>
+    <strong>Hệ thống thử nghiệm với dữ liệu giả lập, không dùng cho quyết định y khoa.</strong>
   </div>
 
   <section id="loginView" class="login-layout" aria-labelledby="loginTitle">
     <div class="login-intro" id="loginIntro">
-      <div class="eyebrow">HỆ THỐNG DEMO</div>
-      <h1 id="loginTitle">Hồ sơ<br>theo từng<br><span>lần khám.</span></h1>
-      <p>Giao diện thử nghiệm quản lý hồ sơ suy tim cao tuổi. Dữ liệu không dùng cho chăm sóc hoặc quyết định y khoa.</p>
+      <div class="eyebrow">HF CARE</div>
+      <h1 id="loginTitle">Hệ thống hỗ trợ quản lý <span>bệnh nhân suy tim.</span></h1>
+      <p>Quản lý hồ sơ bệnh án, theo dõi tình trạng sức khỏe và hỗ trợ phối hợp chăm sóc bệnh nhân suy tim cao tuổi.</p>
       <div class="intro-rule"></div>
-      <div class="intro-meta">
-        <span>Gateway</span>
-        <strong id="apiOriginLabel">http://localhost:8000</strong>
-      </div>
     </div>
 
     <div class="login-panel">
       <div class="panel-folio" id="authFolio">ĐĂNG NHẬP</div>
       <h2 id="authTitle" tabindex="-1">Đăng nhập</h2>
-      <p class="muted" id="authSubtitle">Đăng nhập bằng tài khoản của bạn hoặc tài khoản demo.</p>
+      <p class="muted" id="authSubtitle">Đăng nhập bằng tài khoản đã được cấp.</p>
       <form id="loginForm" novalidate>
         <label for="loginRole">Tên đăng nhập</label>
-        <input id="loginRole" name="username" autocomplete="username" required maxlength="80" value="doctor_demo">
-        <label for="demoAccount">Điền nhanh tài khoản demo</label>
-        <select id="demoAccount">
-          <option value="">Chọn tài khoản demo (không bắt buộc)</option>
-          <option value="doctor_demo">Bác sĩ · doctor_demo</option>
-          <option value="nurse_demo">Điều dưỡng · nurse_demo</option>
-          <option value="pharmacist_demo">Dược sĩ · pharmacist_demo</option>
-          <option value="admin_demo">Quản trị · admin_demo</option>
-          <option value="patient_demo">Bệnh nhân · patient_demo</option>
-        </select>
-        <div id="unsupportedRole" class="field-note warning-note" hidden></div>
-
-        <label for="loginPassword">Mật khẩu demo</label>
-        <input id="loginPassword" name="password" type="password" autocomplete="current-password" required maxlength="200">
-        <div class="field-note">Nhập mật khẩu của tài khoản của bạn.</div>
+        <input id="loginRole" name="username" autocomplete="username" required maxlength="80" aria-describedby="loginUsernameError">
+        <p id="loginUsernameError" class="form-error" hidden></p>
+        <label for="loginPassword">Mật khẩu</label>
+        <div class="password-control"><input id="loginPassword" name="password" type="password" autocomplete="current-password" required maxlength="200" aria-describedby="loginPasswordError"><button id="togglePassword" class="button" type="button" aria-controls="loginPassword" aria-pressed="false">Hiện</button></div>
+        <p id="loginPasswordError" class="form-error" hidden></p>
+        <label for="selectedRole">Vai trò</label>
+        <select id="selectedRole" name="selected_role" required aria-describedby="loginSelectedRoleError"><option value="">Chọn vai trò</option><option value="doctor">Bác sĩ</option><option value="nurse">Điều dưỡng</option><option value="pharmacist">Dược sĩ</option><option value="patient">Bệnh nhân</option><option value="admin">Quản trị viên</option></select>
+        <p id="loginSelectedRoleError" class="form-error" hidden></p>
 
         <button id="loginButton" class="button primary full-width" type="submit">
           <span>Đăng nhập</span>
@@ -58,7 +46,7 @@
         <p id="loginMessage" class="form-message" role="status" aria-live="polite"></p>
       </form>
 
-      <button id="showRegister" class="button full-width" type="button">Chưa có tài khoản? Đăng ký bệnh nhân</button>
+      <button id="showRegister" class="button full-width" type="button">Bạn là bệnh nhân mới? Đăng ký tài khoản</button>
       <section id="registrationView" aria-labelledby="authTitle" hidden>
         <p class="subtle">Chỉ nhập tuổi và giới tính giả lập; không nhập tên, email, số điện thoại hoặc dữ liệu người bệnh thật.</p>
         <form id="registrationForm">
@@ -71,8 +59,8 @@
           <label for="registerConfirm">Nhập lại mật khẩu</label>
           <input id="registerConfirm" type="password" autocomplete="new-password" required minlength="12" maxlength="128">
           <div class="inline-form">
-            <div><label for="registerAge">Tuổi synthetic</label><input id="registerAge" name="age" type="number" min="0" max="120" step="1" required></div>
-            <div><label for="registerSex">Giới tính synthetic</label><select id="registerSex" name="sex"><option value="unknown">Chưa rõ</option><option value="female">Nữ</option><option value="male">Nam</option></select></div>
+            <div><label for="registerAge">Tuổi giả lập</label><input id="registerAge" name="age" type="number" min="0" max="120" step="1" required></div>
+            <div><label for="registerSex">Giới tính giả lập</label><select id="registerSex" name="sex"><option value="unknown">Chưa rõ</option><option value="female">Nữ</option><option value="male">Nam</option></select></div>
           </div>
           <p class="subtle">Tài khoản mới chỉ có quyền bệnh nhân. Hồ sơ mới chưa có lịch hẹn, số đo hoặc đơn thuốc.</p>
           <button id="registerButton" class="button primary full-width" type="submit">Đăng ký bệnh nhân</button>
@@ -83,7 +71,7 @@
 
       <div class="login-capability">
         <div class="capability-rule"></div>
-        <p>Chọn tài khoản tương ứng với công việc của bạn. Các dữ liệu trên màn hình đều là dữ liệu demo.</p>
+        <p>Bệnh nhân có thể tự đăng ký. Tài khoản nhân viên y tế và quản trị do người có thẩm quyền cấp.</p>
       </div>
     </div>
   </section>
@@ -96,11 +84,11 @@
         </button>
         <div class="wordmark">
           <span class="wordmark-mark">HF</span>
-          <span>Hồ sơ suy tim</span>
+          <span>HF Care</span>
         </div>
       </div>
       <div class="topbar-right">
-        <div id="gatewayStatus" class="gateway-status" aria-live="polite">
+        <div id="gatewayStatus" class="gateway-status" aria-live="polite" hidden>
           <span class="status-dot"></span><span>Đang kiểm tra Gateway</span>
         </div>
         <button id="logoutButton" class="button quiet" type="button">Đăng xuất</button>
@@ -110,7 +98,7 @@
     <aside id="sidebar" class="sidebar" aria-label="Điều hướng chính">
       <div class="sidebar-intro">
         <div class="eyebrow">VAI TRÒ ĐANG ĐĂNG NHẬP</div>
-        <h2>Quản lý<br>hồ sơ</h2>
+        <h2 id="sidebarTitle">Quản lý hồ sơ</h2>
       </div>
       <nav id="roleNav" class="role-nav" aria-label="Các màn hình"></nav>
       <div class="sidebar-user">
@@ -129,6 +117,7 @@
         <div id="contextBadges" class="context-badges"></div>
       </div>
       <div id="globalMessage" class="global-message" role="status" aria-live="polite" hidden></div>
+      <section id="patientContext" class="patient-context" aria-label="Hồ sơ bệnh nhân đang chọn" hidden></section>
       <section id="viewContent" aria-live="polite"></section>
     </main>
   </div>

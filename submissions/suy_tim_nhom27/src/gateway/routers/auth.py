@@ -24,6 +24,7 @@ class LoginPayload(BaseModel):
 
     username: str = Field(min_length=1, max_length=80)
     password: str = Field(min_length=1, max_length=200)
+    selected_role: Literal["doctor", "nurse", "pharmacist", "patient", "admin"] | None = None
 
 
 class RegistrationPayload(BaseModel):
@@ -197,6 +198,8 @@ def login(body: LoginPayload, request: Request) -> TokenResponse:
 
         # Verify role cardinality and load permission claims from the database.
         actor = _actor_from_session(conn, user_id, body.username)
+        if body.selected_role is not None and body.selected_role != actor.role:
+            raise HTTPException(status_code=401, detail="Thông tin đăng nhập không hợp lệ")
         token = secrets.token_urlsafe(32)
         token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
         expires_at = datetime.now(timezone.utc) + timedelta(seconds=_SESSION_TTL_SECONDS)

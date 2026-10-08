@@ -4,14 +4,14 @@ Phạm vi: giao diện HTML/CSS/JavaScript hiện tại; đăng ký mới chỉ 
 
 ## Luồng giao diện
 
-- Hồ sơ hiển thị danh sách trước, lọc mã/ID trên dữ liệu đã tải, nút **Mở lần khám** đi trực tiếp tới danh sách lần khám; **Chi tiết** để sửa hồ sơ. Form tạo thu gọn khi đã có hồ sơ.
-- Lần khám hiển thị ngữ cảnh và dữ liệu đang chọn trước; tạo lần khám và mở ID trong phần mở rộng. Sửa observation mở form và đưa focus tới trường loại dữ liệu. Snapshot phân biệt thêm/sửa và ID observation; bản nháp thêm được giữ riêng theo lần khám, hủy sửa trả về đúng bản nháp, chuyển lần khám không mang theo observation đang sửa. Đăng xuất xóa bản nháp.
+- Bác sĩ có sidebar Tổng quan/Bệnh nhân; chọn hồ sơ để làm việc trong tabs ngữ cảnh. Danh sách lọc mã hồ sơ; Xem hồ sơ để xem/cập nhật, Các lần khám mở danh sách của bệnh nhân. Form tạo thu gọn khi đã có hồ sơ.
+- Lần khám và Ghi nhận là hai tabs riêng của bác sĩ; tạo lần khám và mở ID trong phần mở rộng Thông tin kỹ thuật. Sửa observation mở form và đưa focus tới trường loại dữ liệu. Snapshot phân biệt thêm/sửa và ID observation; bản nháp thêm được giữ riêng theo lần khám, hủy sửa trả về đúng bản nháp, chuyển lần khám không mang theo observation đang sửa. Đổi bệnh nhân/đăng xuất xóa bản nháp; rời form chưa lưu cần xác nhận.
 - Form giữ dữ liệu khi lỗi; nút đang xử lý chặn gửi lặp. `409` cho phép đọc phiên bản mới trước khi gửi lại. POST đã lưu nhưng GET tiếp theo thất bại chỉ cho tải dữ liệu đã lưu, không gửi lại mutation.
 - Snapshot form có ngữ cảnh hồ sơ/lần khám tương ứng: hồ sơ mới không nhận bản nháp sửa hồ sơ cũ. MedSafety điền ID từ lần khám vừa tải thành công, giữ revision nhập ở cùng lần khám, xóa revision khi chuyển lần khám; không tự đoán revision. Tải bị từ chối giữ ngữ cảnh trước đó.
 - Chỉ khi các API đọc lần khám mới đều thành công, ứng dụng xóa kết quả evaluation và ID chờ tải của lần khám cũ. Mở bằng ID, chọn hàng và chuyển hồ sơ đều áp dụng quy tắc này; kết quả hoặc retry cũ không hiển thị dưới lần khám mới.
 - Mỗi request kiểm tra phiên/màn hình trước khi cập nhật state hoặc DOM. Phản hồi của màn hình cũ hoặc trước đăng xuất không thay đổi màn hình hiện tại.
-- Cổng patient dùng cột tiếng Việt, thời điểm, đơn vị và trạng thái. UUID/JSON nằm trong **Dữ liệu kỹ thuật**. Chỉ lịch requested/confirmed có Hủy; chỉ reminder pending có phản hồi; đơn thuốc chỉ đọc.
-- Trên 768/390/320 px form một cột, bảng patient thành hàng dạng thẻ. Sidebar ẩn không nhận Tab; Escape đóng và trả focus; chọn màn hình đưa focus tới tiêu đề.
+- Cổng patient dùng cột tiếng Việt, thời điểm, đơn vị và trạng thái, bỏ cột JSON kỹ thuật. Chỉ lịch requested/confirmed có Hủy và xác nhận; chỉ reminder pending có Đã uống/Bỏ qua; đơn thuốc chỉ đọc. Số đo tự nhập có nhãn nguồn, lỗi tại trường và giữ đúng giá trị 0 được API cho phép.
+- Trên 768/390/360/320 px form một cột, bảng patient thành hàng dạng thẻ. Sidebar ẩn không nhận Tab; Escape đóng và trả focus; chọn màn hình đưa focus tới tiêu đề. Xem mapping review và phần cần backend tại [review-implementation.md](review-implementation.md).
 
 ## Chạy kiểm tra
 

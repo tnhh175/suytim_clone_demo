@@ -14,7 +14,7 @@ def test_app_serves_demo_assets_and_fails_closed_without_database():
     with TestClient(create_app()) as client:
         page = client.get("/")
         assert page.status_code == 200
-        assert "Synthetic Data" in page.text
+        assert "dữ liệu giả lập, không dùng cho quyết định y khoa" in page.text
         assert client.get("/health").status_code == 503
         response = client.post(
             "/api/v1/auth/token",
@@ -48,7 +48,7 @@ def test_documented_origin_and_explicit_dev_server_cors_preflight():
     assert "expected_revision: Number(state.selectedCase && state.selectedCase.revision)" in web
     logout_body = web[web.index("async function logout"):web.index('$("#logoutButton").addEventListener')]
     request_at = logout_body.index('apiRequest("/api/v1/auth/logout"')
-    assert request_at < logout_body.index('endSession("Đã đăng xuất khỏi phiên demo.")', request_at)
+    assert request_at < logout_body.index('endSession("Bạn đã đăng xuất.")', request_at)
     assert "Không thể xác nhận thu hồi phiên trên máy chủ" in logout_body
 
 
