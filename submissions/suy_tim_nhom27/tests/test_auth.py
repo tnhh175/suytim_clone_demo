@@ -40,13 +40,17 @@ class FakeConnection:
 
     def execute(self, sql, params=()):
         normalized = " ".join(sql.lower().split())
-        if normalized.startswith("select id, password_hash, active from app_user"):
+        if normalized.startswith("select id as user_id, password_hash, active from app_user"):
             user = self.pool.users.get(params[0])
-            return FakeCursor([(user["id"], user["password_hash"], user["active"]) ] if user else [])
+            return FakeCursor([{
+                "user_id": user["id"],
+                "password_hash": user["password_hash"],
+                "active": user["active"],
+            }] if user else [])
         if normalized.startswith("select role_code from user_role"):
-            return FakeCursor([(role,) for role in self.pool.roles.get(params[0], [])])
+            return FakeCursor([{"role_code": role} for role in self.pool.roles.get(params[0], [])])
         if normalized.startswith("select permission_code from user_permission"):
-            return FakeCursor([(permission,) for permission in self.pool.permissions.get(params[0], [])])
+            return FakeCursor([{"permission_code": permission} for permission in self.pool.permissions.get(params[0], [])])
         if normalized.startswith("insert into auth_session"):
             user_id, token_hash, expires_at = params
             self.pool.sessions[token_hash] = {
@@ -55,17 +59,18 @@ class FakeConnection:
                 "revoked_at": None,
             }
             return FakeCursor()
-        if normalized.startswith("select u.id, u.username, u.active, s.expires_at, s.revoked_at"):
+        if normalized.startswith("select u.id as user_id, u.username, u.active"):
             session = self.pool.sessions.get(params[0])
             if session is None:
                 return FakeCursor()
             user = next(item for item in self.pool.users.values() if item["id"] == session["user_id"])
-            return FakeCursor([(
-                user["id"], user["username"], user["active"],
-                session["expires_at"], session["revoked_at"],
-            )])
-        if normalized.startswith("select (%s::timestamptz > now())"):
-            return FakeCursor([(params[0] > datetime.now(timezone.utc),)])
+            return FakeCursor([{
+                "user_id": user["id"],
+                "username": user["username"],
+                "active": user["active"],
+                "session_unexpired": session["expires_at"] > datetime.now(timezone.utc),
+                "revoked_at": session["revoked_at"],
+            }])
         if normalized.startswith("update auth_session"):
             token_hash, user_id = params
             session = self.pool.sessions.get(token_hash)
@@ -74,7 +79,7 @@ class FakeConnection:
             return FakeCursor()
         if normalized.startswith("select owner_id from patient_case"):
             owner_id = self.pool.cases.get(params[0])
-            return FakeCursor([(owner_id,)] if owner_id is not None else [])
+            return FakeCursor([{"owner_id": owner_id}] if owner_id is not None else [])
         if normalized.startswith("select 1 from case_access"):
             case_id, user_id, scopes = params
             allowed = any(
