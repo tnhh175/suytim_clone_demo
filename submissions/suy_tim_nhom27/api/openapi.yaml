@@ -173,6 +173,47 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+    put:
+      tags:
+      - Cases
+      summary: Update Case
+      operationId: update_case_api_v1_cases__case_id__put
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: case_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Case Id
+      - name: expected_revision
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+          title: Expected Revision
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CaseUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseOut'
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /api/v1/cases/{case_id}/encounters:
     get:
       tags:
@@ -597,6 +638,67 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EvaluationOut'
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/cases/{case_id}/history:
+    get:
+      tags:
+      - History
+      summary: Get Case History
+      operationId: get_case_history_api_v1_cases__case_id__history_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: case_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Case Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EvaluationOut'
+                title: Response Get Case History Api V1 Cases  Case Id  History Get
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/cases/{case_id}/export:
+    get:
+      tags:
+      - History
+      summary: Export Case
+      operationId: export_case_api_v1_cases__case_id__export_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: case_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Case Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseExportOut'
         '422':
           description: Dữ liệu không hợp lệ
           content:
@@ -1233,6 +1335,33 @@ components:
       - age
       - sex
       title: CaseCreate
+    CaseExportOut:
+      properties:
+        case:
+          $ref: '#/components/schemas/CaseSnapshot'
+        evaluations:
+          items:
+            $ref: '#/components/schemas/EvaluationOut'
+          type: array
+          title: Evaluations
+        decisions:
+          items:
+            $ref: '#/components/schemas/DecisionOut'
+          type: array
+          title: Decisions
+        mode:
+          type: string
+          title: Mode
+          default: stub
+          enum:
+          - stub
+      additionalProperties: false
+      type: object
+      required:
+      - case
+      - evaluations
+      - decisions
+      title: CaseExportOut
     CaseOut:
       properties:
         id:
@@ -1269,6 +1398,67 @@ components:
       - owner_id
       - revision
       title: CaseOut
+    CaseSnapshot:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        synthetic_code:
+          type: string
+          title: Synthetic Code
+        age:
+          type: integer
+          title: Age
+        sex:
+          type: string
+          enum:
+          - male
+          - female
+          - unknown
+          title: Sex
+        owner_id:
+          type: string
+          format: uuid
+          title: Owner Id
+        revision:
+          type: integer
+          title: Revision
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - synthetic_code
+      - age
+      - sex
+      - owner_id
+      - revision
+      title: CaseSnapshot
+    CaseUpdate:
+      properties:
+        synthetic_code:
+          type: string
+          pattern: ^SYN-[A-Z0-9-]{1,24}$
+          title: Synthetic Code
+        age:
+          type: integer
+          maximum: 120.0
+          minimum: 0.0
+          title: Age
+        sex:
+          type: string
+          enum:
+          - male
+          - female
+          - unknown
+          title: Sex
+      additionalProperties: false
+      type: object
+      required:
+      - synthetic_code
+      - age
+      - sex
+      title: CaseUpdate
     ClinicalNoteOut:
       properties:
         id:
@@ -1862,14 +2052,27 @@ components:
           type: array
           title: Clinical Recommendations
         phenotype:
-          type: 'null'
           title: Phenotype
+          nullable: true
+          type: string
+          enum:
+          - HFrEF
+          - HFmrEF
+          - HFpEF
+          - HFimpEF
         stage:
-          type: 'null'
           title: Stage
+          nullable: true
+          type: string
+          enum:
+          - A
+          - B
+          - C
+          - D
         course:
-          type: 'null'
           title: Course
+          nullable: true
+          type: string
         suggested_tests:
           items: {}
           type: array

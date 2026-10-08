@@ -11,11 +11,18 @@ def _convert_schema(value):
         return value
 
     converted = {key: _convert_schema(item) for key, item in value.items()}
+    if converted.get("type") == "null":
+        converted.pop("type")
+        converted["nullable"] = True
     if "anyOf" in converted:
         alternatives = converted["anyOf"]
         non_null = [
             item for item in alternatives
-            if not isinstance(item, dict) or item.get("type") != "null"
+            if not isinstance(item, dict)
+            or not (
+                item.get("type") == "null"
+                or (item.get("nullable") is True and len(item) == 1)
+            )
         ]
         if len(non_null) < len(alternatives):
             converted["nullable"] = True

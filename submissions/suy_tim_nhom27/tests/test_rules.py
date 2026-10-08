@@ -108,6 +108,19 @@ class FakeDatabase:
                 key: row[key]
                 for key in ("id", "encounter_id", "input_revision", "requested_by", "mode", "created_at", "case_id")
             } | {"current_revision": self.case_revision}])
+        if normalized.startswith("select v.id from evaluation as v join encounter as e"):
+            return Cursor([
+                {"id": row["id"]}
+                for row in sorted(self.evaluations.values(), key=lambda item: str(item["id"]))
+                if row["case_id"] == params[0] and row["mode"] == "stub"
+            ])
+        if normalized.startswith("select d.id, d.evaluation_id, d.doctor_id, d.action, d.reason"):
+            return Cursor([row for row in self.decisions.values() if row["evaluation_id"] in self.evaluations])
+        if normalized.startswith("select id, synthetic_code, age, sex, owner_id, revision from patient_case"):
+            return Cursor([{
+                "id": CASE_ID, "synthetic_code": "SYN-DEMO-001", "age": 75,
+                "sex": "female", "owner_id": DOCTOR_ID, "revision": self.case_revision,
+            }] if params[0] == CASE_ID else [])
         if normalized.startswith("select m.module, m.status, m.rule_version_id"):
             return Cursor([{
                 "module": module,
@@ -262,6 +275,33 @@ def test_evaluation_is_persisted_as_stub_and_pharmacist_scope_is_limited(monkeyp
         "modules": ["medsafety"],
     })
     assert allowed.status_code == 201
+
+
+def test_case_history_and_export_are_clinical_scope_only(monkeypatch):
+    client, database = make_client(monkeypatch)
+    created = client.post("/api/v1/evaluations", json={
+        "encounter_id": str(ENCOUNTER_ID), "expected_revision": 4, "modules": ["diagnosis", "medsafety"],
+    })
+    assert created.status_code == 201
+    evaluation_id = UUID(created.json()["id"])
+    decision = client.post(f"/api/v1/evaluations/{evaluation_id}/decisions", json={
+        "action": "rejected", "reason": "Synthetic demo decision",
+    })
+    assert decision.status_code == 201
+
+    history = client.get(f"/api/v1/cases/{CASE_ID}/history")
+    assert history.status_code == 200
+    assert len(history.json()) == 1
+    assert {row["module"] for row in history.json()[0]["results"]} == {"diagnosis", "medsafety"}
+    export = client.get(f"/api/v1/cases/{CASE_ID}/export")
+    assert export.status_code == 200
+    assert export.json()["case"]["id"] == str(CASE_ID)
+    assert len(export.json()["evaluations"]) == 1
+    assert export.json()["decisions"][0]["reason"] == "Synthetic demo decision"
+
+    pharmacist, _ = make_client(monkeypatch, role="pharmacist", database=database)
+    assert pharmacist.get(f"/api/v1/cases/{CASE_ID}/history").status_code == 403
+    assert pharmacist.get(f"/api/v1/cases/{CASE_ID}/export").status_code == 403
 
 
 def test_evaluation_rejects_rule_linkage_and_decision_requires_adjustment_details(monkeypatch):

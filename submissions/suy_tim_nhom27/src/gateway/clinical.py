@@ -25,6 +25,12 @@ class CaseCreate(_Input):
     sex: Literal["male", "female", "unknown"]
 
 
+class CaseUpdate(_Input):
+    synthetic_code: str = Field(pattern=r"^SYN-[A-Z0-9-]{1,24}$")
+    age: int = Field(ge=0, le=120)
+    sex: Literal["male", "female", "unknown"]
+
+
 class CaseOut(_Input):
     id: UUID
     synthetic_code: str
@@ -278,6 +284,31 @@ def build_clinical_router(
                 """SELECT id, synthetic_code, age, sex, owner_id, revision
                      FROM patient_case WHERE id = %s""",
                 (case_id,),
+            ).fetchone()
+            if row is None:
+                raise HTTPException(status_code=404, detail="Không tìm thấy ca")
+        return _case_out(row)
+
+    @router.put("/cases/{case_id}", response_model=CaseOut, tags=["Cases"])
+    def update_case(
+        case_id: UUID,
+        body: CaseUpdate,
+        request: Request,
+        expected_revision: int = Query(ge=1),
+        actor: Any = Depends(actor_dependency),
+    ):
+        if getattr(actor, "role", None) != "doctor":
+            raise HTTPException(status_code=403, detail="Chỉ bác sĩ được cập nhật hồ sơ ca")
+        with connection_provider(request, actor) as conn:
+            case_access_checker(conn, actor, case_id, ["clinical"])
+            _lock_case_revision(conn, case_id, expected_revision)
+            row = _write_query(
+                conn,
+                """UPDATE patient_case
+                      SET synthetic_code = %s, age = %s, sex = %s
+                    WHERE id = %s
+                    RETURNING id, synthetic_code, age, sex, owner_id, revision""",
+                (body.synthetic_code, body.age, body.sex, case_id),
             ).fetchone()
             if row is None:
                 raise HTTPException(status_code=404, detail="Không tìm thấy ca")

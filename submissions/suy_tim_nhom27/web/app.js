@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const API_BASE = (new URLSearchParams(location.search).get("api") || "http://localhost:8000").replace(/\/+$/, "");
+  const API_BASE = (new URLSearchParams(location.search).get("api") || location.origin).replace(/\/+$/, "");
   const TOKEN_KEY = "hf-demo.access-token";
   const USER_KEY = "hf-demo.username";
   const accountRoles = { doctor_demo: "doctor", nurse_demo: "nurse", pharmacist_demo: "pharmacist", admin_demo: "admin", patient_demo: "patient" };
@@ -499,7 +499,7 @@
     if (!items.length) return emptyState("API chưa trả note", "Danh sách notes rỗng.");
     return '<div class="record-list">' + items.map(function (item) {
       return '<article class="record-row"><div><strong>' + escapeHTML(item.kind || "Note") + '</strong><div class="row-meta">ID ' +
-        escapeHTML(item.id || "Không có từ API") + " · " + escapeHTML(formatDate(item.created_at || item.occurred_at)) +
+        escapeHTML(item.id || "Không có từ API") + " · " + escapeHTML(formatDate(item.recorded_at || item.created_at || item.occurred_at)) +
         '</div></div><p class="note-content">' + escapeHTML(item.content || "Không có nội dung từ API") + "</p></article>";
     }).join("") + "</div>";
   }
@@ -740,7 +740,8 @@
         dose_unit: String(values.get("dose_unit") || ""),
         route: String(values.get("route") || ""),
         frequency_per_day: Number(values.get("frequency_per_day")),
-        kind: String(values.get("kind") || "")
+        kind: String(values.get("kind") || ""),
+        expected_revision: Number(state.selectedCase && state.selectedCase.revision)
       };
       const button = form.querySelector("button");
       button.disabled = true;
@@ -1160,7 +1161,20 @@
 
   loginRole.addEventListener("change", function () { showUnsupportedRole(loginRole.value); });
   loginForm.addEventListener("submit", submitLogin);
-  $("#logoutButton").addEventListener("click", function () { endSession("Đã đăng xuất khỏi phiên demo."); });
+  async function logout() {
+    if (!state.token) { endSession("Đã đăng xuất khỏi phiên demo."); return; }
+    try {
+      await apiRequest("/api/v1/auth/logout", { method: "POST" });
+      endSession("Đã đăng xuất khỏi phiên demo.");
+    } catch (error) {
+      if (error && error.status === 401) {
+        endSession("Phiên đã hết hạn hoặc bị thu hồi.");
+        return;
+      }
+      setGlobalMessage("Không thể xác nhận thu hồi phiên trên máy chủ. Hãy thử lại khi Gateway sẵn sàng.", "error");
+    }
+  }
+  $("#logoutButton").addEventListener("click", logout);
   $("#navToggle").addEventListener("click", function () {
     const open = !document.body.classList.contains("nav-open");
     document.body.classList.toggle("nav-open", open);
