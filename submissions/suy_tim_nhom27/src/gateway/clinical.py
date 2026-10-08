@@ -500,9 +500,10 @@ def build_clinical_router(
             case_access_checker(conn, actor, parent["case_id"], [scope])
             rows = conn.execute(
                 """SELECT id, encounter_id, kind, content, recorded_at
-                     FROM clinical_note WHERE encounter_id = %s
+                     FROM clinical_note
+                    WHERE encounter_id = %s AND (%s = 'clinical' OR kind = 'nursing')
                     ORDER BY recorded_at DESC, id""",
-                (encounter_id,),
+                (encounter_id, scope),
             ).fetchall()
         return rows
 

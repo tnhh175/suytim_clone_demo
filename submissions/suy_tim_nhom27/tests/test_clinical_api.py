@@ -128,8 +128,12 @@ class FakeDatabase:
             encounter = self.encounters.get(encounter_id)
             return Cursor([{"id": row["id"], "code": row["code"]}] if row and row["encounter_id"] == encounter_id and encounter and encounter["case_id"] == case_id else [])
         if statement.startswith("select id, encounter_id, kind, content, recorded_at from clinical_note"):
+            encounter_id, scope = params
+            rows = [row for row in self.notes if row["encounter_id"] == encounter_id]
+            if scope == "nursing":
+                rows = [row for row in rows if row["kind"] == "nursing"]
             return Cursor([{key: row[key] for key in ("id", "encounter_id", "kind", "content", "recorded_at")}
-                           for row in self.notes if row["encounter_id"] == params[0]])
+                           for row in rows])
         if statement.startswith("insert into clinical_note"):
             encounter_id, kind, content, recorded_by = params
             note_id = UUID("40000000-0000-4000-8000-%012d" % (len(self.notes) + 1))
@@ -329,15 +333,28 @@ def test_nursing_observation_allowlist_and_scoped_notes():
     )
     assert nursing_note.status_code == 201, nursing_note.text
     assert nursing_note.json()["kind"] == "nursing"
-    assert nurse.client.get(f"/api/v1/encounters/{ENCOUNTER_1}/notes").json()[0]["content"] == "Theo dõi chăm sóc tổng hợp."
+    nurse.db.notes.append(dict(
+        id=UUID("40000000-0000-4000-8000-000000000002"), encounter_id=ENCOUNTER_1,
+        kind="examination", content="Ghi chú khám bác sĩ.", recorded_at=NOW,
+    ))
+    nurse_notes = nurse.client.get(f"/api/v1/encounters/{ENCOUNTER_1}/notes").json()
+    assert {row["kind"] for row in nurse_notes} == {"nursing"}
     stale_note = nurse.client.post(
         f"/api/v1/encounters/{ENCOUNTER_1}/notes?expected_revision=3",
         json={"kind": "nursing", "content": "Ghi nhận cũ."},
     )
     assert stale_note.status_code == 409
-    assert len(nurse.db.notes) == 1
+    assert len(nurse.db.notes) == 2
 
     doctor = context("doctor")
+    doctor.db.notes = [
+        dict(id=UUID("40000000-0000-4000-8000-000000000003"), encounter_id=ENCOUNTER_1,
+             kind="nursing", content="Ghi chú chăm sóc.", recorded_at=NOW),
+        dict(id=UUID("40000000-0000-4000-8000-000000000004"), encounter_id=ENCOUNTER_1,
+             kind="examination", content="Ghi chú khám.", recorded_at=NOW),
+    ]
+    doctor_notes = doctor.client.get(f"/api/v1/encounters/{ENCOUNTER_1}/notes").json()
+    assert {row["kind"] for row in doctor_notes} == {"nursing", "examination"}
     nursing_as_doctor = doctor.client.post(
         f"/api/v1/encounters/{ENCOUNTER_2}/notes?expected_revision=2",
         json={"kind": "nursing", "content": "Ghi nhận chăm sóc."},
