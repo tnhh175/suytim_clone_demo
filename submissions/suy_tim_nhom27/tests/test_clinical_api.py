@@ -60,9 +60,11 @@ class FakeDatabase:
         }
         self.observation_types = {
             "systolic_bp": dict(code="systolic_bp", value_kind="number", unit="mmHg", min_value=Decimal("0"), max_value=None),
+            "ef": dict(code="ef", value_kind="number", unit="%", min_value=Decimal("0"), max_value=Decimal("100")),
             "dyspnea": dict(code="dyspnea", value_kind="boolean", unit=None, min_value=None, max_value=None),
             "frailty": dict(code="frailty", value_kind="text", unit=None, min_value=None, max_value=None),
         }
+        self.notes = []
         self.observations = {
             OBS_1: dict(id=OBS_1, encounter_id=ENCOUNTER_1, code="systolic_bp", value_number=Decimal("120"),
                         value_boolean=None, value_text=None, status="present", observed_at=NOW,
@@ -120,11 +122,22 @@ class FakeDatabase:
         if statement.startswith("select id from encounter where id = %s and case_id = %s"):
             row = self.encounters.get(params[0])
             return Cursor([{"id": row["id"]}] if row and row["case_id"] == params[1] else [])
-        if statement.startswith("select o.id from observation o join encounter"):
+        if statement.startswith("select o.id, o.code from observation o join encounter"):
             observation_id, encounter_id, case_id = params
             row = self.observations.get(observation_id)
             encounter = self.encounters.get(encounter_id)
-            return Cursor([{"id": row["id"]}] if row and row["encounter_id"] == encounter_id and encounter and encounter["case_id"] == case_id else [])
+            return Cursor([{"id": row["id"], "code": row["code"]}] if row and row["encounter_id"] == encounter_id and encounter and encounter["case_id"] == case_id else [])
+        if statement.startswith("select id, encounter_id, kind, content, recorded_at from clinical_note"):
+            return Cursor([{key: row[key] for key in ("id", "encounter_id", "kind", "content", "recorded_at")}
+                           for row in self.notes if row["encounter_id"] == params[0]])
+        if statement.startswith("insert into clinical_note"):
+            encounter_id, kind, content, recorded_by = params
+            note_id = UUID("40000000-0000-4000-8000-%012d" % (len(self.notes) + 1))
+            row = dict(id=note_id, encounter_id=encounter_id, kind=kind, content=content, recorded_by=recorded_by, recorded_at=NOW)
+            self.notes.append(row)
+            case_id = self.encounters[encounter_id]["case_id"]
+            self.cases[case_id]["revision"] += 1
+            return Cursor([{key: row[key] for key in ("id", "encounter_id", "kind", "content", "recorded_at")}])
         if statement.startswith("select o.id, o.encounter_id, o.code, o.value_number"):
             rows = []
             for row in self.observations.values():
@@ -273,6 +286,69 @@ def test_observation_update_checks_revision_and_catalog_type_without_inference()
     missing = {**payload, "status": "unknown", "value": True}
     assert nurse.client.put(url + "?expected_revision=4", json=missing).status_code == 422
     assert nurse.client.get(f"/api/v1/encounters/{ENCOUNTER_1}/observations").json()[0]["value"] is True
+
+
+def test_nursing_observation_allowlist_and_scoped_notes():
+    nurse = context("nurse")
+    outside_nursing = {
+        "code": "ef", "value": 55, "unit": "%", "status": "present",
+        "observed_at": "2026-10-08T09:10:00Z", "source": "manual_synthetic",
+    }
+    create_denied = nurse.client.post(
+        f"/api/v1/encounters/{ENCOUNTER_1}/observations?expected_revision=3", json=outside_nursing
+    )
+    assert create_denied.status_code == 403
+    assert len(nurse.db.observations) == 1
+    update_denied = nurse.client.put(
+        f"/api/v1/cases/{CASE_1}/encounters/{ENCOUNTER_1}/observations/{OBS_1}?expected_revision=3",
+        json=outside_nursing,
+    )
+    assert update_denied.status_code == 403
+    assert nurse.db.observations[OBS_1]["code"] == "systolic_bp"
+    other_id = UUID("30000000-0000-4000-8000-000000000002")
+    nurse.db.observations[other_id] = dict(
+        id=other_id, encounter_id=ENCOUNTER_1, code="ef", value_number=Decimal("55"),
+        value_boolean=None, value_text=None, status="present", observed_at=NOW,
+        source="manual_synthetic", recorded_by=DOCTOR_A,
+    )
+    rewrite_existing = nurse.client.put(
+        f"/api/v1/cases/{CASE_1}/encounters/{ENCOUNTER_1}/observations/{other_id}?expected_revision=3",
+        json={**outside_nursing, "code": "systolic_bp", "value": 121, "unit": "mmHg"},
+    )
+    assert rewrite_existing.status_code == 403
+    assert nurse.db.observations[other_id]["code"] == "ef"
+
+    exam_as_nurse = nurse.client.post(
+        f"/api/v1/encounters/{ENCOUNTER_1}/notes?expected_revision=3",
+        json={"kind": "examination", "content": "Ghi nhận chăm sóc"},
+    )
+    assert exam_as_nurse.status_code == 403
+    nursing_note = nurse.client.post(
+        f"/api/v1/encounters/{ENCOUNTER_1}/notes?expected_revision=3",
+        json={"kind": "nursing", "content": "Theo dõi chăm sóc tổng hợp."},
+    )
+    assert nursing_note.status_code == 201, nursing_note.text
+    assert nursing_note.json()["kind"] == "nursing"
+    assert nurse.client.get(f"/api/v1/encounters/{ENCOUNTER_1}/notes").json()[0]["content"] == "Theo dõi chăm sóc tổng hợp."
+    stale_note = nurse.client.post(
+        f"/api/v1/encounters/{ENCOUNTER_1}/notes?expected_revision=3",
+        json={"kind": "nursing", "content": "Ghi nhận cũ."},
+    )
+    assert stale_note.status_code == 409
+    assert len(nurse.db.notes) == 1
+
+    doctor = context("doctor")
+    nursing_as_doctor = doctor.client.post(
+        f"/api/v1/encounters/{ENCOUNTER_2}/notes?expected_revision=2",
+        json={"kind": "nursing", "content": "Ghi nhận chăm sóc."},
+    )
+    assert nursing_as_doctor.status_code == 403
+    exam = doctor.client.post(
+        f"/api/v1/encounters/{ENCOUNTER_2}/notes?expected_revision=2",
+        json={"kind": "examination", "content": "Khám giả lập, chưa kết luận."},
+    )
+    assert exam.status_code == 201, exam.text
+    assert exam.json()["kind"] == "examination"
 
 
 def test_case_and_encounter_create_are_doctor_scoped_and_revision_checked():

@@ -13,6 +13,12 @@ class _Input(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+NURSING_OBSERVATION_CODES = frozenset({
+    "systolic_bp", "diastolic_bp", "heart_rate", "weight_kg",
+    "spo2", "temperature_c", "dyspnea", "edema", "fatigue",
+})
+
+
 class CaseCreate(_Input):
     synthetic_code: str | None = Field(default=None, pattern=r"^SYN-[A-Z0-9-]{1,24}$")
     age: int = Field(ge=0, le=120)
@@ -58,6 +64,19 @@ class ObservationOut(_Input):
     source: Literal["manual_synthetic", "mock_his", "mock_lis", "mock_pacs", "mock_emr"]
 
 
+class ClinicalNoteWrite(_Input):
+    kind: Literal["nursing", "examination"]
+    content: str = Field(min_length=1, max_length=5000)
+
+
+class ClinicalNoteOut(_Input):
+    id: UUID
+    encounter_id: UUID
+    kind: Literal["nursing", "examination"]
+    content: str
+    recorded_at: AwareDatetime
+
+
 def _scope_for(actor: Any) -> str:
     role = getattr(actor, "role", None)
     if role == "doctor":
@@ -65,6 +84,14 @@ def _scope_for(actor: Any) -> str:
     if role == "nurse":
         return "nursing"
     raise HTTPException(status_code=403, detail="Vai trò không có quyền xem dữ liệu lâm sàng")
+
+
+def _check_nursing_observation_scope(scope: str, code: str) -> None:
+    if scope == "nursing" and code not in NURSING_OBSERVATION_CODES:
+        raise HTTPException(
+            status_code=403,
+            detail="Điều dưỡng chỉ được ghi sinh hiệu, cân nặng và triệu chứng trong danh mục chăm sóc",
+        )
 
 
 def _case_out(row: dict[str, Any]) -> dict[str, Any]:
@@ -358,6 +385,7 @@ def build_clinical_router(
         actor: Any = Depends(actor_dependency),
     ):
         scope = _scope_for(actor)
+        _check_nursing_observation_scope(scope, body.code)
         with connection_provider(request, actor) as conn:
             parent = conn.execute(
                 "SELECT case_id FROM encounter WHERE id = %s",
@@ -413,11 +441,12 @@ def build_clinical_router(
         actor: Any = Depends(actor_dependency),
     ):
         scope = _scope_for(actor)
+        _check_nursing_observation_scope(scope, body.code)
         with connection_provider(request, actor) as conn:
             case_access_checker(conn, actor, case_id, [scope])
             _lock_case_revision(conn, case_id, expected_revision)
             existing = conn.execute(
-                """SELECT o.id
+                """SELECT o.id, o.code
                      FROM observation o
                      JOIN encounter e ON e.id = o.encounter_id
                     WHERE o.id = %s AND o.encounter_id = %s AND e.case_id = %s
@@ -426,6 +455,7 @@ def build_clinical_router(
             ).fetchone()
             if existing is None:
                 raise HTTPException(status_code=404, detail="Không tìm thấy chỉ số trong lượt khám của ca")
+            _check_nursing_observation_scope(scope, existing["code"])
             catalog = _catalog_row(conn, body.code)
             number, boolean, text = _validate_observation(body, catalog)
             row = _write_query(
@@ -452,5 +482,64 @@ def build_clinical_router(
             if row is None:
                 raise HTTPException(status_code=404, detail="Không tìm thấy chỉ số")
         return _observation_out(row, catalog["value_kind"], catalog["unit"])
+
+    @router.get(
+        "/encounters/{encounter_id}/notes",
+        response_model=list[ClinicalNoteOut],
+        tags=["Clinical data"],
+    )
+    def list_notes(encounter_id: UUID, request: Request, actor: Any = Depends(actor_dependency)):
+        scope = _scope_for(actor)
+        with connection_provider(request, actor) as conn:
+            parent = conn.execute(
+                "SELECT case_id FROM encounter WHERE id = %s",
+                (encounter_id,),
+            ).fetchone()
+            if parent is None:
+                raise HTTPException(status_code=404, detail="Không tìm thấy lượt khám")
+            case_access_checker(conn, actor, parent["case_id"], [scope])
+            rows = conn.execute(
+                """SELECT id, encounter_id, kind, content, recorded_at
+                     FROM clinical_note WHERE encounter_id = %s
+                    ORDER BY recorded_at DESC, id""",
+                (encounter_id,),
+            ).fetchall()
+        return rows
+
+    @router.post(
+        "/encounters/{encounter_id}/notes",
+        response_model=ClinicalNoteOut,
+        status_code=201,
+        tags=["Clinical data"],
+    )
+    def create_note(
+        encounter_id: UUID,
+        body: ClinicalNoteWrite,
+        request: Request,
+        expected_revision: int = Query(ge=1),
+        actor: Any = Depends(actor_dependency),
+    ):
+        scope = _scope_for(actor)
+        expected_kind = "examination" if scope == "clinical" else "nursing"
+        if body.kind != expected_kind:
+            raise HTTPException(status_code=403, detail="Loại ghi nhận không phù hợp với vai trò")
+        with connection_provider(request, actor) as conn:
+            parent = conn.execute(
+                "SELECT case_id FROM encounter WHERE id = %s",
+                (encounter_id,),
+            ).fetchone()
+            if parent is None:
+                raise HTTPException(status_code=404, detail="Không tìm thấy lượt khám")
+            case_id = parent["case_id"]
+            case_access_checker(conn, actor, case_id, [scope])
+            _lock_case_revision(conn, case_id, expected_revision)
+            row = _write_query(
+                conn,
+                """INSERT INTO clinical_note (encounter_id, kind, content, recorded_by)
+                   VALUES (%s, %s, %s, %s)
+                   RETURNING id, encounter_id, kind, content, recorded_at""",
+                (encounter_id, body.kind, body.content, actor.user_id),
+            ).fetchone()
+        return row
 
     return router
