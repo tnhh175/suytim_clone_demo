@@ -32,7 +32,7 @@ Dependencies Python được cài trong `%TEMP%\suytim-qa-python`, PGlite đư�
 | `%TEMP%\suytim-qa-python\Scripts\python.exe -m pip install -r requirements-dev.txt` | 0 | Cài thành công trên Python 3.12 |
 | `%TEMP%\suytim-qa-python\Scripts\python.exe -m pytest -q -p no:cacheprovider tests/test_gateway.py` | 0 | Baseline: 8 passed, 1 cảnh báo Starlette/httpx deprecation |
 | `node --test database/tests/database.test.mjs` | 0 | Baseline: 19 passed, PostgreSQL 18.3 / PGlite 0.5.8 |
-| `node --test database/tests/database.test.mjs database/tests/result_integrity.test.mjs` | 0 | Sau migration: 27 passed, 0 failed, 0 skipped; 19 test bootstrap cũ và 8 regression trên database có migration |
+| `node --test database/tests/database.test.mjs database/tests/result_integrity.test.mjs` | 0 | Sau migration: 28 passed, 0 failed, 0 skipped; 19 test bootstrap cũ và 9 regression trên database có migration |
 
 PGlite dùng biến môi trường `PGLITE_MODULE` trỏ tới `dist/index.js` theo `database/README.md`. Các probe bổ sung chạy trong PGlite RAM và rollback mỗi tình huống; hai probe P1/P2 trước migration được chấp nhận, regression sau migration chứng minh bị từ chối.
 
@@ -48,7 +48,7 @@ Migration không được tự thêm vào Compose/bootstrap. Người ghép nhá
 
 Migration chặn UPDATE/DELETE của `module_result`, `recommendation`, `result_missing_field`. INSERT mới của mode stub chỉ nhận `mock_not_evaluated` và không gắn clinical rule. Mode validated yêu cầu kết quả không mock, rule đang active, đúng module, có approval khớp content hash. Recommendation chỉ được thêm cho kết quả completed thuộc evaluation validated. Share lock trên rule bảo vệ việc ghi kết quả trước retirement đồng thời.
 
-Validation áp dụng khi INSERT kết quả mới, không hồi tố hoặc xóa lịch sử. Rule retired vẫn được truy từ kết quả cũ, nhưng không thể tạo kết quả mới dùng rule retired. Các approval/regression fixture là synthetic, không chứng minh độ đúng lâm sàng. Cây evaluation và children phải được ghi trong một transaction ứng dụng. Khi đã có `clinical_decision`, trigger từ chối INSERT bổ sung trên cả ba bảng; trước quyết định vẫn được INSERT. Guard children và trigger quyết định khóa cùng hàng evaluation để tuần tự hóa việc ghi children với quyết định. Migration không thêm audit cho INSERT children và không tự đánh dấu evaluation hoàn tất trước khi có quyết định.
+Validation áp dụng khi INSERT kết quả mới, không hồi tố hoặc xóa lịch sử. Rule retired vẫn được truy từ kết quả cũ, nhưng không thể tạo kết quả mới dùng rule retired. Các approval/regression fixture là synthetic, không chứng minh độ đúng lâm sàng. Cây evaluation và children phải được ghi trong một transaction ứng dụng. Khi đã có `clinical_decision`, trigger AFTER INSERT từ chối hàng mới bổ sung trên cả ba bảng bằng exception rollback; trước quyết định vẫn được INSERT. Validation mode/status/rule dùng BEFORE INSERT. AFTER INSERT không chạy khi ON CONFLICT DO NOTHING bỏ qua hàng trùng, nên replay seed không bị chặn. Guard children và trigger quyết định khóa cùng hàng evaluation để tuần tự hóa việc ghi children với quyết định. Migration không thêm audit cho INSERT children và không tự đánh dấu evaluation hoàn tất trước khi có quyết định.
 
 ## Giới hạn kiểm chứng
 
@@ -58,4 +58,4 @@ Validation áp dụng khi INSERT kết quả mới, không hồi tố hoặc xó
 - Migration bảo vệ INSERT mới và mutation tương lai, không rà soát/sửa các kết quả legacy không hợp lệ đã tồn tại trước khi áp dụng. Baseline seed đang có kết quả stub và được giữ nguyên.
 - Các gap ứng dụng và tài liệu P3 trong báo cáo chưa được sửa bởi nhánh QA.
 
-- Probe bổ sung sau migration: replay seed bị từ chối với lỗi "Evaluation result tree is finalized by its clinical decision". BEFORE INSERT guard chạy trước ON CONFLICT DO NOTHING; việc replay seed chỉ được kiểm chứng trước migration. Khởi tạo phải theo thứ tự seed rồi migration và không replay seed vào database đã migration. Seed được giữ nguyên theo phạm vi nhánh QA.
+- Regression xác nhận bootstrap → seed → migration → seed replay thành công, giữ nguyên số kết quả, recommendation, missing fields, audit và revision. Probe ban đầu phát hiện BEFORE INSERT chặn seed replay; guard finalization đã chuyển sang AFTER INSERT và lỗi đó đã được xử lý.
