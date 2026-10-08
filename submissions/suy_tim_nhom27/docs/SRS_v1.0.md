@@ -3,6 +3,7 @@
 **Nhóm:** 27  
 **Môn học:** Kỹ thuật Phần mềm Ứng dụng ET3260  
 **Phiên bản tài liệu:** v1.0    
+**Mở rộng trên nhánh update-off (08/10/2026):** bổ sung cổng bệnh nhân tối giản ở tầng dữ liệu theo FR-P01 đến FR-P04.
 **Trạng thái:** Bản nháp theo bộ 34 FR và 13 NFR đã thống nhất. Chưa hoàn tất User Stories, BDD, Use Cases, DFD và các liên kết RTM.
 
 Tài liệu đặc tả yêu cầu cho một ứng dụng web quản lý bệnh nhân suy tim cao tuổi và hỗ trợ nhân viên y tế đánh giá, điều trị, theo dõi. Bản nháp tổng hợp phần đã thống nhất trong báo cáo hiện tại; các phần chưa có nội dung được ghi rõ, chưa dùng để xác nhận hoàn thành tuần 2.
@@ -28,12 +29,13 @@ Hệ thống hướng đến quản lý bệnh nhân cao tuổi , gồm ca nghi 
 - Tiếp nhận dữ liệu bằng nhập thủ công, file theo mẫu và API mô phỏng; kiểm tra dữ liệu trước khi sử dụng để đánh giá.
 - Cung cấp bốn module hỗ trợ: Diagnosis, Lab/Test, Treatment và MedSafety trong phạm vi quy tắc được lựa chọn và phê duyệt.
 - Ghi nhận ý kiến dược sĩ, quyết định của bác sĩ, kế hoạch điều trị, ra viện, tái khám và lịch sử thao tác.
+- Cổng bệnh nhân tối giản: tài khoản gắn một hồ sơ, đặt/hủy lịch khám, tự nhập chỉ số tại nhà, xem đơn đã xác nhận và giờ uống, đánh dấu đã uống hoặc bỏ qua nhắc thuốc.
 
 Treatment bao gồm gợi ý thuốc hoặc nhóm thuốc, liều khởi đầu, đường dùng, tần suất và điều chỉnh/tăng liều theo FR-24, FR-25. Việc chọn thuốc và liều cụ thể phải dựa trên danh mục quy tắc đã phê duyệt, không áp dụng cho mọi thuốc hoặc mọi tình huống bệnh.
 
-**Ngoài phạm vi MVP:** kết nối hệ thống bệnh viện production; sử dụng hồ sơ bệnh nhân thật; tự động kê đơn, tạo y lệnh hoặc ngừng thuốc; mô hình ML dự báo tử vong/tái nhập viện; cổng đăng nhập bệnh nhân/người chăm sóc; triển khai lâm sàng thực tế.
+**Ngoài phạm vi MVP:** kết nối hệ thống bệnh viện production; sử dụng hồ sơ bệnh nhân thật; tự động kê đơn, tạo y lệnh hoặc ngừng thuốc; mô hình ML dự báo tử vong/tái nhập viện; tài khoản người chăm sóc; triển khai lâm sàng thực tế.
 
-Bệnh nhân và người chăm sóc là đối tượng hưởng lợi và cung cấp thông tin qua nhân viên y tế. Chức năng tự đăng nhập, tự nhập dữ liệu và nhận nhắc nhở thuộc hướng mở rộng, không phải chức năng của phiên bản này.
+Bệnh nhân được bổ sung tài khoản theo yêu cầu mở rộng ngày 08/10/2026. Tài khoản chỉ truy cập hồ sơ được liên kết, lịch hẹn, chỉ số tự nhập và đơn thuốc của mình. Người chăm sóc vẫn cung cấp thông tin qua nhân viên y tế. Bản cập nhật này hiện thực schema, seed và phân quyền CSDL; kết nối Gateway, giao diện và tiến trình gửi thông báo cần được thực hiện ở bước ứng dụng.
 
 ### 1.3. Định nghĩa và từ viết tắt
 
@@ -126,11 +128,12 @@ Luồng trên mô tả hoạt động chung, không bắt buộc bốn module ch
 | Dược sĩ lâm sàng | Người dùng trực tiếp, xem dữ liệu liên quan, rà soát thuốc và ghi nhận ý kiến để bác sĩ xem xét. |
 | Quản trị hệ thống | Người dùng trực tiếp, quản lý tài khoản, quyền, danh mục và cấu hình kỹ thuật. Quyền quản trị không tự kèm quyền quyết định y khoa. |
 | Người được cấp quyền phê duyệt chuyên môn | Quyền đặc biệt để duyệt nội dung y khoa của quy tắc theo FR-05. Có thể được gán cho người dùng đủ chuyên môn; không mặc định là một vai trò thứ năm hoặc mọi bác sĩ đều có quyền này. |
-| Bệnh nhân và người chăm sóc | Đối tượng hưởng lợi và cung cấp thông tin qua nhân viên y tế; chưa có tài khoản trong MVP. |
+| Bệnh nhân | Tài khoản riêng cho một hồ sơ: đặt/hủy lịch, tự nhập chỉ số, xem đơn đã xác nhận và theo dõi nhắc uống thuốc. Không sửa đơn, liều, giờ uống hoặc quyết định lâm sàng. |
+| Người chăm sóc | Cung cấp thông tin qua nhân viên y tế; chưa có tài khoản riêng. |
 | Giảng viên | Bên giao yêu cầu và đánh giá đồ án; hỗ trợ xác nhận phạm vi và kết nối người có chuyên môn. |
 | Customer trong bối cảnh bệnh viện | Đại diện có thẩm quyền quyết định phạm vi và chấp nhận hệ thống; chưa xác định cá nhân, khoa hoặc bệnh viện cụ thể. |
 
-Bác sĩ, điều dưỡng, dược sĩ và quản trị viên là bốn vai trò MVP. Một tài khoản có thể được cấp nhiều quyền phù hợp, nhưng từng thao tác vẫn phải kiểm tra vai trò và phạm vi hồ sơ ở phía máy chủ. Quyền chi tiết đối với cập nhật thuốc, nhập dữ liệu và phê duyệt quy tắc sẽ được thống nhất trong đặc tả Use Case và phân quyền.
+Bác sĩ, điều dưỡng, dược sĩ và quản trị viên là bốn vai trò nhân viên. Bệnh nhân là vai trò thứ năm trong phần mở rộng; tài khoản bệnh nhân tách khỏi tài khoản nhân viên. Một tài khoản nhân viên có thể được cấp nhiều quyền phù hợp, nhưng từng thao tác vẫn phải kiểm tra vai trò và phạm vi hồ sơ ở phía máy chủ. Phê duyệt chuyên môn dùng quyền riêng `rule.approve`.
 
 ### 2.4. Ràng buộc chung
 
@@ -145,7 +148,7 @@ Bác sĩ, điều dưỡng, dược sĩ và quản trị viên là bốn vai tr�
 
 | Nội dung | Trạng thái |
 | --- | --- |
-| Bối cảnh nội trú ưu tiên, có ngoại trú; đối tượng người cao tuổi; bốn vai trò MVP; bệnh nhân/người chăm sóc ở phần mở rộng. | Đã thống nhất trong nhóm; chưa xác nhận qua khảo sát trực tiếp. |
+| Bối cảnh nội trú ưu tiên, có ngoại trú; đối tượng người cao tuổi; bốn vai trò nhân viên và một vai trò bệnh nhân tối giản. | Vai trò bệnh nhân được bổ sung theo yêu cầu 08/10/2026; chưa xác nhận qua khảo sát trực tiếp. |
 | Dữ liệu nhập tay, file theo mẫu và API mô phỏng. | Phạm vi đã chọn; cấu trúc file, bản tin và quy tắc đối chiếu định danh còn cần đặc tả. |
 | Rule Engine có thể giải thích là hướng thực hiện ban đầu. | Yêu cầu bắt buộc ML/LLM còn chờ giảng viên xác nhận. |
 | Web độc lập có phân quyền và mô phỏng tích hợp. | Cần xác nhận yêu cầu Smart Panel, vị trí nhúng và hợp đồng tích hợp. |
@@ -165,7 +168,7 @@ Các điểm còn mở không làm mất phạm vi 34 FR/13 NFR đã chọn, nh�
 | File nhập dữ liệu | Tiếp nhận file theo mẫu tại FR-16; thông báo dòng/trường lỗi và kết quả nhập. Loại file, tên cột, mã danh mục và cách xử lý bản ghi trùng chưa được chốt trong bản nháp. |
 | API nguồn dữ liệu mô phỏng | Tiếp nhận dữ liệu HIS/LIS/PACS/EMR, gắn đúng bệnh nhân và lần khám/đợt điều trị theo FR-17. Định dạng và cơ chế trao đổi phải được đối chiếu tài liệu đầu vào và đặc tả API tuần 3. |
 | API của ứng dụng | Khung REST API Gateway và OpenAPI được thiết kế trong tuần 3. Khi truyền qua mạng phải sử dụng HTTPS theo NFR-03; HTTP tại localhost chỉ phục vụ phát triển. |
-| Trình duyệt và thiết bị | Kiểm thử các luồng chính trên Chrome/Edge ở chiều rộng 1.366 px và 768 px theo NFR-13. Chưa cam kết cổng bệnh nhân hoặc ứng dụng di động riêng. |
+| Trình duyệt và thiết bị | Kiểm thử các luồng chính trên Chrome/Edge ở chiều rộng 1.366 px và 768 px theo NFR-13. Cổng bệnh nhân tối giản được bổ sung ở tầng dữ liệu; chưa có giao diện hoặc ứng dụng di động riêng. |
 
 Danh mục endpoints, request/response và mã HTTP thuộc đặc tả OpenAPI. SRS quy định hành vi và ràng buộc mà các giao diện đó phải đáp ứng, không thay thế OpenAPI.
 
@@ -189,7 +192,7 @@ Các mã và phạm vi FR giữ theo bảng đã chốt trong báo cáo. Cách d
 | FR-10 | Khám và chẩn đoán | Hệ thống phải cho phép bác sĩ ghi nhận dấu hiệu khám, đánh giá lâm sàng và chẩn đoán của từng lần khám hoặc đợt điều trị. |
 | FR-11 | Đánh giá lão khoa | Hệ thống phải cho phép ghi nhận frailty, nhận thức, ADL/IADL, dinh dưỡng và các nguy cơ theo danh mục đã chọn. |
 | FR-12 | Cận lâm sàng | Hệ thống phải cho phép lưu và xem xét nghiệm, siêu âm, điện tim và báo cáo liên quan, kèm nguồn, thời điểm và đơn vị khi áp dụng. |
-| FR-13 | Thuốc | Hệ thống phải cho phép cập nhật danh sách thuốc đang dùng, gồm hoạt chất, hàm lượng, liều, đường dùng, tần suất và thời gian sử dụng. |
+| FR-13 | Thuốc | Hệ thống phải cho phép cập nhật danh sách thuốc đang dùng, gồm hoạt chất, hàm lượng, liều, đường dùng, tần suất và thời gian sử dụng. Thuốc trong đơn phải có giờ uống hằng ngày theo múi giờ của đơn; số giờ uống phải khớp số lần dùng mỗi ngày trước khi bác sĩ xác nhận. |
 | FR-14 | Dị ứng/phản ứng thuốc | Hệ thống phải cho phép ghi nhận dị ứng và phản ứng có hại của thuốc; phân biệt “chưa rõ” với “đã xác nhận không có”. |
 | FR-15 | Theo dõi diễn biến | Hệ thống phải cho phép xem lịch sử và so sánh triệu chứng, chỉ số và thuốc giữa các thời điểm, lần khám hoặc đợt điều trị. |
 | FR-16 | Nhập dữ liệu | Hệ thống phải cho phép nhập file theo mẫu; thông báo dòng/trường lỗi và kết quả nhập dữ liệu. |
@@ -212,6 +215,17 @@ Các mã và phạm vi FR giữ theo bảng đã chốt trong báo cáo. Cách d
 | FR-33 | Lịch sử đánh giá | Hệ thống phải lưu các lần đánh giá, dữ liệu đầu vào đã sử dụng và quyết định liên quan; cho phép đánh giá lại khi dữ liệu thay đổi, đồng thời phân biệt kết quả cũ với kết quả mới. |
 | FR-34 | Nhật ký | Hệ thống phải ghi nhận người thực hiện, thời gian, đối tượng và hành động đối với các thay đổi quan trọng; cho phép tra cứu theo quyền. |
 
+#### 3.2.1a. Cổng bệnh nhân tối giản — phần mở rộng 08/10/2026
+
+| Mã | Yêu cầu bổ sung |
+| --- | --- |
+| FR-P01 | Tài khoản bệnh nhân được cấp vai trò `patient`, gắn duy nhất một hồ sơ synthetic và chỉ truy cập dữ liệu của hồ sơ đó. Tài khoản bị khóa không truy cập được cổng. |
+| FR-P02 | Bệnh nhân chọn bác sĩ đang hoạt động, yêu cầu một lịch khám 30 phút trong tương lai, xem lịch của mình và hủy lịch chưa hoàn thành. Một bác sĩ hoặc bệnh nhân không có hai lịch đang chờ/xác nhận trong cùng slot. Nhân viên xác nhận và hoàn thành lịch. |
+| FR-P03 | Bệnh nhân nhập tối thiểu một chỉ số/ghi chú: huyết áp tâm thu và tâm trương theo cặp, nhịp tim, cân nặng, SpO₂, nhiệt độ hoặc triệu chứng; xem lịch sử tự nhập. Lưu nguồn là tự ghi tại nhà, không tự đưa vào kết quả đã được nhân viên kiểm tra. Không tạo khuyến cáo điều trị từ các giá trị demo. |
+| FR-P04 | Bệnh nhân xem đơn do bác sĩ xác nhận, tên thuốc, liều, đường dùng, ngày dùng và giờ uống. Hệ thống lưu nhắc theo từng giờ/ngày, múi giờ và trạng thái; bệnh nhân đánh dấu đã uống hoặc bỏ qua. Hủy đơn sẽ hủy các nhắc đang chờ và giữ lịch sử. Bệnh nhân không sửa đơn, liều hoặc giờ uống. |
+
+Giờ uống nằm ở từng thuốc trong đơn, không đặt cố định trên danh mục hoạt chất dùng chung. Phạm vi tối giản là lịch uống lặp hằng ngày; lịch PRN, lịch tuần, đổi múi giờ khi đi xa và thông báo SMS/email/push chưa được hiện thực. `notified_at` chỉ lưu dấu vết khi tiến trình gửi thông báo được bổ sung.
+
 #### 3.2.2. User Stories và Product Backlog
 
 **Chưa hoàn thiện.** Mục 4.4.1 trong báo cáo hiện tại mới có tiêu đề, chưa có danh sách User Stories để đưa vào SRS.
@@ -228,7 +242,7 @@ Mỗi User Story phải có tiêu chí Given–When–Then cho luồng chuẩn v
 
 **Chưa hoàn thiện.** Các mục 4.3.1 và 4.3.2 trong báo cáo hiện tại chưa có sơ đồ.
 
-Cần sơ đồ tổng thể và phân rã theo bốn vai trò MVP. Sơ đồ phải phân biệt chức năng người dùng với các nguồn dữ liệu/hệ thống ngoài. Các quyền phê duyệt chuyên môn phải được thể hiện phù hợp FR-05.
+Cần sơ đồ tổng thể và phân rã theo bốn vai trò nhân viên cùng vai trò bệnh nhân trong phần mở rộng. Sơ đồ phải phân biệt chức năng người dùng với các nguồn dữ liệu/hệ thống ngoài. Các quyền phê duyệt chuyên môn phải được thể hiện phù hợp FR-05.
 
 Tệp ảnh và nguồn chỉnh sửa sẽ đặt trong `docs/architecture/`; chỉ chèn liên kết ảnh khi đã có tệp thực tế và đã kiểm tra đường dẫn.
 
@@ -277,10 +291,10 @@ Các yêu cầu sau áp dụng cho môi trường thử nghiệm đồ án. Đâ
 
 ### 3.5. Ma trận truy vết yêu cầu
 
-Ma trận đầy đủ nằm trong [RTM.md](RTM.md):
+Ánh xạ yêu cầu đến cấu trúc CSDL nằm trong [source_mapping.md](../database/source_mapping.md). Ma trận đầy đủ còn cần hoàn thiện theo chuỗi:
 
 **Mã yêu cầu → User Story → Use Case → Schema CSDL → API.**
 
 Mỗi FR/NFR có một dòng riêng. NFR liên kết với các luồng chịu ảnh hưởng; trường hợp không áp dụng trực tiếp với schema hoặc API phải ghi lý do. Danh mục FR ở mục 3.2.1 vẫn xác định phân hệ của yêu cầu.
 
-**Trạng thái đối chiếu:** đã có 34 FR và 13 NFR, nhưng chưa có mã US/UC được đối chiếu theo bộ yêu cầu mới trong báo cáo này. RTM hiện chưa chứng minh độ phủ 100%. Schema và API ở tuần 3 cần đối chiếu lại với bộ yêu cầu đã chốt trước khi ghi thành liên kết hoàn chỉnh.
+**Trạng thái đối chiếu:** schema được cập nhật và ánh xạ với 34 FR cùng FR-P01..04; metadata và từ điển dữ liệu xuất từ schema đã chạy. Chưa có mã US/UC đối chiếu đầy đủ; chưa chứng minh độ phủ ứng dụng cho toàn bộ FR/NFR. Gateway/API vẫn là stub tuần 3 và chưa nối PostgreSQL/cổng bệnh nhân.

@@ -1,6 +1,6 @@
 # CS-2: Hỗ trợ quyết định suy tim ở người cao tuổi — nhom27
 
-**Trạng thái:** Sprint 1, tuần 2–3. Tài liệu thiết kế và Gateway stub đã có; bốn module lâm sàng **chưa được hiện thực/kiểm chứng**. Bản demo chỉ sử dụng ca synthetic. Ba vai trò trong phạm vi hiện tại: bác sĩ, dược sĩ, quản trị viên.
+**Trạng thái:** Gateway vẫn là stub trong RAM; bốn module lâm sàng **chưa được hiện thực/kiểm chứng**. Schema/seed trên nhánh `update-off` được cập nhật theo SRS, có năm vai trò: bác sĩ, điều dưỡng, dược sĩ, quản trị và bệnh nhân. Phần bệnh nhân ở tầng database hỗ trợ đặt lịch, nhập chỉ số tại nhà, xem đơn đã xác nhận, giờ uống và nhắc thuốc. Chỉ dùng dữ liệu synthetic.
 
 ## Checklist bàn giao
 
@@ -8,7 +8,7 @@
 |---|---|---|
 | SRS và RTM (FR → US → UC → module → bảng dữ liệu) | [SRS_v1.0.md](docs/SRS_v1.0.md) | Bản review; các câu hỏi cho giảng viên ở mục 12 |
 | C4 C1/C2; DFD; UML Class/Sequence; ảnh và nguồn draw.io | [Kiến trúc](docs/architecture/architecture.md), [UML](docs/uml/uml.md), [tệp nguồn/ảnh](docs/architecture/) | C4, Class 05–06 là thiết kế đích; Sequence 07–09 mô tả stub |
-| ERD 3NF, từ điển dữ liệu, DDL | [ERD](database/erd.md), [Data Dictionary](database/data_dictionary.md), [schema.sql](database/schema.sql) | Lược đồ thiết kế; Gateway chưa kết nối PostgreSQL |
+| ERD, từ điển dữ liệu, DDL, seed và metadata | [Hướng dẫn database](database/README.md), [ERD](database/erd.md), [Data Dictionary](database/data_dictionary.md), [schema.sql](database/schema.sql), [seed.sql](database/seed.sql), [metadata](database/schema_metadata.json) | 39 bảng; có kiểm thử thực thi SQL/RLS; Gateway chưa kết nối PostgreSQL |
 | OpenAPI 3.0.3 và Gateway | [openapi.yaml](api/openapi.yaml), [hướng dẫn API](api/README.md), [mã nguồn](src/gateway/) | Stub chạy trong RAM; không chẩn đoán/kê đơn |
 
 [Báo cáo tuần 3](docs/Bao_cao_tuan3.md) · [Điểm chưa khớp/việc chờ xác nhận](docs/consistency_review.md) · [Hướng dẫn chạy và kiểm thử](README_TUAN3.md)

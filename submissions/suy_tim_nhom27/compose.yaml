@@ -12,11 +12,14 @@ services:
       POSTGRES_DB: hf_demo
       POSTGRES_USER: hf_demo
       POSTGRES_PASSWORD: ${DB_PASSWORD:-local-synthetic-demo-only}
+      TZ: Asia/Ho_Chi_Minh
+      PGTZ: Asia/Ho_Chi_Minh
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
       - hf_data:/var/lib/postgresql/data
       - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
       - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+      - ./database/portal_permissions.sql:/docker-entrypoint-initdb.d/03-portal-permissions.sql:ro
 volumes:
   hf_data:

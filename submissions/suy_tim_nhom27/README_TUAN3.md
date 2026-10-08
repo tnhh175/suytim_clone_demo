@@ -1,6 +1,6 @@
 # Nhóm 27 — Bàn giao tuần 3
 
-Phạm vi: Case 2, hệ thống hỗ trợ quyết định suy tim cho bác sĩ; dược sĩ rà thuốc; quản trị quản lý cấu hình/audit. Đây là **thiết kế + API Gateway stub**, chưa phải phần mềm chẩn đoán được kiểm chứng. Mốc SRS: GitHub blob `7d3a0557f962e33a1c4b12fd865e638effb80977` trên nhánh `submit/suy_tim-nhom27`.
+Phạm vi: Case 2, hệ thống hỗ trợ quyết định suy tim. Đây là **thiết kế + API Gateway stub**, chưa phải phần mềm chẩn đoán được kiểm chứng. [SRS hiện tại](docs/SRS_v1.0.md) kế thừa bản GitHub cập nhật ngày 02/10/2026 và bổ sung cổng bệnh nhân ở tầng database ngày 08/10/2026 trên nhánh `update-off`. Hướng dẫn API bên dưới vẫn dành cho stub tuần 3.
 
 ## 1. Đọc theo thứ tự
 
@@ -52,6 +52,7 @@ PostgreSQL 16+, database rỗng. Không chạy schema lặp trên DB đã có b�
 ```sh
 psql -v ON_ERROR_STOP=1 -d hf_demo -f database/schema.sql
 psql -v ON_ERROR_STOP=1 -d hf_demo -f database/seed.sql
+psql -v ON_ERROR_STOP=1 -d hf_demo -f database/portal_permissions.sql
 ```
 
 Hoặc nếu đã cài Docker Desktop và đặt DEMO_PASSWORD:
@@ -60,7 +61,7 @@ Hoặc nếu đã cài Docker Desktop và đặt DEMO_PASSWORD:
 docker compose --profile database up -d db
 ```
 
-PostgreSQL container chạy schema/seed lần đầu khi volume rỗng. Lần sau không tự chạy lại. Gateway vẫn lưu RAM; đây là DB chuẩn bị cho bước nối repository, chưa phải persistence của stub. `docker compose up --build gateway` chạy Gateway riêng. Compose cung cấp để nhóm chạy, chưa được thực thi trong môi trường tạo bộ bàn giao.
+PostgreSQL container chạy schema/seed/phân quyền lần đầu khi volume rỗng. Lần sau không tự chạy lại. Schema mới có 39 bảng và phần bệnh nhân tối giản; đọc [hướng dẫn database](database/README.md) để chạy kiểm thử SQL, dùng phân quyền và xuất metadata. Gateway vẫn lưu RAM, chưa kết nối database. `docker compose up --build gateway` chạy Gateway riêng. Compose chưa được thực thi trong môi trường cập nhật này.
 
 ## 5. Kiểm tra trong repository của nhóm
 
