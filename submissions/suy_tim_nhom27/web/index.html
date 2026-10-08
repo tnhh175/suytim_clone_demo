@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <title>Demo quản lý bệnh nhân suy tim</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <div class="demo-banner" role="status" aria-live="polite">
+    <span class="banner-mark" aria-hidden="true">
+      <svg viewBox="0 0 20 20" focusable="false"><rect x="1" y="1" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 10h10M10 5v10" stroke="currentColor" stroke-width="2"/></svg>
+    </span>
+    <strong>Demo — Synthetic Data — Not for Clinical Use</strong>
+    <span class="banner-side">Dữ liệu giả lập</span>
+  </div>
+
+  <section id="loginView" class="login-layout" aria-labelledby="loginTitle">
+    <div class="login-intro">
+      <div class="eyebrow">HỆ THỐNG DEMO</div>
+      <h1 id="loginTitle">Hồ sơ<br>theo từng<br><span>encounter.</span></h1>
+      <p>Giao diện thử nghiệm quản lý hồ sơ suy tim cao tuổi. Dữ liệu không dùng cho chăm sóc hoặc quyết định y khoa.</p>
+      <div class="intro-rule"></div>
+      <div class="intro-meta">
+        <span>Gateway</span>
+        <strong id="apiOriginLabel">http://localhost:8000</strong>
+      </div>
+    </div>
+
+    <div class="login-panel">
+      <div class="panel-folio">01 / ĐĂNG NHẬP</div>
+      <h2>Đăng nhập demo</h2>
+      <p class="muted">Dùng tài khoản được API Gateway hỗ trợ.</p>
+      <form id="loginForm" novalidate>
+        <label for="loginRole">Vai trò / tên tài khoản</label>
+        <select id="loginRole" name="username" required>
+          <option value="doctor_demo">Bác sĩ · doctor_demo</option>
+          <option value="nurse_demo">Điều dưỡng · nurse_demo</option>
+          <option value="pharmacist_demo">Dược sĩ · pharmacist_demo</option>
+          <option value="admin_demo">Quản trị · admin_demo</option>
+          <option value="patient_demo">Bệnh nhân · patient_demo</option>
+        </select>
+        <div id="unsupportedRole" class="field-note warning-note" hidden></div>
+
+        <label for="loginPassword">Mật khẩu demo</label>
+        <input id="loginPassword" name="password" type="password" autocomplete="current-password" required maxlength="200">
+        <div class="field-note">Token được giữ trong sessionStorage và mất khi đóng tab.</div>
+
+        <button id="loginButton" class="button primary full-width" type="submit">
+          <span>Đăng nhập</span>
+          <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M3 10h13M10 4l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+        </button>
+        <p id="loginMessage" class="form-message" role="status" aria-live="polite"></p>
+      </form>
+
+      <div class="login-capability">
+        <div class="capability-rule"></div>
+        <p>Tài khoản demo dùng hậu tố <code>_demo</code>. Các màn hình chỉ gọi API và chỉ hiển thị response synthetic.</p>
+      </div>
+    </div>
+  </section>
+
+  <div id="appView" class="app-view" hidden>
+    <header class="topbar">
+      <div class="topbar-left">
+        <button id="navToggle" class="icon-button nav-toggle" type="button" aria-label="Mở điều hướng" aria-expanded="false">
+          <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M3 5h14M3 10h14M3 15h14" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>
+        </button>
+        <div class="wordmark">
+          <span class="wordmark-mark">HF</span>
+          <span>Hồ sơ suy tim</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div id="gatewayStatus" class="gateway-status" aria-live="polite">
+          <span class="status-dot"></span><span>Đang kiểm tra Gateway</span>
+        </div>
+        <button id="logoutButton" class="button quiet" type="button">Đăng xuất</button>
+      </div>
+    </header>
+
+    <aside id="sidebar" class="sidebar" aria-label="Điều hướng chính">
+      <div class="sidebar-intro">
+        <div class="eyebrow">WORKSPACE</div>
+        <h2>Quản lý<br>hồ sơ</h2>
+      </div>
+      <nav id="roleNav" class="role-nav" aria-label="Các màn hình"></nav>
+      <div class="sidebar-user">
+        <span id="userInitial" class="user-initial" aria-hidden="true">D</span>
+        <div><strong id="userLabel">doctor</strong><span id="roleLabel">Bác sĩ</span></div>
+      </div>
+    </aside>
+
+    <main class="main-content" id="mainContent">
+      <div class="content-heading">
+        <div>
+          <p id="viewEyebrow" class="eyebrow">DEMO</p>
+          <h1 id="viewTitle">Tổng quan</h1>
+          <p id="viewSubtitle" class="muted"></p>
+        </div>
+        <div id="contextBadges" class="context-badges"></div>
+      </div>
+      <div id="globalMessage" class="global-message" role="status" aria-live="polite" hidden></div>
+      <section id="viewContent" aria-live="polite"></section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>
