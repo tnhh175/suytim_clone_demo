@@ -113,9 +113,9 @@ class ModuleResultOut(ApiModel):
     message: str = STUB_MESSAGE
     missing_fields: list[str] = Field(default_factory=list)
     clinical_recommendations: list[Any] = Field(default_factory=list)
-    phenotype: None = None
-    stage: None = None
-    course: None = None
+    phenotype: Literal["HFrEF", "HFmrEF", "HFpEF", "HFimpEF"] | None = None
+    stage: Literal["A", "B", "C", "D"] | None = None
+    course: str | None = None
     suggested_tests: list[Any] = Field(default_factory=list)
     treatment_strategies: list[str] = Field(default_factory=list)
 
@@ -139,6 +139,22 @@ class DecisionOut(ApiModel):
     reason: str | None
     adjustment_details: dict[str, Any] | None
     created_at: datetime
+    mode: Literal["stub"] = "stub"
+
+
+class CaseSnapshot(ApiModel):
+    id: UUID
+    synthetic_code: str
+    age: int
+    sex: Literal["male", "female", "unknown"]
+    owner_id: UUID
+    revision: int
+
+
+class CaseExportOut(ApiModel):
+    case: CaseSnapshot
+    evaluations: list[EvaluationOut]
+    decisions: list[DecisionOut]
     mode: Literal["stub"] = "stub"
 
 
@@ -401,6 +417,76 @@ def build_rules_router() -> APIRouter:
                 if actor.role == "pharmacist" and any(module != "medsafety" for module in modules):
                     raise HTTPException(status_code=403, detail="Dược sĩ chỉ được xem kết quả MedSafety")
                 return _load_evaluation(conn, header, modules)
+        except HTTPException:
+            raise
+        except PsycopgError as error:
+            raise _db_failure(error) from None
+
+    def case_history(conn: Any, case_id: UUID) -> list[EvaluationOut]:
+        rows = conn.execute(
+            """SELECT v.id
+                 FROM evaluation AS v
+                 JOIN encounter AS e ON e.id = v.encounter_id
+                WHERE e.case_id = %s AND v.mode = 'stub'
+                ORDER BY v.created_at DESC, v.id""",
+            (case_id,),
+        ).fetchall()
+        result = []
+        for row in rows:
+            header = _evaluation_header(conn, row["id"])
+            if header is None or header["mode"] != "stub":
+                continue
+            modules = _evaluation_modules(conn, row["id"])
+            result.append(_load_evaluation(conn, header, modules))
+        return result
+
+    @router.get("/api/v1/cases/{case_id}/history", response_model=list[EvaluationOut], tags=["History"])
+    def get_case_history(
+        case_id: UUID,
+        request: Request,
+        actor: Actor = Depends(get_current_actor),
+    ) -> list[EvaluationOut]:
+        require_role(actor, {"doctor"})
+        try:
+            with staff_connection(request, actor) as conn:
+                require_case_access(conn, actor, case_id, {"clinical"})
+                return case_history(conn, case_id)
+        except HTTPException:
+            raise
+        except PsycopgError as error:
+            raise _db_failure(error) from None
+
+    @router.get("/api/v1/cases/{case_id}/export", response_model=CaseExportOut, tags=["History"])
+    def export_case(
+        case_id: UUID,
+        request: Request,
+        actor: Actor = Depends(get_current_actor),
+    ) -> CaseExportOut:
+        require_role(actor, {"doctor"})
+        try:
+            with staff_connection(request, actor) as conn:
+                require_case_access(conn, actor, case_id, {"clinical"})
+                case = conn.execute(
+                    """SELECT id, synthetic_code, age, sex, owner_id, revision
+                         FROM patient_case WHERE id = %s""",
+                    (case_id,),
+                ).fetchone()
+                evaluations = case_history(conn, case_id)
+                decision_rows = conn.execute(
+                    """SELECT d.id, d.evaluation_id, d.doctor_id, d.action, d.reason,
+                              d.adjustment_details, d.created_at
+                         FROM clinical_decision AS d
+                         JOIN evaluation AS v ON v.id = d.evaluation_id
+                         JOIN encounter AS e ON e.id = v.encounter_id
+                        WHERE e.case_id = %s AND v.mode = 'stub'
+                        ORDER BY d.created_at DESC, d.id""",
+                    (case_id,),
+                ).fetchall()
+                return CaseExportOut(
+                    case=case,
+                    evaluations=evaluations,
+                    decisions=[DecisionOut(**row) for row in decision_rows],
+                )
         except HTTPException:
             raise
         except PsycopgError as error:

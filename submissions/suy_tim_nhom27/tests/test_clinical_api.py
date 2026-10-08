@@ -95,6 +95,15 @@ class FakeDatabase:
         if statement.startswith("select id, synthetic_code, age, sex, owner_id, revision from patient_case"):
             row = self.cases.get(params[0])
             return Cursor([row] if row else [])
+        if statement.startswith("update patient_case"):
+            synthetic_code, age, sex, case_id = params
+            row = self.cases.get(case_id)
+            if row is None:
+                return Cursor([])
+            if any(case["synthetic_code"] == synthetic_code and case["id"] != case_id for case in self.cases.values()):
+                raise RuntimeError("duplicate synthetic_code")
+            row.update(synthetic_code=synthetic_code, age=age, sex=sex, revision=row["revision"] + 1)
+            return Cursor([row])
         if statement.startswith("select department_code from app_user"):
             return Cursor([{"department_code": self.departments[params[0]]}] if params[0] in self.departments else [])
         if statement.startswith("insert into encounter"):
@@ -234,6 +243,26 @@ def test_case_and_encounter_access_uses_assigned_scopes():
     admin = context("admin")
     assert admin.client.get("/api/v1/cases").status_code == 403
     assert admin.client.get(f"/api/v1/cases/{CASE_1}").status_code == 403
+
+
+def test_case_update_requires_doctor_scope_revision_and_valid_body():
+    doctor = context("doctor")
+    url = f"/api/v1/cases/{CASE_1}"
+    body = {"synthetic_code": "SYN-CASE-1-UPDATED", "age": 76, "sex": "female"}
+
+    denied_scope = doctor.client.put(f"/api/v1/cases/{CASE_3}?expected_revision=1", json=body)
+    assert denied_scope.status_code == 403
+    stale = doctor.client.put(f"{url}?expected_revision=2", json=body)
+    assert stale.status_code == 409
+    assert doctor.db.cases[CASE_1]["age"] == 75
+    invalid = doctor.client.put(f"{url}?expected_revision=3", json={**body, "age": 121})
+    assert invalid.status_code == 422
+    updated = doctor.client.put(f"{url}?expected_revision=3", json=body)
+    assert updated.status_code == 200, updated.text
+    assert updated.json()["age"] == 76 and updated.json()["revision"] == 4
+
+    nurse = context("nurse")
+    assert nurse.client.put(f"{url}?expected_revision=3", json=body).status_code == 403
 
 
 def test_observation_create_revision_and_case_encounter_isolation():
