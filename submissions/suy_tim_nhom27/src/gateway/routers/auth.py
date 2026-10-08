@@ -3,13 +3,18 @@ from __future__ import annotations
 import base64
 import hashlib
 import hmac
+import os
 import secrets
+import threading
+import time
+from collections import deque
 from datetime import datetime, timedelta, timezone
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+from psycopg.errors import UniqueViolation
 
 from ..authorization import Actor, _bearer, _actor_from_session, get_current_actor
 
@@ -19,6 +24,50 @@ class LoginPayload(BaseModel):
 
     username: str = Field(min_length=1, max_length=80)
     password: str = Field(min_length=1, max_length=200)
+
+
+class RegistrationPayload(BaseModel):
+    """Public signup only creates a fresh synthetic patient, never a staff actor."""
+
+    model_config = ConfigDict(extra="forbid")
+    username: str = Field(min_length=3, max_length=80, pattern=r"^[A-Za-z0-9][A-Za-z0-9_.-]{2,79}$")
+    password: str = Field(min_length=12, max_length=128)
+    age: int = Field(ge=0, le=120, strict=True)
+    sex: Literal["male", "female", "unknown"] = "unknown"
+
+    @field_validator("username", mode="before")
+    @classmethod
+    def trim_username(cls, value):
+        return value.strip() if isinstance(value, str) else value
+
+    @field_validator("password")
+    @classmethod
+    def reject_blank_password(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("Mật khẩu không được chỉ gồm khoảng trắng")
+        return value
+
+
+class RegistrationResponse(BaseModel):
+    username: str
+    role: Literal["patient"] = "patient"
+
+
+class RegistrationLimiter:
+    """Bounded, process-local local-demo signup throttle; never trust forwarded IPs."""
+
+    def __init__(self):
+        self.lock = threading.Lock()
+        self.attempts: deque[tuple[float, str]] = deque()
+
+    def check(self, client: str) -> None:
+        now = time.monotonic()
+        with self.lock:
+            while self.attempts and self.attempts[0][0] <= now - 60:
+                self.attempts.popleft()
+            if len(self.attempts) >= 64 or sum(ip == client for _, ip in self.attempts) >= 8:
+                raise HTTPException(status_code=429, detail="Đã thử đăng ký nhiều lần. Thử lại sau một phút.", headers={"Retry-After": "60"})
+            self.attempts.append((now, client))
 
 
 class TokenResponse(BaseModel):
@@ -73,6 +122,58 @@ def _pool(request: Request):
     if pool is None:
         raise HTTPException(status_code=503, detail="Cơ sở dữ liệu chưa sẵn sàng")
     return pool
+
+
+def hash_password(password: str) -> str:
+    salt = secrets.token_bytes(16)
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 600_000, 32)
+    return "pbkdf2_sha256$600000$" + base64.b64encode(salt).decode("ascii") + "$" + base64.b64encode(digest).decode("ascii")
+
+
+@router.post(
+    "/register", response_model=RegistrationResponse, status_code=201,
+    responses={409: {"description": "Tên đăng nhập đã được sử dụng"}, 429: {"description": "Vượt giới hạn đăng ký demo"}, 503: {"description": "Cơ sở dữ liệu hoặc bác sĩ phụ trách chưa sẵn sàng"}},
+)
+def register(body: RegistrationPayload, request: Request) -> RegistrationResponse:
+    # The limiter is initialized by create_app; standalone router users must opt
+    # into the same bounded limiter rather than disabling the public guard.
+    limiter = getattr(request.app.state, "registration_limiter", None)
+    if limiter is None:
+        raise HTTPException(status_code=503, detail="Đăng ký demo chưa được cấu hình")
+    limiter.check(request.client.host if request.client else "unknown")
+    owner_username = os.getenv("HF_REGISTRATION_DOCTOR_USERNAME", "doctor_demo")
+    encoded_hash = hash_password(body.password)
+    try:
+        with _pool(request).connection() as conn:
+            # Existing runtime membership grants SET but not inherited table-owner
+            # rights. Elevation is transaction-local, as in the clinical repository.
+            conn.execute("SET LOCAL ROLE hf_demo_owner")
+            owner = conn.execute(
+                """SELECT u.id FROM app_user u
+                   WHERE u.username = %s AND u.active
+                     AND EXISTS (SELECT 1 FROM user_role r WHERE r.user_id = u.id AND r.role_code = 'doctor')
+                     AND NOT EXISTS (SELECT 1 FROM user_role r WHERE r.user_id = u.id AND r.role_code <> 'doctor')
+                   FOR SHARE OF u""",
+                (owner_username,),
+            ).fetchone()
+            if owner is None:
+                raise HTTPException(status_code=503, detail="Bác sĩ phụ trách hồ sơ demo chưa được cấu hình hợp lệ")
+            user = conn.execute(
+                "INSERT INTO app_user (username, password_hash) VALUES (%s, %s) RETURNING id",
+                (body.username, encoded_hash),
+            ).fetchone()
+            conn.execute("INSERT INTO user_role (user_id, role_code) VALUES (%s, 'patient')", (user["id"],))
+            profile = conn.execute(
+                """INSERT INTO patient_case (synthetic_code, age, sex, owner_id)
+                   VALUES (%s, %s, %s, %s) RETURNING id""",
+                ("SYN-" + secrets.token_hex(10).upper(), body.age, body.sex, owner["id"]),
+            ).fetchone()
+            conn.execute("INSERT INTO patient_account (user_id, case_id) VALUES (%s, %s)", (user["id"], profile["id"]))
+    except UniqueViolation as exc:
+        if exc.diag.constraint_name == "app_user_username_key":
+            raise HTTPException(status_code=409, detail="Tên đăng nhập đã được sử dụng. Chọn tên khác.") from None
+        raise
+    return RegistrationResponse(username=body.username)
 
 
 @router.post("/token", response_model=TokenResponse)

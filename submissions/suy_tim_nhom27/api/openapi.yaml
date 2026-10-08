@@ -27,6 +27,37 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /api/v1/auth/register:
+    post:
+      tags:
+      - Identity
+      summary: Register
+      operationId: register_api_v1_auth_register_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistrationPayload'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegistrationResponse'
+        '409':
+          description: Tên đăng nhập đã được sử dụng
+        '429':
+          description: Vượt giới hạn đăng ký demo
+        '503':
+          description: Cơ sở dữ liệu hoặc bác sĩ phụ trách chưa sẵn sàng
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /api/v1/auth/token:
     post:
       tags:
@@ -2274,6 +2305,56 @@ components:
       - instructions
       - dose_times
       title: PrescriptionOut
+    RegistrationPayload:
+      properties:
+        username:
+          type: string
+          maxLength: 80
+          minLength: 3
+          pattern: ^[A-Za-z0-9][A-Za-z0-9_.-]{2,79}$
+          title: Username
+        password:
+          type: string
+          maxLength: 128
+          minLength: 12
+          title: Password
+        age:
+          type: integer
+          maximum: 120.0
+          minimum: 0.0
+          title: Age
+        sex:
+          type: string
+          enum:
+          - male
+          - female
+          - unknown
+          title: Sex
+          default: unknown
+      additionalProperties: false
+      type: object
+      required:
+      - username
+      - password
+      - age
+      title: RegistrationPayload
+      description: Public signup only creates a fresh synthetic patient, never a staff
+        actor.
+    RegistrationResponse:
+      properties:
+        username:
+          type: string
+          title: Username
+        role:
+          type: string
+          title: Role
+          default: patient
+          enum:
+          - patient
+      type: object
+      required:
+      - username
+      title: RegistrationResponse
     ReminderOut:
       properties:
         id:

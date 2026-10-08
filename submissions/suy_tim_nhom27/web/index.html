@@ -18,9 +18,9 @@
   </div>
 
   <section id="loginView" class="login-layout" aria-labelledby="loginTitle">
-    <div class="login-intro">
+    <div class="login-intro" id="loginIntro">
       <div class="eyebrow">HỆ THỐNG DEMO</div>
-      <h1 id="loginTitle">Hồ sơ<br>theo từng<br><span>encounter.</span></h1>
+      <h1 id="loginTitle">Hồ sơ<br>theo từng<br><span>lần khám.</span></h1>
       <p>Giao diện thử nghiệm quản lý hồ sơ suy tim cao tuổi. Dữ liệu không dùng cho chăm sóc hoặc quyết định y khoa.</p>
       <div class="intro-rule"></div>
       <div class="intro-meta">
@@ -30,12 +30,15 @@
     </div>
 
     <div class="login-panel">
-      <div class="panel-folio">01 / ĐĂNG NHẬP</div>
-      <h2>Đăng nhập demo</h2>
-      <p class="muted">Dùng tài khoản được API Gateway hỗ trợ.</p>
+      <div class="panel-folio" id="authFolio">ĐĂNG NHẬP</div>
+      <h2 id="authTitle" tabindex="-1">Đăng nhập</h2>
+      <p class="muted" id="authSubtitle">Đăng nhập bằng tài khoản của bạn hoặc tài khoản demo.</p>
       <form id="loginForm" novalidate>
-        <label for="loginRole">Vai trò / tên tài khoản</label>
-        <select id="loginRole" name="username" required>
+        <label for="loginRole">Tên đăng nhập</label>
+        <input id="loginRole" name="username" autocomplete="username" required maxlength="80" value="doctor_demo">
+        <label for="demoAccount">Điền nhanh tài khoản demo</label>
+        <select id="demoAccount">
+          <option value="">Chọn tài khoản demo (không bắt buộc)</option>
           <option value="doctor_demo">Bác sĩ · doctor_demo</option>
           <option value="nurse_demo">Điều dưỡng · nurse_demo</option>
           <option value="pharmacist_demo">Dược sĩ · pharmacist_demo</option>
@@ -46,7 +49,7 @@
 
         <label for="loginPassword">Mật khẩu demo</label>
         <input id="loginPassword" name="password" type="password" autocomplete="current-password" required maxlength="200">
-        <div class="field-note">Token được giữ trong sessionStorage và mất khi đóng tab.</div>
+        <div class="field-note">Nhập mật khẩu của tài khoản của bạn.</div>
 
         <button id="loginButton" class="button primary full-width" type="submit">
           <span>Đăng nhập</span>
@@ -55,9 +58,32 @@
         <p id="loginMessage" class="form-message" role="status" aria-live="polite"></p>
       </form>
 
+      <button id="showRegister" class="button full-width" type="button">Chưa có tài khoản? Đăng ký bệnh nhân</button>
+      <section id="registrationView" aria-labelledby="authTitle" hidden>
+        <p class="subtle">Chỉ nhập tuổi và giới tính giả lập; không nhập tên, email, số điện thoại hoặc dữ liệu người bệnh thật.</p>
+        <form id="registrationForm">
+          <label for="registerUsername">Tên đăng nhập</label>
+          <input id="registerUsername" name="username" autocomplete="username" required minlength="3" maxlength="80" pattern="[A-Za-z0-9][A-Za-z0-9_.-]{2,79}">
+          <p class="input-help">3–80 ký tự: chữ không dấu, số, dấu chấm, gạch dưới hoặc gạch ngang; bắt đầu bằng chữ hoặc số. Phân biệt chữ hoa và thường.</p>
+          <label for="registerPassword">Mật khẩu</label>
+          <input id="registerPassword" name="password" type="password" autocomplete="new-password" required minlength="12" maxlength="128">
+          <p class="input-help">Ít nhất 12 ký tự, không chỉ gồm khoảng trắng.</p>
+          <label for="registerConfirm">Nhập lại mật khẩu</label>
+          <input id="registerConfirm" type="password" autocomplete="new-password" required minlength="12" maxlength="128">
+          <div class="inline-form">
+            <div><label for="registerAge">Tuổi synthetic</label><input id="registerAge" name="age" type="number" min="0" max="120" step="1" required></div>
+            <div><label for="registerSex">Giới tính synthetic</label><select id="registerSex" name="sex"><option value="unknown">Chưa rõ</option><option value="female">Nữ</option><option value="male">Nam</option></select></div>
+          </div>
+          <p class="subtle">Tài khoản mới chỉ có quyền bệnh nhân. Hồ sơ mới chưa có lịch hẹn, số đo hoặc đơn thuốc.</p>
+          <button id="registerButton" class="button primary full-width" type="submit">Đăng ký bệnh nhân</button>
+          <p id="registrationMessage" class="form-message" role="status" aria-live="polite"></p>
+        </form>
+        <button id="backToLogin" class="button full-width" type="button">Quay lại đăng nhập</button>
+      </section>
+
       <div class="login-capability">
         <div class="capability-rule"></div>
-        <p>Tài khoản demo dùng hậu tố <code>_demo</code>. Các màn hình chỉ gọi API và chỉ hiển thị response synthetic.</p>
+        <p>Chọn tài khoản tương ứng với công việc của bạn. Các dữ liệu trên màn hình đều là dữ liệu demo.</p>
       </div>
     </div>
   </section>
@@ -65,7 +91,7 @@
   <div id="appView" class="app-view" hidden>
     <header class="topbar">
       <div class="topbar-left">
-        <button id="navToggle" class="icon-button nav-toggle" type="button" aria-label="Mở điều hướng" aria-expanded="false">
+        <button id="navToggle" class="icon-button nav-toggle" type="button" aria-label="Mở điều hướng" aria-controls="sidebar" aria-expanded="false">
           <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M3 5h14M3 10h14M3 15h14" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>
         </button>
         <div class="wordmark">
@@ -83,7 +109,7 @@
 
     <aside id="sidebar" class="sidebar" aria-label="Điều hướng chính">
       <div class="sidebar-intro">
-        <div class="eyebrow">WORKSPACE</div>
+        <div class="eyebrow">VAI TRÒ ĐANG ĐĂNG NHẬP</div>
         <h2>Quản lý<br>hồ sơ</h2>
       </div>
       <nav id="roleNav" class="role-nav" aria-label="Các màn hình"></nav>
@@ -97,7 +123,7 @@
       <div class="content-heading">
         <div>
           <p id="viewEyebrow" class="eyebrow">DEMO</p>
-          <h1 id="viewTitle">Tổng quan</h1>
+          <h1 id="viewTitle" tabindex="-1">Tổng quan</h1>
           <p id="viewSubtitle" class="muted"></p>
         </div>
         <div id="contextBadges" class="context-badges"></div>

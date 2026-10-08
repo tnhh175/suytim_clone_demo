@@ -15,7 +15,7 @@ from psycopg_pool import ConnectionPool, PoolTimeout
 from .clinical import build_clinical_router
 from .database import check_pool, create_pool
 from .patient_portal import build_patient_portal_router
-from .routers.auth import router as auth_router
+from .routers.auth import RegistrationLimiter, router as auth_router
 from .routers.medications import build_medications_router
 from .routers.rules import build_rules_router
 
@@ -47,6 +47,7 @@ def create_app(
         lifespan=lifespan,
     )
     app.state.pool = owned_pool
+    app.state.registration_limiter = RegistrationLimiter()
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],

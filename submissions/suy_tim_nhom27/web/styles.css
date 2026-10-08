@@ -253,3 +253,40 @@ textarea { min-height: 82px; resize: vertical; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
+
+/* Readable contexts and disclosures follow the existing Swiss grid. */
+summary { cursor: pointer; padding: 14px 0; color: var(--blue); font-size: 13px; font-weight: 600; }
+.panel > summary { padding: 16px 18px; }
+pre { max-width: 100%; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 11px; }
+.badge, .row-meta, .subtle, td, .context-strip { overflow-wrap: anywhere; }
+.case-row.selected { background: var(--surface); border-left: 2px solid var(--blue); }
+.row-actions, .rule-actions, .form-actions { flex-wrap: wrap; }
+.context-strip { padding: 12px; border-left: 2px solid var(--blue); background: var(--surface); font-size: 13px; }
+.main-content, .content-heading > div, .panel-body, .topbar-left, .topbar-right { min-width: 0; }
+@media (max-width: 768px) {
+  .inline-form { grid-template-columns: minmax(0, 1fr); }
+  .case-row, .record-row { grid-template-columns: minmax(0, 1fr); }
+  .case-row .row-actions, .record-row .row-actions { grid-column: 1; grid-row: auto; justify-content: start; margin-top: 8px; }
+  .rule-card { grid-template-columns: minmax(0, 1fr); }
+  .rule-actions { align-items: start; }
+  .gateway-status { max-width: 92px; overflow-wrap: anywhere; }
+  .wordmark { font-size: 12px; gap: 6px; }
+  .topbar-left, .topbar-right { gap: 6px; }
+  .patient-table, .patient-table tbody, .patient-table tr, .patient-table td { display: block; }
+  .patient-table thead { display: none; }
+  .patient-table tr { border-bottom: 1px solid var(--control); padding: 8px 0; }
+  .patient-table td { border: 0; display: grid; grid-template-columns: minmax(80px, .4fr) minmax(0, 1fr); gap: 12px; padding: 8px; }
+  .patient-table td::before { content: attr(data-label); color: var(--muted); }
+  .patient-table .row-actions { justify-content: start; }
+  .stat-row { grid-template-columns: minmax(0, 1fr); }
+  .case-detail-head { flex-wrap: wrap; }
+}
+
+.form-message.success { color: var(--green); }
+#registrationView { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--hairline); }
+
+.technical-description summary { padding: 5px 0 0; font-size: 11px; color: var(--muted); font-weight: 400; }
+#authTitle { scroll-margin-top: 56px; }
+.registration-open .login-panel { align-self: start; }
+.registration-open #registrationView { margin-top: 16px; padding-top: 0; border-top: 0; }
+@media (max-width: 768px) { .registration-open #loginIntro { display: none; } .registration-open .panel-folio { margin-bottom: 12px; } }
