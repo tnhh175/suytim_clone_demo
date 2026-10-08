@@ -1,0 +1,171 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net">
+  <diagram name="UML Class — Giao diện đánh giá và các module" id="06-class-services">
+    <mxGraphModel page="1" pageWidth="1650" pageHeight="1030">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="orchestrator" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="70" y="130" width="560" height="168" />
+        </mxCell>
+        <mxCell id="orchestratortxt0" value="EvaluationService" style="text;html=0;align=center;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="70" y="138" width="560" height="24" />
+        </mxCell>
+        <mxCell id="orchestratortxt1" value="- modules: List&lt;ModulePort&gt;" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="70" y="173" width="560" height="24" />
+        </mxCell>
+        <mxCell id="orchestratortxt2" value="- repo: EvaluationRepository" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="70" y="200" width="560" height="24" />
+        </mxCell>
+        <mxCell id="orchestratortxt3" value="+ evaluate(encounter, revision)" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="70" y="237" width="560" height="24" />
+        </mxCell>
+        <mxCell id="orchestratortxt4" value="+ confirm(evaluation, decision)" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="70" y="264" width="560" height="24" />
+        </mxCell>
+        <mxCell id="orchestratorsep0" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="70" y="170" width="560" height="1" />
+        </mxCell>
+        <mxCell id="orchestratorsep1" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="70" y="232" width="560" height="1" />
+        </mxCell>
+        <mxCell id="port" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="950" y="140" width="570" height="87" />
+        </mxCell>
+        <mxCell id="porttxt0" value="«interface» ModulePort" style="text;html=0;align=center;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="950" y="148" width="570" height="24" />
+        </mxCell>
+        <mxCell id="porttxt1" value="+ evaluate(snapshot): ModuleResult" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="950" y="193" width="570" height="24" />
+        </mxCell>
+        <mxCell id="portsep0" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="950" y="180" width="570" height="1" />
+        </mxCell>
+        <mxCell id="portsep1" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="950" y="188" width="570" height="1" />
+        </mxCell>
+        <mxCell id="e1" value="1     1..4" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=0.5;exitY=0.0;entryX=0.5;entryY=0.0;exitPerimeter=0;entryPerimeter=0;startArrow=diamond;startFill=0;" edge="1" parent="1" source="orchestrator" target="port">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="350.0" y="92" />
+              <mxPoint x="1235.0" y="92" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dx" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="30" y="620" width="360" height="114" />
+        </mxCell>
+        <mxCell id="dxtxt0" value="DiagnosisService" style="text;html=0;align=center;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="30" y="628" width="360" height="24" />
+        </mxCell>
+        <mxCell id="dxtxt1" value="- rules: RuleRepository" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="30" y="663" width="360" height="24" />
+        </mxCell>
+        <mxCell id="dxtxt2" value="+ evaluate(snapshot): ModuleResult" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="30" y="700" width="360" height="24" />
+        </mxCell>
+        <mxCell id="dxsep0" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="30" y="660" width="360" height="1" />
+        </mxCell>
+        <mxCell id="dxsep1" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="30" y="695" width="360" height="1" />
+        </mxCell>
+        <mxCell id="e2" value="" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=0.5;exitY=0.0;entryX=0.5;entryY=1.0;exitPerimeter=0;entryPerimeter=0;endArrow=block;endFill=0;dashed=1;" edge="1" parent="1" source="dx" target="port">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="210" y="450" />
+              <mxPoint x="1235" y="450" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lab" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="440" y="620" width="360" height="114" />
+        </mxCell>
+        <mxCell id="labtxt0" value="LabTestService" style="text;html=0;align=center;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="440" y="628" width="360" height="24" />
+        </mxCell>
+        <mxCell id="labtxt1" value="- rules: RuleRepository" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="440" y="663" width="360" height="24" />
+        </mxCell>
+        <mxCell id="labtxt2" value="+ evaluate(snapshot): ModuleResult" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="440" y="700" width="360" height="24" />
+        </mxCell>
+        <mxCell id="labsep0" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="440" y="660" width="360" height="1" />
+        </mxCell>
+        <mxCell id="labsep1" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="440" y="695" width="360" height="1" />
+        </mxCell>
+        <mxCell id="e3" value="" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=0.5;exitY=0.0;entryX=0.5;entryY=1.0;exitPerimeter=0;entryPerimeter=0;endArrow=block;endFill=0;dashed=1;" edge="1" parent="1" source="lab" target="port">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="620" y="420" />
+              <mxPoint x="1235" y="420" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="tr" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="850" y="620" width="360" height="114" />
+        </mxCell>
+        <mxCell id="trtxt0" value="TreatmentService" style="text;html=0;align=center;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="850" y="628" width="360" height="24" />
+        </mxCell>
+        <mxCell id="trtxt1" value="- rules: RuleRepository" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="850" y="663" width="360" height="24" />
+        </mxCell>
+        <mxCell id="trtxt2" value="+ evaluate(snapshot): ModuleResult" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="850" y="700" width="360" height="24" />
+        </mxCell>
+        <mxCell id="trsep0" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="850" y="660" width="360" height="1" />
+        </mxCell>
+        <mxCell id="trsep1" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="850" y="695" width="360" height="1" />
+        </mxCell>
+        <mxCell id="e4" value="" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=0.5;exitY=0.0;entryX=0.5;entryY=1.0;exitPerimeter=0;entryPerimeter=0;endArrow=block;endFill=0;dashed=1;" edge="1" parent="1" source="tr" target="port">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1030" y="390" />
+              <mxPoint x="1235" y="390" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ms" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1260" y="620" width="360" height="114" />
+        </mxCell>
+        <mxCell id="mstxt0" value="MedSafetyService" style="text;html=0;align=center;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1260" y="628" width="360" height="24" />
+        </mxCell>
+        <mxCell id="mstxt1" value="- rules: RuleRepository" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1260" y="663" width="360" height="24" />
+        </mxCell>
+        <mxCell id="mstxt2" value="+ evaluate(snapshot): ModuleResult" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1260" y="700" width="360" height="24" />
+        </mxCell>
+        <mxCell id="mssep0" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1260" y="660" width="360" height="1" />
+        </mxCell>
+        <mxCell id="mssep1" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1260" y="695" width="360" height="1" />
+        </mxCell>
+        <mxCell id="e5" value="" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=0.5;exitY=0.0;entryX=0.5;entryY=1.0;exitPerimeter=0;entryPerimeter=0;endArrow=block;endFill=0;dashed=1;" edge="1" parent="1" source="ms" target="port">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1440" y="360" />
+              <mxPoint x="1235" y="360" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="notation" value="Tam giác rỗng hướng về interface: hiện thực giao diện. Hình thoi rỗng ở EvaluationService: kết tập các ModulePort." style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="65" y="840" width="1520" height="50" />
+        </mxCell>
+        <mxCell id="note" value="Thiết kế đích. Tuần 3: StubModule hiện thực ModulePort; chưa triển khai bốn service lâm sàng thật." style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="65" y="920" width="1520" height="50" />
+        </mxCell>
+        <mxCell id="diagramTitle" value="UML Class — Giao diện đánh giá và các module" style="text;html=0;fontSize=22;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="0" y="8" width="1650" height="40" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

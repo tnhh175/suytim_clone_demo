@@ -1,0 +1,13 @@
+# Định tuyến review Pull Request tự động.
+# THAY @ten-giang-vien / @ten-ta bằng username GitHub thật trước khi dùng.
+#
+# Mọi PR nộp bài đều cần giảng viên/TA review trước khi merge (kết hợp với
+# Settings > Branches > Require review from Code Owners trên GitHub).
+
+/submissions/  @ten-giang-vien @ten-ta
+
+# Không ai được tự ý sửa các file cấu hình cốt lõi của repo nộp bài mà
+# không qua giảng viên duyệt riêng.
+/.github/       @ten-giang-vien
+/scripts/       @ten-giang-vien
+/CONTRIBUTING.md @ten-giang-vien

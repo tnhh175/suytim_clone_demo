@@ -1,0 +1,200 @@
+<mxfile host="app.diagrams.net" pages="3">
+  <diagram name="Quản lý bệnh nhân &amp; dữ liệu đầu vào" id="0">
+    <mxGraphModel dx="3644" dy="2044" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="BN" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;verticalAlign=top;spacing=6" value="&lt;div style=&quot;font-weight:bold;text-align:center&quot;&gt;BenhNhan&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ maBN: String&lt;br&gt;+ hoTen: String&lt;br&gt;+ tuoi: int&lt;br&gt;+ gioiTinh: String&lt;br&gt;+ chieuCao: double&lt;br&gt;+ canNang: double&lt;br&gt;+ BMI: double&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ taoHoSo()&lt;br&gt;+ capNhatHoSo()&lt;br&gt;+ timKiemHoSo()&lt;/div&gt;" vertex="1">
+          <mxGeometry height="290" width="230" x="310" y="-20" as="geometry" />
+        </mxCell>
+        <mxCell id="LK" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;verticalAlign=top;spacing=6" value="&lt;div style=&quot;font-weight:bold;text-align:center&quot;&gt;LanKham&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ maLanKham: String&lt;br&gt;+ ngayKham: Date&lt;br&gt;+ bacSi: String&lt;br&gt;+ trangThai: String&lt;br&gt;+ loaiLanKham: String&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ taoLanKham()&lt;br&gt;+ capNhatTrangThai()&lt;/div&gt;" vertex="1">
+          <mxGeometry height="224" width="230" x="700" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="TS" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;verticalAlign=top;spacing=6" value="&lt;div style=&quot;font-weight:bold;text-align:center&quot;&gt;TienSuBenh&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ maTS: String&lt;br&gt;+ tenBenh: String&lt;br&gt;+ thoiDiem: Date&lt;br&gt;+ ghiChu: String&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ themTienSu()&lt;br&gt;+ capNhatTienSu()&lt;/div&gt;" vertex="1">
+          <mxGeometry height="202" width="230" x="-150" y="24" as="geometry" />
+        </mxCell>
+        <mxCell id="TH" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;verticalAlign=top;spacing=6;gradientColor=none;" value="&lt;div style=&quot;font-weight:bold;text-align:center&quot;&gt;Thuoc&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ maThuoc: String&lt;br&gt;+ tenThuoc: String&lt;br&gt;+ hoatChat: String&lt;br&gt;+ hamLuong: String&lt;br&gt;+ dangBaoChe: String&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ traCuuThuoc()&lt;br&gt;+ capNhatThuoc()&lt;/div&gt;" vertex="1">
+          <mxGeometry height="224" width="230" x="1470" y="82" as="geometry" />
+        </mxCell>
+        <mxCell id="DT" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;verticalAlign=top;spacing=6" value="&lt;div style=&quot;font-weight:bold;text-align:center&quot;&gt;DonThuoc&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ maDon: String&lt;br&gt;+ maThuoc: String&lt;br&gt;+ lieuDung: String&lt;br&gt;+ duongDung: String&lt;br&gt;+ tanSuat: String&lt;br&gt;+ thoiGianDung: String&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ themThuoc()&lt;br&gt;+ capNhatLieuDung()&lt;br&gt;+ ngungThuoc()&lt;/div&gt;" vertex="1">
+          <mxGeometry height="268" width="230" x="1080" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="TC" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;verticalAlign=top;spacing=6" value="&lt;div style=&quot;font-weight:bold;text-align:center&quot;&gt;TrieuChung&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ maTC: String&lt;br&gt;+ tenTrieuChung: String&lt;br&gt;+ mucDo: String&lt;br&gt;+ thoiDiem: Date&lt;br&gt;+ ghiChu: String&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ themTrieuChung()&lt;br&gt;+ capNhatTrieuChung()&lt;/div&gt;" vertex="1">
+          <mxGeometry height="224" width="230" x="20" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="DH" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;verticalAlign=top;spacing=6" value="&lt;div style=&quot;font-weight:bold;text-align:center&quot;&gt;DauHieuSinhTon&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ maDH: String&lt;br&gt;+ huyetAp: String&lt;br&gt;+ mach: int&lt;br&gt;+ nhipTho: int&lt;br&gt;+ SpO2: double&lt;br&gt;+ canNang: double&lt;br&gt;+ thoiDiem: Date&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ nhapDauHieu()&lt;br&gt;+ capNhatDauHieu()&lt;/div&gt;" vertex="1">
+          <mxGeometry height="268" width="230" x="350" y="520" as="geometry" />
+        </mxCell>
+        <mxCell id="DG" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;verticalAlign=top;spacing=6" value="&lt;div style=&quot;font-weight:bold;text-align:center&quot;&gt;DanhGiaLaoKhoa&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ maDG: String&lt;br&gt;+ frailty: String&lt;br&gt;+ cognition: String&lt;br&gt;+ ADL: String&lt;br&gt;+ IADL: String&lt;br&gt;+ nguyCoNga: String&lt;br&gt;+ dinhDuong: String&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ danhGiaLaoKhoa()&lt;br&gt;+ capNhatDanhGia()&lt;/div&gt;" vertex="1">
+          <mxGeometry height="268" width="230" x="700" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="XN" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;verticalAlign=top;spacing=6" value="&lt;div style=&quot;font-weight:bold;text-align:center&quot;&gt;KetQuaCanLamSang&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ maKQ: String&lt;br&gt;+ loaiXetNghiem: String&lt;br&gt;+ tenXetNghiem: String&lt;br&gt;+ ketQua: String&lt;br&gt;+ donVi: String&lt;br&gt;+ thoiGian: Date&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ nhapKetQua()&lt;br&gt;+ capNhatKetQua()&lt;br&gt;+ phanLoaiKetQua()&lt;/div&gt;" vertex="1">
+          <mxGeometry height="268" width="230" x="1080" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="ADR" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;verticalAlign=top;spacing=6" value="&lt;div style=&quot;font-weight:bold;text-align:center&quot;&gt;DiUngADR&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ maADR: String&lt;br&gt;+ loai: String&lt;br&gt;+ moTa: String&lt;br&gt;+ mucDo: String&lt;br&gt;+ trangThai: String&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ themDiUngADR()&lt;br&gt;+ capNhatADR()&lt;/div&gt;" vertex="1">
+          <mxGeometry height="224" width="230" x="700" y="-230" as="geometry" />
+        </mxCell>
+        <mxCell id="e0" edge="1" parent="1" source="BN" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;fontSize=11" target="LK" value="&lt;div style=&quot;background:#fff&quot;&gt;1 &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; 0..*&lt;/div&gt;">
+          <mxGeometry relative="1" x="0.6432" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="BN" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;fontSize=11" target="TS" value="&lt;div style=&quot;background:#fff&quot;&gt;1 &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; 0..*&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="LK" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;fontSize=11" target="TC" value="&lt;div style=&quot;background:#fff&quot;&gt;1 &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; 0..*&lt;/div&gt;">
+          <mxGeometry relative="1" x="0.779" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="LK" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;fontSize=11" target="DH" value="&lt;div style=&quot;background:#fff&quot;&gt;1 &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; 0..*&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="LK" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;fontSize=11" target="DG" value="&lt;div style=&quot;background:#fff&quot;&gt;1 &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; 0..1&lt;/div&gt;">
+          <mxGeometry relative="1" x="0.0698" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="LK" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;fontSize=11" target="XN" value="&lt;div style=&quot;background:#fff&quot;&gt;1 &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; 0..*&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="LK" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;fontSize=11" target="DT" value="&lt;div style=&quot;background:#fff&quot;&gt;1 &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; 0..*&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="DT" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;fontSize=11" target="TH" value="&lt;div style=&quot;background:#fff&quot;&gt;1..* &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; 1&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="BN" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;fontSize=11" target="ADR" value="&lt;div style=&quot;background:#fff&quot;&gt;1 &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; 0..*&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="LK" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;fontSize=11" target="ADR" value="&lt;div style=&quot;background:#fff&quot;&gt;1 &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; 0..*&lt;/div&gt;">
+          <mxGeometry relative="1" x="0.7509" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="Module &amp; kết quả hỗ trợ" id="1">
+    <mxGraphModel dx="3644" dy="2044" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="PM" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;verticalAlign=top;spacing=6" value="&lt;div style=&quot;font-weight:bold;text-align:center&quot;&gt;PhienMoPhong&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ maPhien: String&lt;br&gt;+ maBN: String&lt;br&gt;+ maLanKham: String&lt;br&gt;+ thoiGian: DateTime&lt;br&gt;+ trangThai: String&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ taoPhien()&lt;br&gt;+ chayMoPhong()&lt;br&gt;+ ketThucPhien()&lt;/div&gt;" vertex="1">
+          <mxGeometry height="246" width="230" x="-100" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="AID" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;verticalAlign=top;spacing=6" value="&lt;div style=&quot;font-weight:bold;text-align:center&quot;&gt;Diagnosis&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left&quot;&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ danhGiaSuyTim()&lt;br&gt;+ phanLoaiPhenotype()&lt;br&gt;+ phanLoaiStage()&lt;br&gt;+ xacDinhNguyenNhan()&lt;br&gt;+ canhBaoGiaSuyTim()&lt;br&gt;+ canhBaoCapCuu()&lt;/div&gt;" vertex="1">
+          <mxGeometry height="202" width="230" x="-500" y="302" as="geometry" />
+        </mxCell>
+        <mxCell id="AIL" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;verticalAlign=top;spacing=6" value="&lt;div style=&quot;font-weight:bold;text-align:center&quot;&gt;LabTest&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left&quot;&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ goiYXetNghiemCoBan()&lt;br&gt;+ goiYXetNghiemNguyenNhan()&lt;br&gt;+ goiYXetNghiemPhanBiet()&lt;br&gt;+ phanLoaiKetQua()&lt;br&gt;+ uuTienXetNghiem()&lt;/div&gt;" vertex="1">
+          <mxGeometry height="180" width="230" x="-100" y="680" as="geometry" />
+        </mxCell>
+        <mxCell id="AIT" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;verticalAlign=top;spacing=6" value="&lt;div style=&quot;font-weight:bold;text-align:center&quot;&gt;Treatment&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left&quot;&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ deXuatDieuTri()&lt;br&gt;+ caTheHoaNguoiCaoTuoi()&lt;br&gt;+ goiYTheoEF()&lt;br&gt;+ xuTriWorseningHF()&lt;br&gt;+ xuTriDecompensatedHF()&lt;br&gt;+ lapKeHoachTheoDoi()&lt;/div&gt;" vertex="1">
+          <mxGeometry height="202" width="230" x="280" y="298" as="geometry" />
+        </mxCell>
+        <mxCell id="AIS" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;verticalAlign=top;spacing=6" value="&lt;div style=&quot;font-weight:bold;text-align:center&quot;&gt;MedSafety&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left&quot;&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ phatHienDaThuoc()&lt;br&gt;+ kiemTraTrungLap()&lt;br&gt;+ kiemTraTuongTac()&lt;br&gt;+ kiemTraChongChiDinh()&lt;br&gt;+ canhBaoNguyCo()&lt;br&gt;+ deXuatDieuChinhLieu()&lt;/div&gt;" vertex="1">
+          <mxGeometry height="202" width="230" x="-100" y="-50" as="geometry" />
+        </mxCell>
+        <mxCell id="KQ" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;verticalAlign=top;spacing=6" value="&lt;div style=&quot;font-weight:bold;text-align:center&quot;&gt;KetQuaDanhGia&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ maKQ: String&lt;br&gt;+ khaNangSuyTim: String&lt;br&gt;+ stage: String&lt;br&gt;+ EFPhenotype: String&lt;br&gt;+ benhCanh: String&lt;br&gt;+ nguyenNhan: String&lt;br&gt;+ mucDoTinCay: double&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ taoKetQua()&lt;br&gt;+ capNhatKetQua()&lt;/div&gt;" vertex="1">
+          <mxGeometry height="268" width="230" x="-500" y="640" as="geometry" />
+        </mxCell>
+        <mxCell id="KNX" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;verticalAlign=top;spacing=6" value="&lt;div style=&quot;font-weight:bold;text-align:center&quot;&gt;KhuyenNghiXetNghiem&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ maKN: String&lt;br&gt;+ tenXetNghiem: String&lt;br&gt;+ mucDoUuTien: String&lt;br&gt;+ lyDo: String&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ taoKhuyenNghi()&lt;br&gt;+ xepHangUuTien()&lt;/div&gt;" vertex="1">
+          <mxGeometry height="202" width="230" x="240" y="669" as="geometry" />
+        </mxCell>
+        <mxCell id="KNT" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;verticalAlign=top;spacing=6" value="&lt;div style=&quot;font-weight:bold;text-align:center&quot;&gt;KhuyenNghiDieuTri&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ maKN: String&lt;br&gt;+ noiDung: String&lt;br&gt;+ loaiKN: String&lt;br&gt;+ dieuKien: String&lt;br&gt;+ canhBao: String&lt;br&gt;+ lyDo: String&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ taoKhuyenNghi()&lt;br&gt;+ caTheHoaKhuyenNghi()&lt;/div&gt;" vertex="1">
+          <mxGeometry height="246" width="230" x="280" y="-72" as="geometry" />
+        </mxCell>
+        <mxCell id="CB" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;verticalAlign=top;spacing=6" value="&lt;div style=&quot;font-weight:bold;text-align:center&quot;&gt;CanhBaoThuoc&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ maCB: String&lt;br&gt;+ loaiCanhBao: String&lt;br&gt;+ mucDo: String&lt;br&gt;+ thuocLienQuan: String&lt;br&gt;+ lyDo: String&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ taoCanhBao()&lt;br&gt;+ phanTangMucDo()&lt;/div&gt;" vertex="1">
+          <mxGeometry height="224" width="230" x="-490" y="-61" as="geometry" />
+        </mxCell>
+        <mxCell id="e0" edge="1" parent="1" source="PM" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;fontSize=11" target="AID" value="&lt;div style=&quot;background:#fff&quot;&gt;1 &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; 0..1&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="PM" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;fontSize=11" target="AIL" value="&lt;div style=&quot;background:#fff&quot;&gt;1 &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; 0..1&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="PM" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;fontSize=11" target="AIT" value="&lt;div style=&quot;background:#fff&quot;&gt;1 &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; 0..1&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="PM" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;fontSize=11" target="AIS" value="&lt;div style=&quot;background:#fff&quot;&gt;1 &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; 0..1&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="AID" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;fontSize=11" target="KQ" value="&lt;div style=&quot;background:#fff&quot;&gt;1 &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; 1&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="AIL" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;fontSize=11" target="KNX" value="&lt;div style=&quot;background:#fff&quot;&gt;1 &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; 0..*&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="AIT" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;fontSize=11" target="KNT" value="&lt;div style=&quot;background:#fff&quot;&gt;1 &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; 0..*&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="AIS" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;fontSize=11" target="CB" value="&lt;div style=&quot;background:#fff&quot;&gt;1 &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; 0..*&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="Quyết định bác sĩ &amp; quản lý kết quả" id="2">
+    <mxGraphModel dx="1873" dy="957" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="PM" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;verticalAlign=top;spacing=6" value="&lt;div style=&quot;font-weight:bold;text-align:center&quot;&gt;PhienMoPhong&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ maPhien: String&lt;br&gt;+ maBN: String&lt;br&gt;+ maLanKham: String&lt;br&gt;+ thoiGian: DateTime&lt;br&gt;+ trangThai: String&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ taoPhien()&lt;br&gt;+ chayMoPhong()&lt;/div&gt;" vertex="1">
+          <mxGeometry height="224" width="230" x="700" y="744" as="geometry" />
+        </mxCell>
+        <mxCell id="KQ" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;verticalAlign=top;spacing=6" value="&lt;div style=&quot;font-weight:bold;text-align:center&quot;&gt;KetQuaDanhGia&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ maKQ: String&lt;br&gt;+ khaNangSuyTim: String&lt;br&gt;+ stage: String&lt;br&gt;+ EFPhenotype: String&lt;br&gt;+ benhCanh: String&lt;br&gt;+ nguyenNhan: String&lt;br&gt;+ mucDoTinCay: double&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ taoKetQua()&lt;br&gt;+ xemGiaiThich()&lt;/div&gt;" vertex="1">
+          <mxGeometry height="268" width="230" x="700" y="381" as="geometry" />
+        </mxCell>
+        <mxCell id="KN" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;verticalAlign=top;spacing=6" value="&lt;div style=&quot;font-weight:bold;text-align:center&quot;&gt;KhuyenNghiDieuTri&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ maKN: String&lt;br&gt;+ noiDung: String&lt;br&gt;+ loaiKN: String&lt;br&gt;+ dieuKien: String&lt;br&gt;+ canhBao: String&lt;br&gt;+ lyDo: String&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ xemKhuyenNghi()&lt;br&gt;+ dieuChinhKhuyenNghi()&lt;/div&gt;" vertex="1">
+          <mxGeometry height="246" width="230" x="110" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="QD" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;verticalAlign=top;spacing=6" value="&lt;div style=&quot;font-weight:bold;text-align:center&quot;&gt;QuyetDinhBacSi&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ maQD: String&lt;br&gt;+ quyetDinh: String&lt;br&gt;+ noiDungDieuChinh: String&lt;br&gt;+ lyDo: String&lt;br&gt;+ thoiGian: DateTime&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ xacNhanQuyetDinh()&lt;br&gt;+ dieuChinhQuyetDinh()&lt;br&gt;+ tuChoiKhuyenNghi()&lt;/div&gt;" vertex="1">
+          <mxGeometry height="246" width="230" x="700" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="KH" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;verticalAlign=top;spacing=6" value="&lt;div style=&quot;font-weight:bold;text-align:center&quot;&gt;KeHoachDieuTri&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ maKH: String&lt;br&gt;+ noiDungDieuTri: String&lt;br&gt;+ theoDoi: String&lt;br&gt;+ taiKham: String&lt;br&gt;+ thoiGian: DateTime&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ taoKeHoach()&lt;br&gt;+ capNhatKeHoach()&lt;br&gt;+ lapLichTaiKham()&lt;/div&gt;" vertex="1">
+          <mxGeometry height="246" width="230" x="1280" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="LS" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=12;verticalAlign=top;spacing=6" value="&lt;div style=&quot;font-weight:bold;text-align:center&quot;&gt;LichSuDanhGia&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ maLichSu: String&lt;br&gt;+ maPhien: String&lt;br&gt;+ thoiGian: DateTime&lt;br&gt;+ duLieuDauVao: String&lt;br&gt;+ ketQua: String&lt;br&gt;+ phienBanQuyTac: String&lt;/div&gt;&lt;hr/&gt;&lt;div style=&quot;text-align:left&quot;&gt;+ luuLichSu()&lt;br&gt;+ xemLichSu()&lt;br&gt;+ soSanhKetQua()&lt;/div&gt;" vertex="1">
+          <mxGeometry height="268" width="230" x="1230" y="700" as="geometry" />
+        </mxCell>
+        <mxCell id="e0" edge="1" parent="1" source="PM" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;fontSize=11" target="KQ" value="&lt;div style=&quot;background:#fff&quot;&gt;1 &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; 0..*&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="KQ" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;fontSize=11" target="KN" value="&lt;div style=&quot;background:#fff&quot;&gt;1 &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; 0..*&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="KN" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;fontSize=11" target="QD" value="&lt;div style=&quot;background:#fff&quot;&gt;0..* &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; 0..1&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="KQ" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;fontSize=11" target="QD" value="&lt;div style=&quot;background:#fff&quot;&gt;1 &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; 0..*&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="QD" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;fontSize=11" target="KH" value="&lt;div style=&quot;background:#fff&quot;&gt;1 &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; 0..1&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1190" y="163" />
+              <mxPoint x="1190" y="163" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="KH" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;fontSize=11" target="LS" value="&lt;div style=&quot;background:#fff&quot;&gt;1 &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; 0..*&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1400" y="854" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="PM" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;startArrow=none;fontSize=11" target="LS" value="&lt;div style=&quot;background:#fff&quot;&gt;1 &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; 0..*&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1150" y="840" />
+              <mxPoint x="1150" y="840" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

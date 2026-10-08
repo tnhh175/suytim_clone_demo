@@ -1,0 +1,411 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net">
+  <diagram name="UML Class — Các thực thể nghiệp vụ lõi" id="05-class-domain">
+    <mxGraphModel page="1" pageWidth="1800" pageHeight="1830">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="user" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="100" width="480" height="249" />
+        </mxCell>
+        <mxCell id="usertxt0" value="User" style="text;html=0;align=center;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="108" width="480" height="24" />
+        </mxCell>
+        <mxCell id="usertxt1" value="- id: uuid" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="143" width="480" height="24" />
+        </mxCell>
+        <mxCell id="usertxt2" value="- username: varchar(80)" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="170" width="480" height="24" />
+        </mxCell>
+        <mxCell id="usertxt3" value="- password_hash: text" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="197" width="480" height="24" />
+        </mxCell>
+        <mxCell id="usertxt4" value="- active: boolean" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="224" width="480" height="24" />
+        </mxCell>
+        <mxCell id="usertxt5" value="- created_at: timestamptz" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="251" width="480" height="24" />
+        </mxCell>
+        <mxCell id="usertxt6" value="- roles: Set&lt;Role&gt;" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="278" width="480" height="24" />
+        </mxCell>
+        <mxCell id="usertxt7" value="+ can(action, case): bool" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="315" width="480" height="24" />
+        </mxCell>
+        <mxCell id="usersep0" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="140" width="480" height="1" />
+        </mxCell>
+        <mxCell id="usersep1" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="310" width="480" height="1" />
+        </mxCell>
+        <mxCell id="case" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="100" width="480" height="303" />
+        </mxCell>
+        <mxCell id="casetxt0" value="PatientCase" style="text;html=0;align=center;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="108" width="480" height="24" />
+        </mxCell>
+        <mxCell id="casetxt1" value="- id: uuid" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="143" width="480" height="24" />
+        </mxCell>
+        <mxCell id="casetxt2" value="- synthetic_code: varchar(30)" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="170" width="480" height="24" />
+        </mxCell>
+        <mxCell id="casetxt3" value="- age: smallint" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="197" width="480" height="24" />
+        </mxCell>
+        <mxCell id="casetxt4" value="- sex: varchar(10)" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="224" width="480" height="24" />
+        </mxCell>
+        <mxCell id="casetxt5" value="- owner_id: uuid" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="251" width="480" height="24" />
+        </mxCell>
+        <mxCell id="casetxt6" value="- revision: integer" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="278" width="480" height="24" />
+        </mxCell>
+        <mxCell id="casetxt7" value="- created_at: timestamptz" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="305" width="480" height="24" />
+        </mxCell>
+        <mxCell id="casetxt8" value="+ addEncounter(): Encounter" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="342" width="480" height="24" />
+        </mxCell>
+        <mxCell id="casetxt9" value="+ update(expectedRevision): void" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="369" width="480" height="24" />
+        </mxCell>
+        <mxCell id="casesep0" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="140" width="480" height="1" />
+        </mxCell>
+        <mxCell id="casesep1" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="337" width="480" height="1" />
+        </mxCell>
+        <mxCell id="enc" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="100" width="480" height="222" />
+        </mxCell>
+        <mxCell id="enctxt0" value="Encounter" style="text;html=0;align=center;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="108" width="480" height="24" />
+        </mxCell>
+        <mxCell id="enctxt1" value="- id: uuid" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="143" width="480" height="24" />
+        </mxCell>
+        <mxCell id="enctxt2" value="- case_id: uuid" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="170" width="480" height="24" />
+        </mxCell>
+        <mxCell id="enctxt3" value="- occurred_at: timestamptz" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="197" width="480" height="24" />
+        </mxCell>
+        <mxCell id="enctxt4" value="- created_at: timestamptz" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="224" width="480" height="24" />
+        </mxCell>
+        <mxCell id="enctxt5" value="+ addObservation(): void" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="261" width="480" height="24" />
+        </mxCell>
+        <mxCell id="enctxt6" value="+ addMedication(): void" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="288" width="480" height="24" />
+        </mxCell>
+        <mxCell id="encsep0" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="140" width="480" height="1" />
+        </mxCell>
+        <mxCell id="encsep1" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="256" width="480" height="1" />
+        </mxCell>
+        <mxCell id="obs" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="680" width="480" height="384" />
+        </mxCell>
+        <mxCell id="obstxt0" value="Observation" style="text;html=0;align=center;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="688" width="480" height="24" />
+        </mxCell>
+        <mxCell id="obstxt1" value="- id: uuid" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="723" width="480" height="24" />
+        </mxCell>
+        <mxCell id="obstxt2" value="- encounter_id: uuid" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="750" width="480" height="24" />
+        </mxCell>
+        <mxCell id="obstxt3" value="- code: varchar(60)" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="777" width="480" height="24" />
+        </mxCell>
+        <mxCell id="obstxt4" value="- value_number: numeric" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="804" width="480" height="24" />
+        </mxCell>
+        <mxCell id="obstxt5" value="- value_boolean: boolean" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="831" width="480" height="24" />
+        </mxCell>
+        <mxCell id="obstxt6" value="- value_text: text" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="858" width="480" height="24" />
+        </mxCell>
+        <mxCell id="obstxt7" value="- status: varchar(20)" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="885" width="480" height="24" />
+        </mxCell>
+        <mxCell id="obstxt8" value="- observed_at: timestamptz" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="912" width="480" height="24" />
+        </mxCell>
+        <mxCell id="obstxt9" value="- source: varchar(30)" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="939" width="480" height="24" />
+        </mxCell>
+        <mxCell id="obstxt10" value="- recorded_by: uuid" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="966" width="480" height="24" />
+        </mxCell>
+        <mxCell id="obstxt11" value="- created_at: timestamptz" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="993" width="480" height="24" />
+        </mxCell>
+        <mxCell id="obstxt12" value="+ validate(type): bool" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="1030" width="480" height="24" />
+        </mxCell>
+        <mxCell id="obssep0" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="720" width="480" height="1" />
+        </mxCell>
+        <mxCell id="obssep1" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="1025" width="480" height="1" />
+        </mxCell>
+        <mxCell id="med" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="680" width="480" height="330" />
+        </mxCell>
+        <mxCell id="medtxt0" value="Medication" style="text;html=0;align=center;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="688" width="480" height="24" />
+        </mxCell>
+        <mxCell id="medtxt1" value="- id: uuid" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="723" width="480" height="24" />
+        </mxCell>
+        <mxCell id="medtxt2" value="- encounter_id: uuid" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="750" width="480" height="24" />
+        </mxCell>
+        <mxCell id="medtxt3" value="- ingredient_code: varchar(60)" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="777" width="480" height="24" />
+        </mxCell>
+        <mxCell id="medtxt4" value="- dose: numeric" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="804" width="480" height="24" />
+        </mxCell>
+        <mxCell id="medtxt5" value="- dose_unit: varchar(10)" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="831" width="480" height="24" />
+        </mxCell>
+        <mxCell id="medtxt6" value="- route: varchar(10)" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="858" width="480" height="24" />
+        </mxCell>
+        <mxCell id="medtxt7" value="- frequency_per_day: smallint" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="885" width="480" height="24" />
+        </mxCell>
+        <mxCell id="medtxt8" value="- kind: varchar(10)" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="912" width="480" height="24" />
+        </mxCell>
+        <mxCell id="medtxt9" value="- created_at: timestamptz" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="939" width="480" height="24" />
+        </mxCell>
+        <mxCell id="medtxt10" value="+ validate(): bool" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="976" width="480" height="24" />
+        </mxCell>
+        <mxCell id="medsep0" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="720" width="480" height="1" />
+        </mxCell>
+        <mxCell id="medsep1" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="971" width="480" height="1" />
+        </mxCell>
+        <mxCell id="eval" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="680" width="480" height="303" />
+        </mxCell>
+        <mxCell id="evaltxt0" value="Evaluation" style="text;html=0;align=center;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="688" width="480" height="24" />
+        </mxCell>
+        <mxCell id="evaltxt1" value="- id: uuid" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="723" width="480" height="24" />
+        </mxCell>
+        <mxCell id="evaltxt2" value="- encounter_id: uuid" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="750" width="480" height="24" />
+        </mxCell>
+        <mxCell id="evaltxt3" value="- input_revision: integer" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="777" width="480" height="24" />
+        </mxCell>
+        <mxCell id="evaltxt4" value="- input_snapshot: jsonb" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="804" width="480" height="24" />
+        </mxCell>
+        <mxCell id="evaltxt5" value="- requested_by: uuid" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="831" width="480" height="24" />
+        </mxCell>
+        <mxCell id="evaltxt6" value="- mode: varchar(10)" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="858" width="480" height="24" />
+        </mxCell>
+        <mxCell id="evaltxt7" value="- created_at: timestamptz" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="885" width="480" height="24" />
+        </mxCell>
+        <mxCell id="evaltxt8" value="+ addResult(result): void" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="922" width="480" height="24" />
+        </mxCell>
+        <mxCell id="evaltxt9" value="+ isCurrent(case): bool" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="949" width="480" height="24" />
+        </mxCell>
+        <mxCell id="evalsep0" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="720" width="480" height="1" />
+        </mxCell>
+        <mxCell id="evalsep1" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="917" width="480" height="1" />
+        </mxCell>
+        <mxCell id="result" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="1270" width="480" height="249" />
+        </mxCell>
+        <mxCell id="resulttxt0" value="ModuleResult" style="text;html=0;align=center;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="1278" width="480" height="24" />
+        </mxCell>
+        <mxCell id="resulttxt1" value="- id: uuid" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="1313" width="480" height="24" />
+        </mxCell>
+        <mxCell id="resulttxt2" value="- evaluation_id: uuid" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="1340" width="480" height="24" />
+        </mxCell>
+        <mxCell id="resulttxt3" value="- module: varchar(20)" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="1367" width="480" height="24" />
+        </mxCell>
+        <mxCell id="resulttxt4" value="- rule_version_id: uuid" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="1394" width="480" height="24" />
+        </mxCell>
+        <mxCell id="resulttxt5" value="- status: varchar(30)" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="1421" width="480" height="24" />
+        </mxCell>
+        <mxCell id="resulttxt6" value="- message: text" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="1448" width="480" height="24" />
+        </mxCell>
+        <mxCell id="resulttxt7" value="+ explain(): Explanation" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="1485" width="480" height="24" />
+        </mxCell>
+        <mxCell id="resultsep0" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="1310" width="480" height="1" />
+        </mxCell>
+        <mxCell id="resultsep1" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="1480" width="480" height="1" />
+        </mxCell>
+        <mxCell id="decision" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="1270" width="480" height="249" />
+        </mxCell>
+        <mxCell id="decisiontxt0" value="ClinicalDecision" style="text;html=0;align=center;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="1278" width="480" height="24" />
+        </mxCell>
+        <mxCell id="decisiontxt1" value="- id: uuid" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="1313" width="480" height="24" />
+        </mxCell>
+        <mxCell id="decisiontxt2" value="- evaluation_id: uuid" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="1340" width="480" height="24" />
+        </mxCell>
+        <mxCell id="decisiontxt3" value="- doctor_id: uuid" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="1367" width="480" height="24" />
+        </mxCell>
+        <mxCell id="decisiontxt4" value="- action: varchar(10)" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="1394" width="480" height="24" />
+        </mxCell>
+        <mxCell id="decisiontxt5" value="- reason: text" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="1421" width="480" height="24" />
+        </mxCell>
+        <mxCell id="decisiontxt6" value="- created_at: timestamptz" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="1448" width="480" height="24" />
+        </mxCell>
+        <mxCell id="decisiontxt7" value="+ validateReason(): bool" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="1485" width="480" height="24" />
+        </mxCell>
+        <mxCell id="decisionsep0" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="1310" width="480" height="1" />
+        </mxCell>
+        <mxCell id="decisionsep1" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="650" y="1480" width="480" height="1" />
+        </mxCell>
+        <mxCell id="rule" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="1270" width="480" height="330" />
+        </mxCell>
+        <mxCell id="ruletxt0" value="RuleVersion" style="text;html=0;align=center;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="1278" width="480" height="24" />
+        </mxCell>
+        <mxCell id="ruletxt1" value="- id: uuid" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="1313" width="480" height="24" />
+        </mxCell>
+        <mxCell id="ruletxt2" value="- code: varchar(60)" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="1340" width="480" height="24" />
+        </mxCell>
+        <mxCell id="ruletxt3" value="- version: integer" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="1367" width="480" height="24" />
+        </mxCell>
+        <mxCell id="ruletxt4" value="- module: varchar(20)" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="1394" width="480" height="24" />
+        </mxCell>
+        <mxCell id="ruletxt5" value="- source_ref: text" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="1421" width="480" height="24" />
+        </mxCell>
+        <mxCell id="ruletxt6" value="- content_hash: varchar(64)" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="1448" width="480" height="24" />
+        </mxCell>
+        <mxCell id="ruletxt7" value="- status: varchar(12)" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="1475" width="480" height="24" />
+        </mxCell>
+        <mxCell id="ruletxt8" value="- created_by: uuid" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="1502" width="480" height="24" />
+        </mxCell>
+        <mxCell id="ruletxt9" value="- created_at: timestamptz" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="1529" width="480" height="24" />
+        </mxCell>
+        <mxCell id="ruletxt10" value="+ canActivate(approval): bool" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="1566" width="480" height="24" />
+        </mxCell>
+        <mxCell id="rulesep0" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="1310" width="480" height="1" />
+        </mxCell>
+        <mxCell id="rulesep1" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1250" y="1561" width="480" height="1" />
+        </mxCell>
+        <mxCell id="e1" value="1 phụ trách 0..*" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="user" target="case">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e2" value="1 chứa 0..*" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="case" target="enc">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e3" value="1 chứa 0..*" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="enc" target="obs">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1490.0" y="501.0" />
+              <mxPoint x="290.0" y="501.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e4" value="1 chứa 0..*" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="enc" target="med">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1490.0" y="501.0" />
+              <mxPoint x="890.0" y="501.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e5" value="1 có 0..*" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="enc" target="eval">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1490.0" y="501.0" />
+              <mxPoint x="1490.0" y="501.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e6" value="1 chứa 1..4" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="eval" target="result">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1490.0" y="1126.5" />
+              <mxPoint x="290.0" y="1126.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e7" value="1 có 0..1" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="eval" target="decision">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1490.0" y="1126.5" />
+              <mxPoint x="890.0" y="1126.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e8" value="0..1 dùng bởi 0..*" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=0.5;exitY=0.0;entryX=0.5;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="rule" target="result">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1490.0" y="1232" />
+              <mxPoint x="290.0" y="1232" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="diagramTitle" value="UML Class — Các thực thể nghiệp vụ lõi" style="text;html=0;fontSize=22;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="0" y="8" width="1800" height="40" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

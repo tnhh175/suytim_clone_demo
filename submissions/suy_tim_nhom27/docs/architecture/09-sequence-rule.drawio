@@ -1,0 +1,166 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net">
+  <diagram name="Sequence 3 — Quản trị quy tắc trên Gateway stub hiện tại" id="09-sequence-rule">
+    <mxGraphModel page="1" pageWidth="1600" pageHeight="1020">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="p0" value="Frontend / Quản trị" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="10.0" y="75" width="200" height="65" />
+        </mxCell>
+        <mxCell id="start0" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="110.0" y="145" width="1" height="1" />
+        </mxCell>
+        <mxCell id="end0" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="110.0" y="985" width="1" height="1" />
+        </mxCell>
+        <mxCell id="e1" value="" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=0.0;exitY=0.0;entryX=0.0;entryY=0.0;exitPerimeter=0;entryPerimeter=0;dashed=1;" edge="1" parent="1" source="start0" target="end0">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="p1" value="FastAPI / rule handlers" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="700.0" y="75" width="200" height="65" />
+        </mxCell>
+        <mxCell id="start1" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="800.0" y="145" width="1" height="1" />
+        </mxCell>
+        <mxCell id="end1" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="800.0" y="985" width="1" height="1" />
+        </mxCell>
+        <mxCell id="e2" value="" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=0.0;exitY=0.0;entryX=0.0;entryY=0.0;exitPerimeter=0;entryPerimeter=0;dashed=1;" edge="1" parent="1" source="start1" target="end1">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="p2" value="MemoryStore (RAM)" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1390.0" y="75" width="200" height="65" />
+        </mxCell>
+        <mxCell id="start2" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1490.0" y="145" width="1" height="1" />
+        </mxCell>
+        <mxCell id="end2" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1490.0" y="985" width="1" height="1" />
+        </mxCell>
+        <mxCell id="e3" value="" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=0.0;exitY=0.0;entryX=0.0;entryY=0.0;exitPerimeter=0;entryPerimeter=0;dashed=1;" edge="1" parent="1" source="start2" target="end2">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m0a" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="110.0" y="200" width="1" height="1" />
+        </mxCell>
+        <mxCell id="m0b" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="800.0" y="200" width="1" height="1" />
+        </mxCell>
+        <mxCell id="e4" value="POST /api/v1/rule-versions: code, module, source_ref" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=classic;exitX=0.0;exitY=0.0;entryX=0.0;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="m0a" target="m0b">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m1a" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="800.0" y="282" width="1" height="1" />
+        </mxCell>
+        <mxCell id="m1b" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1490.0" y="282" width="1" height="1" />
+        </mxCell>
+        <mxCell id="e5" value="Kiểm quyền admin; tăng version; lưu draft + audit" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=classic;exitX=0.0;exitY=0.0;entryX=0.0;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="m1a" target="m1b">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m2a" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1490.0" y="364" width="1" height="1" />
+        </mxCell>
+        <mxCell id="m2b" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="800.0" y="364" width="1" height="1" />
+        </mxCell>
+        <mxCell id="e6" value="RuleOut(status=draft, test_status=not_run)" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=classic;exitX=0.0;exitY=0.0;entryX=0.0;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="m2a" target="m2b">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m3a" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="110.0" y="446" width="1" height="1" />
+        </mxCell>
+        <mxCell id="m3b" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="800.0" y="446" width="1" height="1" />
+        </mxCell>
+        <mxCell id="e7" value="POST /api/v1/rule-versions/{id}/test" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=classic;exitX=0.0;exitY=0.0;entryX=0.0;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="m3a" target="m3b">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m4a" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="800.0" y="528" width="1" height="1" />
+        </mxCell>
+        <mxCell id="m4b" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1490.0" y="528" width="1" height="1" />
+        </mxCell>
+        <mxCell id="e8" value="Đánh dấu schema_passed, status=tested; record audit" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=classic;exitX=0.0;exitY=0.0;entryX=0.0;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="m4a" target="m4b">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m5a" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1490.0" y="610" width="1" height="1" />
+        </mxCell>
+        <mxCell id="m5b" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="800.0" y="610" width="1" height="1" />
+        </mxCell>
+        <mxCell id="e9" value="clinical_validation=not_performed" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=classic;exitX=0.0;exitY=0.0;entryX=0.0;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="m5a" target="m5b">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m6a" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="110.0" y="692" width="1" height="1" />
+        </mxCell>
+        <mxCell id="m6b" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="800.0" y="692" width="1" height="1" />
+        </mxCell>
+        <mxCell id="e10" value="POST /api/v1/rule-versions/{id}/activate" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=classic;exitX=0.0;exitY=0.0;entryX=0.0;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="m6a" target="m6b">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m7a" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="800.0" y="774" width="1" height="1" />
+        </mxCell>
+        <mxCell id="m7b" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1490.0" y="774" width="1" height="1" />
+        </mxCell>
+        <mxCell id="e11" value="Kiểm quyền admin và rule tồn tại; record rule.activation_blocked" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=classic;exitX=0.0;exitY=0.0;entryX=0.0;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="m7a" target="m7b">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m8a" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1490.0" y="856" width="1" height="1" />
+        </mxCell>
+        <mxCell id="m8b" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="800.0" y="856" width="1" height="1" />
+        </mxCell>
+        <mxCell id="e12" value="Rule vẫn chưa active" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=classic;exitX=0.0;exitY=0.0;entryX=0.0;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="m8a" target="m8b">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m9a" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="800.0" y="938" width="1" height="1" />
+        </mxCell>
+        <mxCell id="m9b" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="110.0" y="938" width="1" height="1" />
+        </mxCell>
+        <mxCell id="e13" value="409: chưa có phê duyệt chuyên môn được xác minh" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=classic;exitX=0.0;exitY=0.0;entryX=0.0;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="m9a" target="m9b">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="diagramTitle" value="Sequence 3 — Quản trị quy tắc trên Gateway stub hiện tại" style="text;html=0;fontSize=22;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="0" y="8" width="1600" height="40" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

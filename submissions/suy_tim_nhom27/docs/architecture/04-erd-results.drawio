@@ -1,0 +1,83 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net">
+  <diagram name="ERD B — Kết quả, quy tắc và truy vết" id="04-erd-results">
+    <mxGraphModel page="1" pageWidth="1800" pageHeight="1580">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="ingredient" value="ingredient&#10;PK code: varchar(60)&#10;display_name: text" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="100" width="410" height="88" />
+        </mxCell>
+        <mxCell id="rule_version" value="rule_version&#10;PK id: uuid&#10;code: varchar(60)&#10;version: integer&#10;module: varchar(20)&#10;source_ref: text&#10;content_hash: varchar(64)&#10;status: varchar(12)&#10;FK created_by: uuid&#10;created_at: timestamptz" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="635" y="100" width="410" height="256" />
+        </mxCell>
+        <mxCell id="rule_approval" value="rule_approval&#10;PK rule_version_id: uuid&#10;approval_ref: text&#10;approved_content_hash: varchar(64)&#10;approved_at: timestamptz&#10;FK recorded_by: uuid" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1230" y="100" width="410" height="160" />
+        </mxCell>
+        <mxCell id="evaluation" value="evaluation&#10;PK id: uuid&#10;FK encounter_id: uuid&#10;input_revision: integer&#10;input_snapshot: jsonb&#10;FK requested_by: uuid&#10;mode: varchar(10)&#10;created_at: timestamptz" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="580" width="410" height="208" />
+        </mxCell>
+        <mxCell id="module_result" value="module_result&#10;PK id: uuid&#10;FK evaluation_id: uuid&#10;module: varchar(20)&#10;FK rule_version_id: uuid&#10;status: varchar(30)&#10;message: text" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="635" y="580" width="410" height="184" />
+        </mxCell>
+        <mxCell id="recommendation" value="recommendation&#10;PK id: uuid&#10;FK module_result_id: uuid&#10;code: varchar(80)&#10;severity: varchar(12)&#10;description: text&#10;source_ref: text" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1230" y="580" width="410" height="184" />
+        </mxCell>
+        <mxCell id="result_missing_field" value="result_missing_field&#10;PK/FK module_result_id: uuid&#10;PK/FK field_code: varchar(60)" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="1060" width="410" height="88" />
+        </mxCell>
+        <mxCell id="clinical_decision" value="clinical_decision&#10;PK id: uuid&#10;FK evaluation_id: uuid&#10;FK doctor_id: uuid&#10;action: varchar(10)&#10;reason: text&#10;created_at: timestamptz" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="635" y="1060" width="410" height="184" />
+        </mxCell>
+        <mxCell id="audit_event" value="audit_event&#10;PK id: uuid&#10;FK actor_id: uuid&#10;action: varchar(80)&#10;entity_type: varchar(40)&#10;entity_id: uuid&#10;created_at: timestamptz" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1230" y="1060" width="410" height="184" />
+        </mxCell>
+        <mxCell id="e1" value="1 — 0..1" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="rule_version" target="rule_approval">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e2" value="0..1 — 0..*" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="rule_version" target="module_result">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="840.0" y="468.0" />
+              <mxPoint x="840.0" y="468.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e3" value="1 — 0..*" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="evaluation" target="module_result">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e4" value="1 — 0..*" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="module_result" target="recommendation">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e5" value="1 — 0..*" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="module_result" target="result_missing_field">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="840.0" y="912.0" />
+              <mxPoint x="245.0" y="912.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e6" value="1 — 0..1" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="evaluation" target="clinical_decision">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="245.0" y="924.0" />
+              <mxPoint x="840.0" y="924.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="legend" value="Quan hệ ghi bội số 1 — 0..*. Mã FK và CHECK đầy đủ trong data_dictionary.md / schema.sql. Bảng lặp giữa hai hình là cùng bảng." style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="1500" width="1710" height="50" />
+        </mxCell>
+        <mxCell id="diagramTitle" value="ERD B — Kết quả, quy tắc và truy vết" style="text;html=0;fontSize=22;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="0" y="8" width="1800" height="40" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

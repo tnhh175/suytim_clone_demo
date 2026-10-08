@@ -1,0 +1,28 @@
+name: Validate Submission
+
+# Chạy trên mọi PR nhắm vào main — đây là lưới chặn bắt buộc trước khi
+# merge (kết hợp với branch protection yêu cầu check này phải xanh).
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Liệt kê file thay đổi trong PR
+        run: |
+          git diff --name-only origin/${{ github.base_ref }} origin/${{ github.head_ref }} > changed_files.txt
+          echo "== File thay đổi trong PR =="
+          cat changed_files.txt
+
+      - name: Kiểm tra cách ly + schema + dữ liệu nhạy cảm
+        run: python scripts/validate_submission.py --pr-files changed_files.txt

@@ -1,0 +1,761 @@
+[
+  {
+    "name": "app_user",
+    "description": "Tài khoản; không chứa thông tin bệnh nhân",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "constraint": "PRIMARY KEY DEFAULT gen_random_uuid()",
+        "description": "Mã nội bộ"
+      },
+      {
+        "name": "username",
+        "type": "varchar(80)",
+        "constraint": "NOT NULL UNIQUE",
+        "description": "Tên đăng nhập"
+      },
+      {
+        "name": "password_hash",
+        "type": "text",
+        "constraint": "NOT NULL",
+        "description": "Băm mật khẩu, không lưu mật khẩu thô"
+      },
+      {
+        "name": "active",
+        "type": "boolean",
+        "constraint": "NOT NULL DEFAULT true",
+        "description": "Cho phép đăng nhập"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "constraint": "NOT NULL DEFAULT now()",
+        "description": "Thời điểm tạo"
+      }
+    ],
+    "constraints": [],
+    "indexes": []
+  },
+  {
+    "name": "role",
+    "description": "Ba vai trò đã chốt",
+    "columns": [
+      {
+        "name": "code",
+        "type": "varchar(20)",
+        "constraint": "PRIMARY KEY CHECK (code IN ('doctor','pharmacist','admin'))",
+        "description": "Mã vai trò"
+      }
+    ],
+    "constraints": [],
+    "indexes": []
+  },
+  {
+    "name": "user_role",
+    "description": "Một tài khoản có thể có nhiều vai trò",
+    "columns": [
+      {
+        "name": "user_id",
+        "type": "uuid",
+        "constraint": "NOT NULL REFERENCES app_user(id)",
+        "description": "Tài khoản"
+      },
+      {
+        "name": "role_code",
+        "type": "varchar(20)",
+        "constraint": "NOT NULL REFERENCES role(code)",
+        "description": "Vai trò"
+      }
+    ],
+    "constraints": [
+      "PRIMARY KEY(user_id,role_code)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "patient_case",
+    "description": "Hồ sơ synthetic, không lưu tên/CCCD/địa chỉ",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "constraint": "PRIMARY KEY DEFAULT gen_random_uuid()",
+        "description": "Mã nội bộ"
+      },
+      {
+        "name": "synthetic_code",
+        "type": "varchar(30)",
+        "constraint": "NOT NULL UNIQUE CHECK (synthetic_code ~ '^SYN-[A-Z0-9-]{1,24}$')",
+        "description": "Mã giả lập"
+      },
+      {
+        "name": "age",
+        "type": "smallint",
+        "constraint": "NOT NULL CHECK (age BETWEEN 0 AND 120)",
+        "description": "Tuổi tại tạo hồ sơ"
+      },
+      {
+        "name": "sex",
+        "type": "varchar(10)",
+        "constraint": "NOT NULL CHECK (sex IN ('male','female','unknown'))",
+        "description": "Giới tính"
+      },
+      {
+        "name": "owner_id",
+        "type": "uuid",
+        "constraint": "NOT NULL REFERENCES app_user(id)",
+        "description": "Bác sĩ phụ trách"
+      },
+      {
+        "name": "revision",
+        "type": "integer",
+        "constraint": "NOT NULL DEFAULT 1 CHECK(revision>0)",
+        "description": "Tăng khi dữ liệu nguồn thay đổi"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "constraint": "NOT NULL DEFAULT now()",
+        "description": "Thời điểm tạo"
+      }
+    ],
+    "constraints": [],
+    "indexes": [
+      "CREATE INDEX ix_case_owner ON patient_case(owner_id);"
+    ]
+  },
+  {
+    "name": "case_access",
+    "description": "Quyền đối với từng hồ sơ; một người có thể có nhiều phạm vi trên một ca",
+    "columns": [
+      {
+        "name": "case_id",
+        "type": "uuid",
+        "constraint": "NOT NULL REFERENCES patient_case(id)",
+        "description": "Ca bệnh"
+      },
+      {
+        "name": "user_id",
+        "type": "uuid",
+        "constraint": "NOT NULL REFERENCES app_user(id)",
+        "description": "Người được cấp quyền"
+      },
+      {
+        "name": "access_scope",
+        "type": "varchar(20)",
+        "constraint": "NOT NULL CHECK(access_scope IN ('clinical','medsafety'))",
+        "description": "Phạm vi dữ liệu"
+      }
+    ],
+    "constraints": [
+      "PRIMARY KEY(case_id,user_id,access_scope)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "encounter",
+    "description": "Lượt khám thuộc ca",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "constraint": "PRIMARY KEY DEFAULT gen_random_uuid()",
+        "description": "Mã nội bộ"
+      },
+      {
+        "name": "case_id",
+        "type": "uuid",
+        "constraint": "NOT NULL REFERENCES patient_case(id)",
+        "description": "Ca bệnh"
+      },
+      {
+        "name": "occurred_at",
+        "type": "timestamptz",
+        "constraint": "NOT NULL",
+        "description": "Thời gian khám"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "constraint": "NOT NULL DEFAULT now()",
+        "description": "Thời điểm tạo"
+      }
+    ],
+    "constraints": [],
+    "indexes": [
+      "CREATE INDEX ix_encounter_case_time ON encounter(case_id,occurred_at DESC);"
+    ]
+  },
+  {
+    "name": "observation_type",
+    "description": "Danh mục chỉ số và kiểu giá trị",
+    "columns": [
+      {
+        "name": "code",
+        "type": "varchar(60)",
+        "constraint": "PRIMARY KEY",
+        "description": "Mã biến kỹ thuật"
+      },
+      {
+        "name": "label",
+        "type": "text",
+        "constraint": "NOT NULL",
+        "description": "Tên hiển thị"
+      },
+      {
+        "name": "value_kind",
+        "type": "varchar(10)",
+        "constraint": "NOT NULL CHECK(value_kind IN ('number','boolean','text'))",
+        "description": "Kiểu giá trị"
+      },
+      {
+        "name": "unit",
+        "type": "varchar(40)",
+        "constraint": "",
+        "description": "Đơn vị chuẩn; null nếu không có"
+      },
+      {
+        "name": "min_value",
+        "type": "numeric",
+        "constraint": "",
+        "description": "Miền hợp lệ kỹ thuật, không phải ngưỡng cảnh báo"
+      },
+      {
+        "name": "max_value",
+        "type": "numeric",
+        "constraint": "",
+        "description": "Giới hạn trên nếu có"
+      }
+    ],
+    "constraints": [
+      "CHECK(min_value IS NULL OR max_value IS NULL OR min_value<=max_value)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "observation",
+    "description": "Mỗi dòng một giá trị, giữ lịch sử qua các lần đo",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "constraint": "PRIMARY KEY DEFAULT gen_random_uuid()",
+        "description": "Mã nội bộ"
+      },
+      {
+        "name": "encounter_id",
+        "type": "uuid",
+        "constraint": "NOT NULL REFERENCES encounter(id)",
+        "description": "Lượt khám"
+      },
+      {
+        "name": "code",
+        "type": "varchar(60)",
+        "constraint": "NOT NULL REFERENCES observation_type(code)",
+        "description": "Loại chỉ số"
+      },
+      {
+        "name": "value_number",
+        "type": "numeric",
+        "constraint": "",
+        "description": "Giá trị số"
+      },
+      {
+        "name": "value_boolean",
+        "type": "boolean",
+        "constraint": "",
+        "description": "Giá trị có/không"
+      },
+      {
+        "name": "value_text",
+        "type": "text",
+        "constraint": "",
+        "description": "Giá trị phân loại hoặc kết quả mô phỏng"
+      },
+      {
+        "name": "status",
+        "type": "varchar(20)",
+        "constraint": "NOT NULL CHECK(status IN ('present','not_measured','unknown'))",
+        "description": "Thiếu không đổi thành 0"
+      },
+      {
+        "name": "observed_at",
+        "type": "timestamptz",
+        "constraint": "NOT NULL",
+        "description": "Thời gian đo/đánh giá"
+      },
+      {
+        "name": "source",
+        "type": "varchar(30)",
+        "constraint": "NOT NULL CHECK(source IN ('manual_synthetic','mock_his','mock_lis','mock_pacs'))",
+        "description": "Nguồn synthetic"
+      },
+      {
+        "name": "recorded_by",
+        "type": "uuid",
+        "constraint": "NOT NULL REFERENCES app_user(id)",
+        "description": "Người nhập"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "constraint": "NOT NULL DEFAULT now()",
+        "description": "Thời điểm tạo"
+      }
+    ],
+    "constraints": [
+      "CHECK ((status = 'present' AND num_nonnulls(value_number,value_boolean,value_text)=1) OR (status<>'present' AND num_nonnulls(value_number,value_boolean,value_text)=0))"
+    ],
+    "indexes": [
+      "CREATE INDEX ix_observation_latest ON observation(encounter_id,code,observed_at DESC);"
+    ]
+  },
+  {
+    "name": "ingredient",
+    "description": "Danh mục hoạt chất dùng chung",
+    "columns": [
+      {
+        "name": "code",
+        "type": "varchar(60)",
+        "constraint": "PRIMARY KEY",
+        "description": "Mã hoạt chất"
+      },
+      {
+        "name": "display_name",
+        "type": "text",
+        "constraint": "NOT NULL",
+        "description": "Tên hiển thị"
+      }
+    ],
+    "constraints": [],
+    "indexes": []
+  },
+  {
+    "name": "medication",
+    "description": "Thuốc hiện tại hoặc đơn dự kiến; không phải y lệnh tự động",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "constraint": "PRIMARY KEY DEFAULT gen_random_uuid()",
+        "description": "Mã nội bộ"
+      },
+      {
+        "name": "encounter_id",
+        "type": "uuid",
+        "constraint": "NOT NULL REFERENCES encounter(id)",
+        "description": "Lượt khám"
+      },
+      {
+        "name": "ingredient_code",
+        "type": "varchar(60)",
+        "constraint": "NOT NULL REFERENCES ingredient(code)",
+        "description": "Hoạt chất"
+      },
+      {
+        "name": "dose",
+        "type": "numeric",
+        "constraint": "NOT NULL CHECK(dose>0)",
+        "description": "Liều đã nhập, không phải liều AI kê"
+      },
+      {
+        "name": "dose_unit",
+        "type": "varchar(10)",
+        "constraint": "NOT NULL CHECK(dose_unit IN ('mg','mcg','g','mL'))",
+        "description": "Đơn vị liều"
+      },
+      {
+        "name": "route",
+        "type": "varchar(10)",
+        "constraint": "NOT NULL CHECK(route IN ('oral','iv','other'))",
+        "description": "Đường dùng"
+      },
+      {
+        "name": "frequency_per_day",
+        "type": "smallint",
+        "constraint": "NOT NULL CHECK(frequency_per_day BETWEEN 1 AND 24)",
+        "description": "Số lần/ngày trong MVP"
+      },
+      {
+        "name": "kind",
+        "type": "varchar(10)",
+        "constraint": "NOT NULL CHECK(kind IN ('current','proposed'))",
+        "description": "Loại danh sách"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "constraint": "NOT NULL DEFAULT now()",
+        "description": "Thời điểm tạo"
+      }
+    ],
+    "constraints": [],
+    "indexes": [
+      "CREATE INDEX ix_medication_encounter ON medication(encounter_id);"
+    ]
+  },
+  {
+    "name": "rule_version",
+    "description": "Phiên bản bộ quy tắc theo module",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "constraint": "PRIMARY KEY DEFAULT gen_random_uuid()",
+        "description": "Mã nội bộ"
+      },
+      {
+        "name": "code",
+        "type": "varchar(60)",
+        "constraint": "NOT NULL",
+        "description": "Mã bộ quy tắc"
+      },
+      {
+        "name": "version",
+        "type": "integer",
+        "constraint": "NOT NULL CHECK(version>0)",
+        "description": "Số phiên bản"
+      },
+      {
+        "name": "module",
+        "type": "varchar(20)",
+        "constraint": "NOT NULL CHECK(module IN ('diagnosis','lab_test','treatment','medsafety'))",
+        "description": "Module"
+      },
+      {
+        "name": "source_ref",
+        "type": "text",
+        "constraint": "NOT NULL",
+        "description": "Nguồn chuyên môn, trang/mục và phiên bản"
+      },
+      {
+        "name": "content_hash",
+        "type": "varchar(64)",
+        "constraint": "NOT NULL CHECK(content_hash ~ '^[a-f0-9]{64}$')",
+        "description": "SHA256 nội dung đã duyệt"
+      },
+      {
+        "name": "status",
+        "type": "varchar(12)",
+        "constraint": "NOT NULL CHECK(status IN ('draft','tested','approved','active','retired'))",
+        "description": "Vòng đời"
+      },
+      {
+        "name": "created_by",
+        "type": "uuid",
+        "constraint": "NOT NULL REFERENCES app_user(id)",
+        "description": "Người tạo"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "constraint": "NOT NULL DEFAULT now()",
+        "description": "Thời điểm tạo"
+      }
+    ],
+    "constraints": [
+      "UNIQUE(code,version)"
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX ux_rule_active ON rule_version(code) WHERE status='active';"
+    ]
+  },
+  {
+    "name": "rule_approval",
+    "description": "Bằng chứng duyệt ngoài hệ thống hoặc theo quyền được xác nhận",
+    "columns": [
+      {
+        "name": "rule_version_id",
+        "type": "uuid",
+        "constraint": "PRIMARY KEY REFERENCES rule_version(id)",
+        "description": "Phiên bản duyệt"
+      },
+      {
+        "name": "approval_ref",
+        "type": "text",
+        "constraint": "NOT NULL CHECK(length(trim(approval_ref))>0)",
+        "description": "Tham chiếu biên bản duyệt được xác minh"
+      },
+      {
+        "name": "approved_content_hash",
+        "type": "varchar(64)",
+        "constraint": "NOT NULL CHECK(approved_content_hash ~ '^[a-f0-9]{64}$')",
+        "description": "Hash nội dung đã duyệt"
+      },
+      {
+        "name": "approved_at",
+        "type": "timestamptz",
+        "constraint": "NOT NULL",
+        "description": "Thời điểm duyệt chuyên môn"
+      },
+      {
+        "name": "recorded_by",
+        "type": "uuid",
+        "constraint": "NOT NULL REFERENCES app_user(id)",
+        "description": "Người ghi nhận, không đồng nghĩa người duyệt"
+      }
+    ],
+    "constraints": [],
+    "indexes": []
+  },
+  {
+    "name": "evaluation",
+    "description": "Một lần đánh giá với ảnh chụp đầu vào bất biến",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "constraint": "PRIMARY KEY DEFAULT gen_random_uuid()",
+        "description": "Mã nội bộ"
+      },
+      {
+        "name": "encounter_id",
+        "type": "uuid",
+        "constraint": "NOT NULL REFERENCES encounter(id)",
+        "description": "Lượt khám"
+      },
+      {
+        "name": "input_revision",
+        "type": "integer",
+        "constraint": "NOT NULL CHECK(input_revision>0)",
+        "description": "Phiên bản ca lúc đánh giá"
+      },
+      {
+        "name": "input_snapshot",
+        "type": "jsonb",
+        "constraint": "NOT NULL CHECK(jsonb_typeof(input_snapshot)='object')",
+        "description": "Snapshot kiểm toán; ngoại lệ có chủ đích với dữ liệu chuẩn hóa"
+      },
+      {
+        "name": "requested_by",
+        "type": "uuid",
+        "constraint": "NOT NULL REFERENCES app_user(id)",
+        "description": "Người yêu cầu"
+      },
+      {
+        "name": "mode",
+        "type": "varchar(10)",
+        "constraint": "NOT NULL CHECK(mode IN ('stub','validated'))",
+        "description": "Phân biệt demo và đã thẩm định"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "constraint": "NOT NULL DEFAULT now()",
+        "description": "Thời điểm tạo"
+      }
+    ],
+    "constraints": [],
+    "indexes": [
+      "CREATE INDEX ix_evaluation_history ON evaluation(encounter_id,created_at DESC);"
+    ]
+  },
+  {
+    "name": "module_result",
+    "description": "Đầu ra từng module của một lần đánh giá",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "constraint": "PRIMARY KEY DEFAULT gen_random_uuid()",
+        "description": "Mã nội bộ"
+      },
+      {
+        "name": "evaluation_id",
+        "type": "uuid",
+        "constraint": "NOT NULL REFERENCES evaluation(id)",
+        "description": "Lần đánh giá"
+      },
+      {
+        "name": "module",
+        "type": "varchar(20)",
+        "constraint": "NOT NULL CHECK(module IN ('diagnosis','lab_test','treatment','medsafety'))",
+        "description": "Module"
+      },
+      {
+        "name": "rule_version_id",
+        "type": "uuid",
+        "constraint": "REFERENCES rule_version(id)",
+        "description": "Null chỉ cho stub chưa chạy rule"
+      },
+      {
+        "name": "status",
+        "type": "varchar(30)",
+        "constraint": "NOT NULL CHECK(status IN ('mock_not_evaluated','completed','insufficient_data','failed'))",
+        "description": "Trạng thái"
+      },
+      {
+        "name": "message",
+        "type": "text",
+        "constraint": "NOT NULL",
+        "description": "Diễn giải"
+      }
+    ],
+    "constraints": [
+      "UNIQUE(evaluation_id,module)",
+      "CHECK(status='mock_not_evaluated' OR rule_version_id IS NOT NULL)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "recommendation",
+    "description": "Khuyến nghị thuộc kết quả module",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "constraint": "PRIMARY KEY DEFAULT gen_random_uuid()",
+        "description": "Mã nội bộ"
+      },
+      {
+        "name": "module_result_id",
+        "type": "uuid",
+        "constraint": "NOT NULL REFERENCES module_result(id)",
+        "description": "Kết quả nguồn"
+      },
+      {
+        "name": "code",
+        "type": "varchar(80)",
+        "constraint": "NOT NULL",
+        "description": "Mã gợi ý/cảnh báo"
+      },
+      {
+        "name": "severity",
+        "type": "varchar(12)",
+        "constraint": "NOT NULL CHECK(severity IN ('info','warning','critical'))",
+        "description": "Mức cảnh báo"
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "constraint": "NOT NULL",
+        "description": "Nội dung"
+      },
+      {
+        "name": "source_ref",
+        "type": "text",
+        "constraint": "NOT NULL",
+        "description": "Căn cứ truy vết"
+      }
+    ],
+    "constraints": [],
+    "indexes": [
+      "CREATE INDEX ix_recommendation_result ON recommendation(module_result_id);"
+    ]
+  },
+  {
+    "name": "result_missing_field",
+    "description": "Danh sách thiếu tách thành dòng, không lưu chuỗi ghép",
+    "columns": [
+      {
+        "name": "module_result_id",
+        "type": "uuid",
+        "constraint": "NOT NULL REFERENCES module_result(id)",
+        "description": "Kết quả"
+      },
+      {
+        "name": "field_code",
+        "type": "varchar(60)",
+        "constraint": "NOT NULL REFERENCES observation_type(code)",
+        "description": "Biến còn thiếu"
+      }
+    ],
+    "constraints": [
+      "PRIMARY KEY(module_result_id,field_code)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "clinical_decision",
+    "description": "Quyết định của bác sĩ cho một lần đánh giá",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "constraint": "PRIMARY KEY DEFAULT gen_random_uuid()",
+        "description": "Mã nội bộ"
+      },
+      {
+        "name": "evaluation_id",
+        "type": "uuid",
+        "constraint": "NOT NULL UNIQUE REFERENCES evaluation(id)",
+        "description": "Lần đánh giá"
+      },
+      {
+        "name": "doctor_id",
+        "type": "uuid",
+        "constraint": "NOT NULL REFERENCES app_user(id)",
+        "description": "Bác sĩ quyết định"
+      },
+      {
+        "name": "action",
+        "type": "varchar(10)",
+        "constraint": "NOT NULL CHECK(action IN ('accepted','adjusted','rejected'))",
+        "description": "Phản hồi"
+      },
+      {
+        "name": "reason",
+        "type": "text",
+        "constraint": "",
+        "description": "Lý do điều chỉnh/từ chối"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "constraint": "NOT NULL DEFAULT now()",
+        "description": "Thời điểm tạo"
+      }
+    ],
+    "constraints": [
+      "CHECK(action='accepted' OR length(trim(coalesce(reason,'')))>0)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "audit_event",
+    "description": "Nhật ký append-only, không chép giá trị dữ liệu lâm sàng",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "constraint": "PRIMARY KEY DEFAULT gen_random_uuid()",
+        "description": "Mã nội bộ"
+      },
+      {
+        "name": "actor_id",
+        "type": "uuid",
+        "constraint": "NOT NULL REFERENCES app_user(id)",
+        "description": "Tài khoản thao tác"
+      },
+      {
+        "name": "action",
+        "type": "varchar(80)",
+        "constraint": "NOT NULL",
+        "description": "Tên sự kiện"
+      },
+      {
+        "name": "entity_type",
+        "type": "varchar(40)",
+        "constraint": "NOT NULL",
+        "description": "Loại đối tượng"
+      },
+      {
+        "name": "entity_id",
+        "type": "uuid",
+        "constraint": "NOT NULL",
+        "description": "Mã đối tượng, tham chiếu đa hình do dịch vụ kiểm tra"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "constraint": "NOT NULL DEFAULT now()",
+        "description": "Thời điểm tạo"
+      }
+    ],
+    "constraints": [],
+    "indexes": [
+      "CREATE INDEX ix_audit_entity_time ON audit_event(entity_type,entity_id,created_at DESC);"
+    ]
+  }
+]

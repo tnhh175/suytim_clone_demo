@@ -1,0 +1,126 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net">
+  <diagram name="UML Class — Khung đang chạy trong tuần 3" id="11-class-stub-runtime">
+    <mxGraphModel page="1" pageWidth="1600" pageHeight="1030">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="portRuntime" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="820" y="110" width="650" height="87" />
+        </mxCell>
+        <mxCell id="portRuntimetxt0" value="«interface» ModulePort" style="text;html=0;align=center;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="820" y="118" width="650" height="24" />
+        </mxCell>
+        <mxCell id="portRuntimetxt1" value="+ evaluate(snapshot: dict): ModuleResult" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="820" y="163" width="650" height="24" />
+        </mxCell>
+        <mxCell id="portRuntimesep0" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="820" y="150" width="650" height="1" />
+        </mxCell>
+        <mxCell id="portRuntimesep1" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="820" y="158" width="650" height="1" />
+        </mxCell>
+        <mxCell id="stubRuntime" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="820" y="500" width="650" height="141" />
+        </mxCell>
+        <mxCell id="stubRuntimetxt0" value="StubModule" style="text;html=0;align=center;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="820" y="508" width="650" height="24" />
+        </mxCell>
+        <mxCell id="stubRuntimetxt1" value="- name: str" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="820" y="543" width="650" height="24" />
+        </mxCell>
+        <mxCell id="stubRuntimetxt2" value="- required: List[str]" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="820" y="570" width="650" height="24" />
+        </mxCell>
+        <mxCell id="stubRuntimetxt3" value="+ evaluate(snapshot: dict): ModuleResult" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="820" y="607" width="650" height="24" />
+        </mxCell>
+        <mxCell id="stubRuntimesep0" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="820" y="540" width="650" height="1" />
+        </mxCell>
+        <mxCell id="stubRuntimesep1" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="820" y="602" width="650" height="1" />
+        </mxCell>
+        <mxCell id="e1" value="" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=0.5;exitY=0.0;entryX=0.5;entryY=1.264367816091954;exitPerimeter=0;entryPerimeter=0;endArrow=block;endFill=0;dashed=1;" edge="1" parent="1" source="stubRuntime" target="portRuntime">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="storeRuntime" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="110" width="650" height="276" />
+        </mxCell>
+        <mxCell id="storeRuntimetxt0" value="MemoryStore" style="text;html=0;align=center;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="118" width="650" height="24" />
+        </mxCell>
+        <mxCell id="storeRuntimetxt1" value="+ lock: RLock" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="153" width="650" height="24" />
+        </mxCell>
+        <mxCell id="storeRuntimetxt2" value="+ cases, encounters: dict" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="180" width="650" height="24" />
+        </mxCell>
+        <mxCell id="storeRuntimetxt3" value="+ observations, medications: dict" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="207" width="650" height="24" />
+        </mxCell>
+        <mxCell id="storeRuntimetxt4" value="+ evaluations, decisions: dict" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="234" width="650" height="24" />
+        </mxCell>
+        <mxCell id="storeRuntimetxt5" value="+ snapshots, rules, tokens: dict" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="261" width="650" height="24" />
+        </mxCell>
+        <mxCell id="storeRuntimetxt6" value="+ audit: list" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="288" width="650" height="24" />
+        </mxCell>
+        <mxCell id="storeRuntimetxt7" value="+ snapshot(case_id, encounter_id): dict" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="325" width="650" height="24" />
+        </mxCell>
+        <mxCell id="storeRuntimetxt8" value="+ record(actor, action, entity): void" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="352" width="650" height="24" />
+        </mxCell>
+        <mxCell id="storeRuntimesep0" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="150" width="650" height="1" />
+        </mxCell>
+        <mxCell id="storeRuntimesep1" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="320" width="650" height="1" />
+        </mxCell>
+        <mxCell id="resultRuntime" value="" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="570" width="650" height="168" />
+        </mxCell>
+        <mxCell id="resultRuntimetxt0" value="ModuleResult «DTO»" style="text;html=0;align=center;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="578" width="650" height="24" />
+        </mxCell>
+        <mxCell id="resultRuntimetxt1" value="+ module: ModuleName" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="613" width="650" height="24" />
+        </mxCell>
+        <mxCell id="resultRuntimetxt2" value="+ status: mock_not_evaluated" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="640" width="650" height="24" />
+        </mxCell>
+        <mxCell id="resultRuntimetxt3" value="+ missing_fields: List[str]" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="667" width="650" height="24" />
+        </mxCell>
+        <mxCell id="resultRuntimetxt4" value="+ clinical_recommendations: List" style="text;html=0;align=center;fontSize=14;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="694" width="650" height="24" />
+        </mxCell>
+        <mxCell id="resultRuntimesep0" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="610" width="650" height="1" />
+        </mxCell>
+        <mxCell id="resultRuntimesep1" style="shape=line;strokeColor=#52677E;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="726" width="650" height="1" />
+        </mxCell>
+        <mxCell id="e2" value="evaluate() trả một ModuleResult" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=classic;exitX=0.5;exitY=0.0;entryX=0.5;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="stubRuntime" target="resultRuntime">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1145.0" y="462" />
+              <mxPoint x="375.0" y="462" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="runtimeNote" value="FastAPI route handlers là hàm trong main.py, không phải class. MemoryStore giữ dict/JSON trong RAM; PostgreSQL và EvaluationService chưa chạy." style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="80" y="900" width="1440" height="70" />
+        </mxCell>
+        <mxCell id="diagramTitle" value="UML Class — Khung đang chạy trong tuần 3" style="text;html=0;fontSize=22;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="0" y="8" width="1600" height="40" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

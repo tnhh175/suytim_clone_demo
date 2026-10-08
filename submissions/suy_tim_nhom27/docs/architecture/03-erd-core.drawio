@@ -1,0 +1,107 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net">
+  <diagram name="ERD A — Tài khoản và dữ liệu ca bệnh" id="03-erd-core">
+    <mxGraphModel page="1" pageWidth="1800" pageHeight="1580">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="app_user" value="app_user&#10;PK id: uuid&#10;username: varchar(80)&#10;password_hash: text&#10;active: boolean&#10;created_at: timestamptz" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="100" width="410" height="160" />
+        </mxCell>
+        <mxCell id="role" value="role&#10;PK code: varchar(20)" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="635" y="100" width="410" height="64" />
+        </mxCell>
+        <mxCell id="user_role" value="user_role&#10;PK/FK user_id: uuid&#10;PK/FK role_code: varchar(20)" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1230" y="100" width="410" height="88" />
+        </mxCell>
+        <mxCell id="patient_case" value="patient_case&#10;PK id: uuid&#10;synthetic_code: varchar(30)&#10;age: smallint&#10;sex: varchar(10)&#10;FK owner_id: uuid&#10;revision: integer&#10;created_at: timestamptz" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="580" width="410" height="208" />
+        </mxCell>
+        <mxCell id="case_access" value="case_access&#10;PK/FK case_id: uuid&#10;PK/FK user_id: uuid&#10;PK access_scope: varchar(20)" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="635" y="580" width="410" height="112" />
+        </mxCell>
+        <mxCell id="encounter" value="encounter&#10;PK id: uuid&#10;FK case_id: uuid&#10;occurred_at: timestamptz&#10;created_at: timestamptz" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1230" y="580" width="410" height="136" />
+        </mxCell>
+        <mxCell id="observation_type" value="observation_type&#10;PK code: varchar(60)&#10;label: text&#10;value_kind: varchar(10)&#10;unit: varchar(40)&#10;min_value: numeric&#10;max_value: numeric" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="1060" width="410" height="184" />
+        </mxCell>
+        <mxCell id="observation" value="observation&#10;PK id: uuid&#10;FK encounter_id: uuid&#10;FK code: varchar(60)&#10;value_number: numeric&#10;value_boolean: boolean&#10;value_text: text&#10;status: varchar(20)&#10;observed_at: timestamptz&#10;source: varchar(30)&#10;FK recorded_by: uuid&#10;created_at: timestamptz" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="635" y="1060" width="410" height="304" />
+        </mxCell>
+        <mxCell id="medication" value="medication&#10;PK id: uuid&#10;FK encounter_id: uuid&#10;FK ingredient_code: varchar(60)&#10;dose: numeric&#10;dose_unit: varchar(10)&#10;route: varchar(10)&#10;frequency_per_day: smallint&#10;kind: varchar(10)&#10;created_at: timestamptz" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1230" y="1060" width="410" height="256" />
+        </mxCell>
+        <mxCell id="e1" value="1 — 0..*" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=0.5;exitY=0.0;entryX=0.5;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="app_user" target="user_role">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="245.0" y="62" />
+              <mxPoint x="1435.0" y="62" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e2" value="1 — 0..*" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="role" target="user_role">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e3" value="owner: 1 — 0..*" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="app_user" target="patient_case">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="245.0" y="420.0" />
+              <mxPoint x="245.0" y="420.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e4" value="1 — 0..*" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=0.5;exitY=0.0;entryX=0.5;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="patient_case" target="encounter">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="245.0" y="542" />
+              <mxPoint x="1435.0" y="542" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e5" value="1 — 0..*" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="patient_case" target="case_access">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e6" value="1 — 0..*" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="app_user" target="case_access">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="245.0" y="420.0" />
+              <mxPoint x="840.0" y="420.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e7" value="1 — 0..*" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="encounter" target="observation">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1435.0" y="888.0" />
+              <mxPoint x="840.0" y="888.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e8" value="1 — 0..*" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="observation_type" target="observation">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e9" value="1 — 0..*" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=none;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="encounter" target="medication">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1435.0" y="888.0" />
+              <mxPoint x="1435.0" y="888.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="legend" value="Quan hệ ghi bội số 1 — 0..*. Mã FK và CHECK đầy đủ trong data_dictionary.md / schema.sql. Bảng lặp giữa hai hình là cùng bảng." style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="1500" width="1710" height="50" />
+        </mxCell>
+        <mxCell id="diagramTitle" value="ERD A — Tài khoản và dữ liệu ca bệnh" style="text;html=0;fontSize=22;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="0" y="8" width="1800" height="40" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

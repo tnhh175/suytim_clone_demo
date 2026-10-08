@@ -1,0 +1,86 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net">
+  <diagram name="C4 C1 — Bối cảnh hệ thống" id="01-c4-c1">
+    <mxGraphModel page="1" pageWidth="1500" pageHeight="1030">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="system" value="[Software System]&#10;Hỗ trợ quyết định suy tim&#10;Tổng hợp dữ liệu, gợi ý, truy vết" style="rounded=1;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="530" y="370" width="440" height="190" />
+        </mxCell>
+        <mxCell id="doctor" value="[Person] Bác sĩ&#10;Đánh giá và quyết định" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="100" width="340" height="120" />
+        </mxCell>
+        <mxCell id="pharmacist" value="[Person] Dược sĩ&#10;Rà soát an toàn thuốc" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="570" y="70" width="340" height="120" />
+        </mxCell>
+        <mxCell id="admin" value="[Person] Quản trị viên&#10;Quyền, quy tắc, audit" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1100" y="100" width="340" height="120" />
+        </mxCell>
+        <mxCell id="his" value="[External System]&#10;HIS/EMR mô phỏng&#10;Hồ sơ, lượt khám, thuốc" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="45" y="730" width="340" height="120" />
+        </mxCell>
+        <mxCell id="lis" value="[External System]&#10;LIS mô phỏng&#10;Kết quả xét nghiệm" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="580" y="770" width="340" height="120" />
+        </mxCell>
+        <mxCell id="pacs" value="[External System]&#10;PACS/RIS mô phỏng&#10;Báo cáo hình ảnh / EF" style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1110" y="730" width="340" height="120" />
+        </mxCell>
+        <mxCell id="e1" value="Dữ liệu ca / yêu cầu" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=classic;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="doctor" target="system">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="220.0" y="295.0" />
+              <mxPoint x="750.0" y="295.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e2" value="Yêu cầu kiểm tra thuốc" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=classic;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="pharmacist" target="system">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="740.0" y="280.0" />
+              <mxPoint x="750.0" y="280.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e3" value="Quy tắc / tra cứu audit" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=classic;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="admin" target="system">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1270.0" y="295.0" />
+              <mxPoint x="750.0" y="295.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e4" value="Hồ sơ synthetic" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=classic;exitX=0.5;exitY=0.0;entryX=0.5;entryY=1.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="his" target="system">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="215.0" y="645.0" />
+              <mxPoint x="750.0" y="645.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e5" value="Kết quả synthetic" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=classic;exitX=0.5;exitY=0.0;entryX=0.5;entryY=1.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="lis" target="system">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="750.0" y="665.0" />
+              <mxPoint x="750.0" y="665.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e6" value="Báo cáo synthetic" style="edgeStyle=none;html=0;fontFamily=DejaVu Sans;fontSize=13;strokeColor=#8393A4;endArrow=classic;exitX=0.5;exitY=0.0;entryX=0.5;entryY=1.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="pacs" target="system">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1280.0" y="645.0" />
+              <mxPoint x="750.0" y="645.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="legend" value="Người dùng nhận kết quả theo quyền. Chỉ ba vai trò; bệnh nhân là đối tượng dữ liệu, chưa có tài khoản." style="rounded=0;whiteSpace=wrap;html=0;fontFamily=DejaVu Sans;fontSize=15;strokeColor=#52677E;fillColor=#EDF3F9;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="160" y="955" width="1180" height="50" />
+        </mxCell>
+        <mxCell id="diagramTitle" value="C4 C1 — Bối cảnh hệ thống" style="text;html=0;fontSize=22;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="0" y="8" width="1500" height="40" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

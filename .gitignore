@@ -1,0 +1,14 @@
+# Không ai được commit các file này trong bất kỳ thư mục nộp bài nào
+.env
+.env.local
+*.pem
+*.key
+
+# Rác thường gặp
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+.ipynb_checkpoints/
+node_modules/
+changed_files.txt

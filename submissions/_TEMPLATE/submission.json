@@ -1,0 +1,8 @@
+{
+  "case_study_slug": "REPLACE_VOI_SLUG_CASE_STUDY_may_day_suy_tim_hoac_alzheimer",
+  "case_study_id": "REPLACE_VOI_MA_CS_VD_CS-2",
+  "group_code": "REPLACE_VOI_MA_NHOM_VD_nhom07",
+  "members": ["MSSV1", "MSSV2", "MSSV3"],
+  "scenario": "khong_ap_dung",
+  "submitted_at": "YYYY-MM-DD"
+}

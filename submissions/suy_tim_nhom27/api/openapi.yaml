@@ -1,0 +1,2222 @@
+openapi: 3.0.3
+info:
+  title: Nhóm 27 — API Gateway stub
+  description: Tuần 3. Chỉ dữ liệu synthetic, lưu trong RAM. Không trả chẩn đoán hay
+    đơn thuốc thực.
+  version: 0.1.0
+paths:
+  /health:
+    get:
+      tags:
+      - System
+      summary: Health
+      operationId: health_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+        '401':
+          description: Token thiếu/hết hạn
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Không đúng vai trò hoặc quyền ca
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Không tìm thấy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Xung đột phiên bản/trạng thái
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Chưa cấu hình demo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/auth/token:
+    post:
+      tags:
+      - Identity
+      summary: Login
+      operationId: login_api_v1_auth_token_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        '401':
+          description: Token thiếu/hết hạn
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Không đúng vai trò hoặc quyền ca
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Không tìm thấy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Xung đột phiên bản/trạng thái
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Chưa cấu hình demo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/cases:
+    get:
+      tags:
+      - Cases
+      summary: List Cases
+      operationId: list_cases_api_v1_cases_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/CaseOut'
+                type: array
+                title: Response List Cases Api V1 Cases Get
+        '401':
+          description: Token thiếu/hết hạn
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Không đúng vai trò hoặc quyền ca
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Không tìm thấy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Xung đột phiên bản/trạng thái
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Chưa cấu hình demo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+      - HTTPBearer: []
+    post:
+      tags:
+      - Cases
+      summary: Create Case
+      operationId: create_case_api_v1_cases_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CaseCreateInput'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseOut'
+        '401':
+          description: Token thiếu/hết hạn
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Không đúng vai trò hoặc quyền ca
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Không tìm thấy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Xung đột phiên bản/trạng thái
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Chưa cấu hình demo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+      - HTTPBearer: []
+  /api/v1/cases/{case_id}:
+    get:
+      tags:
+      - Cases
+      summary: Get Case
+      operationId: get_case_api_v1_cases__case_id__get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: case_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Case Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseOut'
+        '401':
+          description: Token thiếu/hết hạn
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Không đúng vai trò hoặc quyền ca
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Không tìm thấy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Xung đột phiên bản/trạng thái
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Chưa cấu hình demo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags:
+      - Cases
+      summary: Update Case
+      operationId: update_case_api_v1_cases__case_id__put
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: case_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Case Id
+      - name: expected_revision
+        in: query
+        required: true
+        schema:
+          type: integer
+          title: Expected Revision
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CaseInput'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseOut'
+        '401':
+          description: Token thiếu/hết hạn
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Không đúng vai trò hoặc quyền ca
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Không tìm thấy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Xung đột phiên bản/trạng thái
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Chưa cấu hình demo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/cases/{case_id}/encounters:
+    post:
+      tags:
+      - Cases
+      summary: Create Encounter
+      operationId: create_encounter_api_v1_cases__case_id__encounters_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: case_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Case Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EncounterInput'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EncounterOut'
+        '401':
+          description: Token thiếu/hết hạn
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Không đúng vai trò hoặc quyền ca
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Không tìm thấy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Xung đột phiên bản/trạng thái
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Chưa cấu hình demo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/encounters/{encounter_id}:
+    get:
+      tags:
+      - Cases
+      summary: Get Encounter
+      operationId: get_encounter_api_v1_encounters__encounter_id__get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: encounter_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Encounter Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EncounterOut'
+        '401':
+          description: Token thiếu/hết hạn
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Không đúng vai trò hoặc quyền ca
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Không tìm thấy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Xung đột phiên bản/trạng thái
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Chưa cấu hình demo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/encounters/{encounter_id}/observations:
+    post:
+      tags:
+      - Clinical data
+      summary: Observation
+      operationId: observation_api_v1_encounters__encounter_id__observations_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: encounter_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Encounter Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ObservationInput'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObservationOut'
+        '401':
+          description: Token thiếu/hết hạn
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Không đúng vai trò hoặc quyền ca
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Không tìm thấy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Xung đột phiên bản/trạng thái
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Chưa cấu hình demo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      tags:
+      - Clinical data
+      summary: Observations
+      operationId: observations_api_v1_encounters__encounter_id__observations_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: encounter_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Encounter Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ObservationOut'
+                title: Response Observations Api V1 Encounters  Encounter Id  Observations
+                  Get
+        '401':
+          description: Token thiếu/hết hạn
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Không đúng vai trò hoặc quyền ca
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Không tìm thấy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Xung đột phiên bản/trạng thái
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Chưa cấu hình demo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/encounters/{encounter_id}/medications:
+    post:
+      tags:
+      - Clinical data
+      summary: Medication
+      operationId: medication_api_v1_encounters__encounter_id__medications_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: encounter_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Encounter Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MedicationInput'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MedicationOut'
+        '401':
+          description: Token thiếu/hết hạn
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Không đúng vai trò hoặc quyền ca
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Không tìm thấy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Xung đột phiên bản/trạng thái
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Chưa cấu hình demo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      tags:
+      - Clinical data
+      summary: Medications
+      operationId: medications_api_v1_encounters__encounter_id__medications_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: encounter_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Encounter Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MedicationOut'
+                title: Response Medications Api V1 Encounters  Encounter Id  Medications
+                  Get
+        '401':
+          description: Token thiếu/hết hạn
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Không đúng vai trò hoặc quyền ca
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Không tìm thấy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Xung đột phiên bản/trạng thái
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Chưa cấu hình demo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/evaluations:
+    post:
+      tags:
+      - Evaluation
+      summary: Evaluate
+      operationId: evaluate_api_v1_evaluations_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluationInput'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationOut'
+        '401':
+          description: Token thiếu/hết hạn
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Không đúng vai trò hoặc quyền ca
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Không tìm thấy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Xung đột phiên bản/trạng thái
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Chưa cấu hình demo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+      - HTTPBearer: []
+  /api/v1/evaluations/{evaluation_id}:
+    get:
+      tags:
+      - Evaluation
+      summary: Get Evaluation
+      operationId: get_evaluation_api_v1_evaluations__evaluation_id__get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: evaluation_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Evaluation Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationOut'
+        '401':
+          description: Token thiếu/hết hạn
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Không đúng vai trò hoặc quyền ca
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Không tìm thấy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Xung đột phiên bản/trạng thái
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Chưa cấu hình demo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/evaluations/{evaluation_id}/decisions:
+    post:
+      tags:
+      - Decision
+      summary: Decision
+      operationId: decision_api_v1_evaluations__evaluation_id__decisions_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: evaluation_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Evaluation Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DecisionInput'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DecisionOut'
+        '401':
+          description: Token thiếu/hết hạn
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Không đúng vai trò hoặc quyền ca
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Không tìm thấy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Xung đột phiên bản/trạng thái
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Chưa cấu hình demo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/cases/{case_id}/history:
+    get:
+      tags:
+      - History
+      summary: History
+      operationId: history_api_v1_cases__case_id__history_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: case_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Case Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HistoryEntry'
+                title: Response History Api V1 Cases  Case Id  History Get
+        '401':
+          description: Token thiếu/hết hạn
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Không đúng vai trò hoặc quyền ca
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Không tìm thấy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Xung đột phiên bản/trạng thái
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Chưa cấu hình demo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/cases/{case_id}/export:
+    get:
+      tags:
+      - History
+      summary: Export
+      operationId: export_api_v1_cases__case_id__export_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: case_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Case Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportOut'
+        '401':
+          description: Token thiếu/hết hạn
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Không đúng vai trò hoặc quyền ca
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Không tìm thấy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Xung đột phiên bản/trạng thái
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Chưa cấu hình demo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/rule-versions:
+    get:
+      tags:
+      - Rules
+      summary: Rules
+      operationId: rules_api_v1_rule_versions_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/RuleOut'
+                type: array
+                title: Response Rules Api V1 Rule Versions Get
+        '401':
+          description: Token thiếu/hết hạn
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Không đúng vai trò hoặc quyền ca
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Không tìm thấy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Xung đột phiên bản/trạng thái
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Chưa cấu hình demo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+      - HTTPBearer: []
+    post:
+      tags:
+      - Rules
+      summary: Create Rule
+      operationId: create_rule_api_v1_rule_versions_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RuleInput'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuleOut'
+        '401':
+          description: Token thiếu/hết hạn
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Không đúng vai trò hoặc quyền ca
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Không tìm thấy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Xung đột phiên bản/trạng thái
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Chưa cấu hình demo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+      - HTTPBearer: []
+  /api/v1/rule-versions/{rule_id}/test:
+    post:
+      tags:
+      - Rules
+      summary: Test Rule
+      operationId: test_rule_api_v1_rule_versions__rule_id__test_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: rule_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Rule Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuleTestOut'
+        '401':
+          description: Token thiếu/hết hạn
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Không đúng vai trò hoặc quyền ca
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Không tìm thấy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Xung đột phiên bản/trạng thái
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Chưa cấu hình demo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/rule-versions/{rule_id}/activate:
+    post:
+      tags:
+      - Rules
+      summary: Activate
+      operationId: activate_api_v1_rule_versions__rule_id__activate_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: rule_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Rule Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuleOut'
+        '401':
+          description: Token thiếu/hết hạn
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Không đúng vai trò hoặc quyền ca
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Không tìm thấy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Xung đột phiên bản/trạng thái
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Chưa cấu hình demo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/audit-events:
+    get:
+      tags:
+      - Audit
+      summary: Audit
+      operationId: audit_api_v1_audit_events_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/AuditOut'
+                type: array
+                title: Response Audit Api V1 Audit Events Get
+        '401':
+          description: Token thiếu/hết hạn
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Không đúng vai trò hoặc quyền ca
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Không tìm thấy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Xung đột phiên bản/trạng thái
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Chưa cấu hình demo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+      - HTTPBearer: []
+components:
+  schemas:
+    AuditOut:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        actor_id:
+          type: string
+          format: uuid
+          title: Actor Id
+        action:
+          type: string
+          title: Action
+        entity_id:
+          type: string
+          format: uuid
+          title: Entity Id
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - actor_id
+      - action
+      - entity_id
+      - created_at
+      title: AuditOut
+    CaseCreateInput:
+      properties:
+        age:
+          type: integer
+          maximum: 120.0
+          minimum: 0.0
+          title: Age
+        sex:
+          type: string
+          enum:
+          - male
+          - female
+          - unknown
+          title: Sex
+        synthetic_code:
+          title: Synthetic Code
+          nullable: true
+          type: string
+          pattern: ^SYN-[A-Z0-9-]{1,24}$
+      additionalProperties: false
+      type: object
+      required:
+      - age
+      - sex
+      title: CaseCreateInput
+    CaseInput:
+      properties:
+        synthetic_code:
+          type: string
+          pattern: ^SYN-[A-Z0-9-]{1,24}$
+          title: Synthetic Code
+        age:
+          type: integer
+          maximum: 120.0
+          minimum: 0.0
+          title: Age
+        sex:
+          type: string
+          enum:
+          - male
+          - female
+          - unknown
+          title: Sex
+      additionalProperties: false
+      type: object
+      required:
+      - synthetic_code
+      - age
+      - sex
+      title: CaseInput
+    CaseOut:
+      properties:
+        synthetic_code:
+          type: string
+          pattern: ^SYN-[A-Z0-9-]{1,24}$
+          title: Synthetic Code
+        age:
+          type: integer
+          maximum: 120.0
+          minimum: 0.0
+          title: Age
+        sex:
+          type: string
+          enum:
+          - male
+          - female
+          - unknown
+          title: Sex
+        id:
+          type: string
+          format: uuid
+          title: Id
+        owner_id:
+          type: string
+          format: uuid
+          title: Owner Id
+        revision:
+          type: integer
+          title: Revision
+      additionalProperties: false
+      type: object
+      required:
+      - synthetic_code
+      - age
+      - sex
+      - id
+      - owner_id
+      - revision
+      title: CaseOut
+    DecisionInput:
+      properties:
+        action:
+          type: string
+          enum:
+          - accepted
+          - adjusted
+          - rejected
+          title: Action
+        reason:
+          title: Reason
+          nullable: true
+          type: string
+          maxLength: 500
+      additionalProperties: false
+      type: object
+      required:
+      - action
+      title: DecisionInput
+    DecisionOut:
+      properties:
+        action:
+          type: string
+          enum:
+          - accepted
+          - adjusted
+          - rejected
+          title: Action
+        reason:
+          title: Reason
+          nullable: true
+          type: string
+          maxLength: 500
+        id:
+          type: string
+          format: uuid
+          title: Id
+        evaluation_id:
+          type: string
+          format: uuid
+          title: Evaluation Id
+        doctor_id:
+          type: string
+          format: uuid
+          title: Doctor Id
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        mode:
+          type: string
+          title: Mode
+          default: stub
+          enum:
+          - stub
+      additionalProperties: false
+      type: object
+      required:
+      - action
+      - id
+      - evaluation_id
+      - doctor_id
+      - created_at
+      title: DecisionOut
+    EncounterInput:
+      properties:
+        occurred_at:
+          type: string
+          format: date-time
+          title: Occurred At
+      additionalProperties: false
+      type: object
+      required:
+      - occurred_at
+      title: EncounterInput
+    EncounterOut:
+      properties:
+        occurred_at:
+          type: string
+          format: date-time
+          title: Occurred At
+        id:
+          type: string
+          format: uuid
+          title: Id
+        case_id:
+          type: string
+          format: uuid
+          title: Case Id
+      additionalProperties: false
+      type: object
+      required:
+      - occurred_at
+      - id
+      - case_id
+      title: EncounterOut
+    Error:
+      properties:
+        detail:
+          type: string
+          title: Detail
+      additionalProperties: false
+      type: object
+      required:
+      - detail
+      title: Error
+    EvaluationInput:
+      properties:
+        encounter_id:
+          type: string
+          format: uuid
+          title: Encounter Id
+        expected_revision:
+          type: integer
+          minimum: 1.0
+          title: Expected Revision
+        modules:
+          items:
+            type: string
+            enum:
+            - diagnosis
+            - lab_test
+            - treatment
+            - medsafety
+          type: array
+          maxItems: 4
+          minItems: 1
+          title: Modules
+      additionalProperties: false
+      type: object
+      required:
+      - encounter_id
+      - expected_revision
+      - modules
+      title: EvaluationInput
+    EvaluationOut:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        case_id:
+          type: string
+          format: uuid
+          title: Case Id
+        encounter_id:
+          type: string
+          format: uuid
+          title: Encounter Id
+        input_revision:
+          type: integer
+          title: Input Revision
+        rule_version:
+          type: string
+          title: Rule Version
+        mode:
+          type: string
+          title: Mode
+          default: stub
+          enum:
+          - stub
+        results:
+          items:
+            $ref: '#/components/schemas/ModuleResult'
+          type: array
+          title: Results
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - case_id
+      - encounter_id
+      - input_revision
+      - rule_version
+      - results
+      - created_at
+      title: EvaluationOut
+    ExportOut:
+      properties:
+        case:
+          $ref: '#/components/schemas/CaseOut'
+        evaluations:
+          items:
+            $ref: '#/components/schemas/EvaluationOut'
+          type: array
+          title: Evaluations
+        decisions:
+          items:
+            $ref: '#/components/schemas/DecisionOut'
+          type: array
+          title: Decisions
+        mode:
+          type: string
+          title: Mode
+          default: stub
+          enum:
+          - stub
+      additionalProperties: false
+      type: object
+      required:
+      - case
+      - evaluations
+      - decisions
+      title: ExportOut
+    Health:
+      properties:
+        status:
+          type: string
+          title: Status
+          default: ok
+          enum:
+          - ok
+        mode:
+          type: string
+          title: Mode
+          default: stub
+          enum:
+          - stub
+        persistence:
+          type: string
+          title: Persistence
+          default: memory
+          enum:
+          - memory
+      additionalProperties: false
+      type: object
+      title: Health
+    HistoryEntry:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        case_id:
+          type: string
+          format: uuid
+          title: Case Id
+        encounter_id:
+          type: string
+          format: uuid
+          title: Encounter Id
+        input_revision:
+          type: integer
+          title: Input Revision
+        rule_version:
+          type: string
+          title: Rule Version
+        mode:
+          type: string
+          title: Mode
+          default: stub
+          enum:
+          - stub
+        results:
+          items:
+            $ref: '#/components/schemas/ModuleResult'
+          type: array
+          title: Results
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        decision:
+          nullable: true
+          allOf:
+          - $ref: '#/components/schemas/DecisionOut'
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - case_id
+      - encounter_id
+      - input_revision
+      - rule_version
+      - results
+      - created_at
+      title: HistoryEntry
+    Login:
+      properties:
+        username:
+          type: string
+          enum:
+          - doctor
+          - pharmacist
+          - admin
+          title: Username
+        password:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Password
+      additionalProperties: false
+      type: object
+      required:
+      - username
+      - password
+      title: Login
+    MedicationInput:
+      properties:
+        ingredient_code:
+          type: string
+          pattern: ^[a-z][a-z0-9_]{1,59}$
+          title: Ingredient Code
+        dose:
+          type: number
+          exclusiveMinimum: true
+          title: Dose
+          minimum: 0.0
+        dose_unit:
+          type: string
+          enum:
+          - mg
+          - mcg
+          - g
+          - mL
+          title: Dose Unit
+        route:
+          type: string
+          enum:
+          - oral
+          - iv
+          - other
+          title: Route
+        frequency_per_day:
+          type: integer
+          maximum: 24.0
+          minimum: 1.0
+          title: Frequency Per Day
+        kind:
+          type: string
+          enum:
+          - current
+          - proposed
+          title: Kind
+      additionalProperties: false
+      type: object
+      required:
+      - ingredient_code
+      - dose
+      - dose_unit
+      - route
+      - frequency_per_day
+      - kind
+      title: MedicationInput
+    MedicationOut:
+      properties:
+        ingredient_code:
+          type: string
+          pattern: ^[a-z][a-z0-9_]{1,59}$
+          title: Ingredient Code
+        dose:
+          type: number
+          exclusiveMinimum: true
+          title: Dose
+          minimum: 0.0
+        dose_unit:
+          type: string
+          enum:
+          - mg
+          - mcg
+          - g
+          - mL
+          title: Dose Unit
+        route:
+          type: string
+          enum:
+          - oral
+          - iv
+          - other
+          title: Route
+        frequency_per_day:
+          type: integer
+          maximum: 24.0
+          minimum: 1.0
+          title: Frequency Per Day
+        kind:
+          type: string
+          enum:
+          - current
+          - proposed
+          title: Kind
+        id:
+          type: string
+          format: uuid
+          title: Id
+        encounter_id:
+          type: string
+          format: uuid
+          title: Encounter Id
+      additionalProperties: false
+      type: object
+      required:
+      - ingredient_code
+      - dose
+      - dose_unit
+      - route
+      - frequency_per_day
+      - kind
+      - id
+      - encounter_id
+      title: MedicationOut
+    ModuleResult:
+      properties:
+        module:
+          type: string
+          enum:
+          - diagnosis
+          - lab_test
+          - treatment
+          - medsafety
+          title: Module
+        status:
+          type: string
+          title: Status
+          default: mock_not_evaluated
+          enum:
+          - mock_not_evaluated
+        message:
+          type: string
+          title: Message
+        missing_fields:
+          items:
+            type: string
+          type: array
+          title: Missing Fields
+        clinical_recommendations:
+          items:
+            $ref: '#/components/schemas/Recommendation'
+          type: array
+          title: Clinical Recommendations
+        phenotype:
+          title: Phenotype
+          nullable: true
+          type: string
+          enum:
+          - HFrEF
+          - HFmrEF
+          - HFpEF
+          - HFimpEF
+        stage:
+          title: Stage
+          nullable: true
+          type: string
+          enum:
+          - A
+          - B
+          - C
+          - D
+        course:
+          title: Course
+          nullable: true
+          type: string
+        suggested_tests:
+          items:
+            $ref: '#/components/schemas/TestSuggestion'
+          type: array
+          title: Suggested Tests
+        treatment_strategies:
+          items:
+            type: string
+          type: array
+          title: Treatment Strategies
+      additionalProperties: false
+      type: object
+      required:
+      - module
+      - message
+      - missing_fields
+      title: ModuleResult
+    ObservationInput:
+      properties:
+        code:
+          type: string
+          enum:
+          - ef
+          - potassium
+          - egfr
+          - creatinine
+          - bnp
+          - nt_probnp
+          - systolic_bp
+          - heart_rate
+          - dyspnea
+          - frailty
+          - comorbidity
+          title: Code
+        value:
+          anyOf:
+          - type: number
+          - type: string
+          - type: boolean
+          title: Value
+          nullable: true
+        unit:
+          title: Unit
+          nullable: true
+          type: string
+        status:
+          type: string
+          enum:
+          - present
+          - not_measured
+          - unknown
+          title: Status
+        observed_at:
+          type: string
+          format: date-time
+          title: Observed At
+        source:
+          type: string
+          enum:
+          - manual_synthetic
+          - mock_his
+          - mock_lis
+          - mock_pacs
+          title: Source
+      additionalProperties: false
+      type: object
+      required:
+      - code
+      - status
+      - observed_at
+      - source
+      title: ObservationInput
+    ObservationOut:
+      properties:
+        code:
+          type: string
+          enum:
+          - ef
+          - potassium
+          - egfr
+          - creatinine
+          - bnp
+          - nt_probnp
+          - systolic_bp
+          - heart_rate
+          - dyspnea
+          - frailty
+          - comorbidity
+          title: Code
+        value:
+          anyOf:
+          - type: number
+          - type: string
+          - type: boolean
+          title: Value
+          nullable: true
+        unit:
+          title: Unit
+          nullable: true
+          type: string
+        status:
+          type: string
+          enum:
+          - present
+          - not_measured
+          - unknown
+          title: Status
+        observed_at:
+          type: string
+          format: date-time
+          title: Observed At
+        source:
+          type: string
+          enum:
+          - manual_synthetic
+          - mock_his
+          - mock_lis
+          - mock_pacs
+          title: Source
+        id:
+          type: string
+          format: uuid
+          title: Id
+        encounter_id:
+          type: string
+          format: uuid
+          title: Encounter Id
+      additionalProperties: false
+      type: object
+      required:
+      - code
+      - status
+      - observed_at
+      - source
+      - id
+      - encounter_id
+      title: ObservationOut
+    Recommendation:
+      properties:
+        code:
+          type: string
+          title: Code
+        description:
+          type: string
+          title: Description
+        severity:
+          type: string
+          enum:
+          - info
+          - warning
+          - critical
+          title: Severity
+        source_ref:
+          type: string
+          title: Source Ref
+        rule_version:
+          type: string
+          title: Rule Version
+        triggered_fields:
+          items:
+            type: string
+          type: array
+          title: Triggered Fields
+      additionalProperties: false
+      type: object
+      required:
+      - code
+      - description
+      - severity
+      - source_ref
+      - rule_version
+      - triggered_fields
+      title: Recommendation
+    RuleInput:
+      properties:
+        code:
+          type: string
+          pattern: ^[A-Z][A-Z0-9_-]{2,50}$
+          title: Code
+        module:
+          type: string
+          enum:
+          - diagnosis
+          - lab_test
+          - treatment
+          - medsafety
+          title: Module
+        source_ref:
+          type: string
+          maxLength: 300
+          minLength: 1
+          title: Source Ref
+      additionalProperties: false
+      type: object
+      required:
+      - code
+      - module
+      - source_ref
+      title: RuleInput
+    RuleOut:
+      properties:
+        code:
+          type: string
+          pattern: ^[A-Z][A-Z0-9_-]{2,50}$
+          title: Code
+        module:
+          type: string
+          enum:
+          - diagnosis
+          - lab_test
+          - treatment
+          - medsafety
+          title: Module
+        source_ref:
+          type: string
+          maxLength: 300
+          minLength: 1
+          title: Source Ref
+        id:
+          type: string
+          format: uuid
+          title: Id
+        version:
+          type: integer
+          title: Version
+        status:
+          type: string
+          enum:
+          - draft
+          - tested
+          - approved
+          - active
+          title: Status
+        test_status:
+          type: string
+          enum:
+          - not_run
+          - schema_passed
+          title: Test Status
+        approval_ref:
+          title: Approval Ref
+          nullable: true
+          type: string
+      additionalProperties: false
+      type: object
+      required:
+      - code
+      - module
+      - source_ref
+      - id
+      - version
+      - status
+      - test_status
+      title: RuleOut
+    RuleTestOut:
+      properties:
+        rule_id:
+          type: string
+          format: uuid
+          title: Rule Id
+        result:
+          type: string
+          title: Result
+          enum:
+          - schema_passed
+        clinical_validation:
+          type: string
+          title: Clinical Validation
+          enum:
+          - not_performed
+      additionalProperties: false
+      type: object
+      required:
+      - rule_id
+      - result
+      - clinical_validation
+      title: RuleTestOut
+    TestSuggestion:
+      properties:
+        test_code:
+          type: string
+          title: Test Code
+        priority:
+          type: string
+          enum:
+          - emergency
+          - within_24h
+          - current_visit
+          - routine
+          title: Priority
+        reason:
+          type: string
+          title: Reason
+        duplicate_detected:
+          type: boolean
+          title: Duplicate Detected
+      additionalProperties: false
+      type: object
+      required:
+      - test_code
+      - priority
+      - reason
+      - duplicate_detected
+      title: TestSuggestion
+    Token:
+      properties:
+        access_token:
+          type: string
+          title: Access Token
+        token_type:
+          type: string
+          title: Token Type
+          default: bearer
+          enum:
+          - bearer
+        expires_in:
+          type: integer
+          title: Expires In
+          default: 3600
+      additionalProperties: false
+      type: object
+      required:
+      - access_token
+      title: Token
+  securitySchemes:
+    HTTPBearer:
+      type: http
+      scheme: bearer
+      description: Opaque demo token from /api/v1/auth/token; expires after 3600 seconds.
+        Production identity adapter pending.
+servers:
+- url: http://127.0.0.1:8000
+  description: Local stub only; deployment requires HTTPS
