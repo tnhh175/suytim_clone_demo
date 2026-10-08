@@ -19,11 +19,12 @@ BEGIN
   END IF;
   RETURN NEW;
 END $$;
-CREATE TRIGGER module_result_tree_guard BEFORE INSERT ON module_result
+-- AFTER skips ON CONFLICT DO NOTHING replay; exceptions still roll back real inserts.
+CREATE TRIGGER module_result_tree_guard AFTER INSERT ON module_result
   FOR EACH ROW EXECUTE FUNCTION guard_result_tree_insert();
-CREATE TRIGGER recommendation_tree_guard BEFORE INSERT ON recommendation
+CREATE TRIGGER recommendation_tree_guard AFTER INSERT ON recommendation
   FOR EACH ROW EXECUTE FUNCTION guard_result_tree_insert();
-CREATE TRIGGER result_missing_field_tree_guard BEFORE INSERT ON result_missing_field
+CREATE TRIGGER result_missing_field_tree_guard AFTER INSERT ON result_missing_field
   FOR EACH ROW EXECUTE FUNCTION guard_result_tree_insert();
 
 CREATE FUNCTION lock_decision_result_tree() RETURNS trigger
