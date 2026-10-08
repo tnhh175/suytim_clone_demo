@@ -15,12 +15,12 @@
 | Lớp | Bằng chứng | Trạng thái |
 |---|---|---|
 | Yêu cầu | [SRS v1.0](SRS_v1.0.md) có 34 FR, 4 FR-P, 13 NFR; BDD/User Stories/Use Case/DFD còn thiếu. | Không suy ra hoàn thành từ yêu cầu. |
-| Dữ liệu | [schema.sql](../database/schema.sql), seed và quyền portal. | PostgreSQL 16 Compose; Gateway dùng runtime DB role và patient RLS. |
+| Dữ liệu | [schema.sql](../database/schema.sql), seed và quyền portal. | PostgreSQL 16+ cục bộ; Gateway dùng runtime DB role và patient RLS. |
 | Mapping | [source_mapping.md](../database/source_mapping.md) ánh xạ FR sang schema. | RTM mở rộng tới API/UI/test. |
 | API | [openapi.yaml](../api/openapi.yaml), sinh từ ứng dụng. | DB-backed auth/clinical/rules/portal; bốn module lâm sàng luôn stub. |
 | Gateway | [main.py](../src/gateway/main.py), clinical/auth/rules/portal routers. | FastAPI, PostgreSQL, năm role; kiểm quyền theo vai trò và scope. |
 | Module | Bốn adapter trả mock_not_evaluated, không có gợi ý y khoa. | Bắt buộc giữ stub và recommendations rỗng trong demo. |
-| Kiểm thử | Gateway unit/API tests và database PGlite tests trong thư mục tests. | Xem lệnh/kết quả kiểm tra cuối trong [README kỹ thuật](../README_TUAN3.md); chưa thay thế kiểm chứng PostgreSQL 16 bằng Compose. |
+| Kiểm thử | Gateway unit/API tests và database PGlite tests trong thư mục tests. | Xem lệnh/kết quả kiểm tra cuối trong [README kỹ thuật](../README_TUAN3.md); PGlite không thay thế kiểm chứng trên PostgreSQL 16+. |
 | QA baseline | `001_result_integrity.sql`, auth/clinical/rules routers và scope tests. | Baseline findings đã được xử lý trong code/migration; kết quả regression và giới hạn môi trường ghi ở lần kiểm tra cuối. |
 
 ## 2. Truy vết chức năng

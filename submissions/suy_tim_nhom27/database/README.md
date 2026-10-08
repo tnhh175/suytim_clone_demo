@@ -2,11 +2,11 @@
 
 `schema.sql` xây dựng 39 bảng PostgreSQL 16+ từ mô hình hiện có, đối chiếu FR-01..34 và thêm FR-P01..04. `seed.sql` tạo dữ liệu synthetic cho năm vai trò, hai hồ sơ, một đơn thuốc đã xác nhận, ba giờ uống mỗi ngày, một lịch hẹn và các chỉ số tự nhập. `schema_metadata.json` cùng `data_dictionary.md` được xuất từ schema đã chạy.
 
-Đây là phần lưu trữ và phân quyền CSDL. Gateway trong `src/gateway/` vẫn dùng RAM với ba tài khoản stub; chưa có API/giao diện bệnh nhân, bộ xác thực DB hay tiến trình gửi thông báo. Các chức năng dưới đây được kiểm tra bằng SQL.
+Đây là phần lưu trữ và phân quyền CSDL dùng bởi Gateway và web demo. Các tài khoản và dữ liệu được seed là synthetic; tiến trình gửi thông báo thật không có trong phạm vi demo.
 
 ## Khởi tạo
 
-Chạy trên database **rỗng**, bằng chủ schema. Bước tạo vai trò DB cần quyền `CREATEROLE`.
+Chạy trên database `hf_demo` **rỗng**, bằng chủ schema `hf_demo`. Tạo database và bootstrap role bằng PostgreSQL admin theo chính sách máy của bạn; role `hf_demo` cần quyền `CREATEROLE` trong bước cuối. Sau khi bootstrap xong, hạ quyền và khóa đăng nhập role bootstrap.
 
 Bootstrap gồm năm bước, theo đúng thứ tự. Các lệnh chạy bằng chủ CSDL `hf_demo`; bước cuối cần quyền `CREATEROLE` và một `HF_RUNTIME_PASSWORD` đặt trong môi trường tiến trình `psql`:
 
@@ -19,7 +19,7 @@ psql -v ON_ERROR_STOP=1 -d hf_demo -f database/migrations/001_result_integrity.s
 psql -v ON_ERROR_STOP=1 -d hf_demo -f database/runtime_roles.sql
 ```
 
-Compose gắn cả năm script lần lượt thành `01-schema.sql` đến `05-runtime-roles.sql`; PostgreSQL chỉ chạy chúng khi volume `hf_data` còn rỗng. Trong Compose, `DB_RUNTIME_PASSWORD` (mặc định chỉ dành cho demo cục bộ) được chuyển thành `HF_RUNTIME_PASSWORD` để tạo role `hf_demo_runtime`. Gateway container kết nối bằng `DATABASE_URL=postgresql://hf_demo_runtime:<mật-khẩu>@db:5432/hf_demo`. Khi chạy Gateway ngoài Compose, đặt `DATABASE_URL` trỏ tới cùng role runtime và host/port CSDL có thể truy cập được, ví dụ `postgresql://hf_demo_runtime:<mật-khẩu>@127.0.0.1:5432/hf_demo`; không dùng tài khoản bootstrap của PostgreSQL cho Gateway. Volume đã có schema cũ cần migration riêng; bootstrap không tự nâng cấp hoặc xóa dữ liệu. `seed.sql` được kiểm tra chạy lại hai lần mà không thêm bản ghi trùng, thay revision hoặc lặp audit. Các fixture đã có được giữ nguyên.
+Sau bước cuối, Gateway đăng nhập bằng role giới hạn `hf_demo_runtime`; đặt `DATABASE_URL` tới host/port PostgreSQL cục bộ, ví dụ `postgresql://hf_demo_runtime:<mật-khẩu>@127.0.0.1:5432/hf_demo`. Không dùng tài khoản owner/superuser cho Gateway. Database đã có schema cũ cần migration riêng; bootstrap không tự nâng cấp hoặc xóa dữ liệu. `seed.sql` được kiểm tra chạy lại hai lần mà không thêm bản ghi trùng, thay revision hoặc lặp audit. Các fixture đã có được giữ nguyên.
 
 ## Tài khoản và dữ liệu mẫu
 

@@ -1,4 +1,4 @@
--- Run as the schema owner with CREATEROLE (the demo Docker postgres user qualifies).
+-- Run as the schema owner with CREATEROLE.
 -- This role cannot log in; the trusted backend switches to it within a transaction.
 BEGIN;
 DO $$
