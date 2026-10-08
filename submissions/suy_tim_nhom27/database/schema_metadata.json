@@ -1,761 +1,4596 @@
 [
   {
+    "name": "allergy_status",
+    "description": "Trạng thái dị ứng/phản ứng: chưa rõ, xác nhận không có hoặc đã biết (FR-14).",
+    "columns": [
+      {
+        "name": "case_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Hồ sơ bệnh nhân liên quan.",
+        "constraint": "NOT NULL; FOREIGN KEY (case_id) REFERENCES patient_case(id); PRIMARY KEY (case_id)"
+      },
+      {
+        "name": "status",
+        "type": "character varying(10)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Trạng thái; các giá trị hợp lệ được ghi trong CHECK bên dưới.",
+        "constraint": "NOT NULL; CHECK (((status)::text = ANY ((ARRAY['unknown'::character varying, 'none'::character varying, 'known'::character varying])::text[])))"
+      },
+      {
+        "name": "recorded_by",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Người ghi nhận dữ liệu.",
+        "constraint": "NOT NULL; FOREIGN KEY (recorded_by) REFERENCES app_user(id)"
+      },
+      {
+        "name": "recorded_at",
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": "now()",
+        "description": "Thời điểm ghi nhận dữ liệu.",
+        "constraint": "NOT NULL; DEFAULT now()"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "allergy_status_case_id_fkey",
+        "definition": "FOREIGN KEY (case_id) REFERENCES patient_case(id)",
+        "columns": [
+          "case_id"
+        ]
+      },
+      {
+        "name": "allergy_status_pkey",
+        "definition": "PRIMARY KEY (case_id)",
+        "columns": [
+          "case_id"
+        ]
+      },
+      {
+        "name": "allergy_status_recorded_by_fkey",
+        "definition": "FOREIGN KEY (recorded_by) REFERENCES app_user(id)",
+        "columns": [
+          "recorded_by"
+        ]
+      },
+      {
+        "name": "allergy_status_status_check",
+        "definition": "CHECK (((status)::text = ANY ((ARRAY['unknown'::character varying, 'none'::character varying, 'known'::character varying])::text[])))",
+        "columns": [
+          "status"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "allergy_status_pkey",
+        "definition": "CREATE UNIQUE INDEX allergy_status_pkey ON public.allergy_status USING btree (case_id)"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "allergy_audit",
+        "definition": "CREATE TRIGGER allergy_audit AFTER INSERT OR DELETE OR UPDATE ON public.allergy_status FOR EACH ROW EXECUTE FUNCTION audit_record_change()"
+      },
+      {
+        "name": "allergy_revision",
+        "definition": "CREATE TRIGGER allergy_revision AFTER INSERT OR DELETE OR UPDATE ON public.allergy_status FOR EACH ROW EXECUTE FUNCTION bump_case_revision()"
+      },
+      {
+        "name": "allergy_staff_validate",
+        "definition": "CREATE TRIGGER allergy_staff_validate BEFORE INSERT OR UPDATE ON public.allergy_status FOR EACH ROW EXECUTE FUNCTION validate_staff_record()"
+      },
+      {
+        "name": "allergy_status_validate",
+        "definition": "CREATE TRIGGER allergy_status_validate BEFORE INSERT OR UPDATE ON public.allergy_status FOR EACH ROW EXECUTE FUNCTION validate_allergies()"
+      }
+    ],
+    "row_level_security": []
+  },
+  {
     "name": "app_user",
-    "description": "Tài khoản; không chứa thông tin bệnh nhân",
+    "description": "Tài khoản; chỉ lưu password hash. Nhân viên có thể thuộc khoa (FR-01,02).",
     "columns": [
       {
         "name": "id",
         "type": "uuid",
-        "constraint": "PRIMARY KEY DEFAULT gen_random_uuid()",
-        "description": "Mã nội bộ"
+        "nullable": false,
+        "default_value": "gen_random_uuid()",
+        "description": "Định danh nội bộ UUID.",
+        "constraint": "NOT NULL; DEFAULT gen_random_uuid(); PRIMARY KEY (id)"
       },
       {
         "name": "username",
-        "type": "varchar(80)",
-        "constraint": "NOT NULL UNIQUE",
-        "description": "Tên đăng nhập"
+        "type": "character varying(80)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Tên đăng nhập giả lập.",
+        "constraint": "NOT NULL; UNIQUE (username)"
       },
       {
         "name": "password_hash",
         "type": "text",
-        "constraint": "NOT NULL",
-        "description": "Băm mật khẩu, không lưu mật khẩu thô"
+        "nullable": false,
+        "default_value": null,
+        "description": "Hash mật khẩu; seed dùng PBKDF2-SHA256, không chứa mật khẩu rõ.",
+        "constraint": "NOT NULL"
       },
       {
         "name": "active",
         "type": "boolean",
-        "constraint": "NOT NULL DEFAULT true",
-        "description": "Cho phép đăng nhập"
+        "nullable": false,
+        "default_value": "true",
+        "description": "Trạng thái được phép sử dụng.",
+        "constraint": "NOT NULL; DEFAULT true"
+      },
+      {
+        "name": "department_code",
+        "type": "character varying(30)",
+        "nullable": true,
+        "default_value": null,
+        "description": "Mã khoa.",
+        "constraint": "NULL; FOREIGN KEY (department_code) REFERENCES department(code)"
       },
       {
         "name": "created_at",
-        "type": "timestamptz",
-        "constraint": "NOT NULL DEFAULT now()",
-        "description": "Thời điểm tạo"
-      }
-    ],
-    "constraints": [],
-    "indexes": []
-  },
-  {
-    "name": "role",
-    "description": "Ba vai trò đã chốt",
-    "columns": [
-      {
-        "name": "code",
-        "type": "varchar(20)",
-        "constraint": "PRIMARY KEY CHECK (code IN ('doctor','pharmacist','admin'))",
-        "description": "Mã vai trò"
-      }
-    ],
-    "constraints": [],
-    "indexes": []
-  },
-  {
-    "name": "user_role",
-    "description": "Một tài khoản có thể có nhiều vai trò",
-    "columns": [
-      {
-        "name": "user_id",
-        "type": "uuid",
-        "constraint": "NOT NULL REFERENCES app_user(id)",
-        "description": "Tài khoản"
-      },
-      {
-        "name": "role_code",
-        "type": "varchar(20)",
-        "constraint": "NOT NULL REFERENCES role(code)",
-        "description": "Vai trò"
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": "now()",
+        "description": "Thời điểm tạo.",
+        "constraint": "NOT NULL; DEFAULT now()"
       }
     ],
     "constraints": [
-      "PRIMARY KEY(user_id,role_code)"
-    ],
-    "indexes": []
-  },
-  {
-    "name": "patient_case",
-    "description": "Hồ sơ synthetic, không lưu tên/CCCD/địa chỉ",
-    "columns": [
       {
-        "name": "id",
-        "type": "uuid",
-        "constraint": "PRIMARY KEY DEFAULT gen_random_uuid()",
-        "description": "Mã nội bộ"
+        "name": "app_user_department_code_fkey",
+        "definition": "FOREIGN KEY (department_code) REFERENCES department(code)",
+        "columns": [
+          "department_code"
+        ]
       },
       {
-        "name": "synthetic_code",
-        "type": "varchar(30)",
-        "constraint": "NOT NULL UNIQUE CHECK (synthetic_code ~ '^SYN-[A-Z0-9-]{1,24}$')",
-        "description": "Mã giả lập"
+        "name": "app_user_pkey",
+        "definition": "PRIMARY KEY (id)",
+        "columns": [
+          "id"
+        ]
       },
       {
-        "name": "age",
-        "type": "smallint",
-        "constraint": "NOT NULL CHECK (age BETWEEN 0 AND 120)",
-        "description": "Tuổi tại tạo hồ sơ"
-      },
-      {
-        "name": "sex",
-        "type": "varchar(10)",
-        "constraint": "NOT NULL CHECK (sex IN ('male','female','unknown'))",
-        "description": "Giới tính"
-      },
-      {
-        "name": "owner_id",
-        "type": "uuid",
-        "constraint": "NOT NULL REFERENCES app_user(id)",
-        "description": "Bác sĩ phụ trách"
-      },
-      {
-        "name": "revision",
-        "type": "integer",
-        "constraint": "NOT NULL DEFAULT 1 CHECK(revision>0)",
-        "description": "Tăng khi dữ liệu nguồn thay đổi"
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "constraint": "NOT NULL DEFAULT now()",
-        "description": "Thời điểm tạo"
+        "name": "app_user_username_key",
+        "definition": "UNIQUE (username)",
+        "columns": [
+          "username"
+        ]
       }
     ],
-    "constraints": [],
     "indexes": [
-      "CREATE INDEX ix_case_owner ON patient_case(owner_id);"
-    ]
-  },
-  {
-    "name": "case_access",
-    "description": "Quyền đối với từng hồ sơ; một người có thể có nhiều phạm vi trên một ca",
-    "columns": [
       {
-        "name": "case_id",
-        "type": "uuid",
-        "constraint": "NOT NULL REFERENCES patient_case(id)",
-        "description": "Ca bệnh"
+        "name": "app_user_pkey",
+        "definition": "CREATE UNIQUE INDEX app_user_pkey ON public.app_user USING btree (id)"
       },
       {
-        "name": "user_id",
-        "type": "uuid",
-        "constraint": "NOT NULL REFERENCES app_user(id)",
-        "description": "Người được cấp quyền"
-      },
-      {
-        "name": "access_scope",
-        "type": "varchar(20)",
-        "constraint": "NOT NULL CHECK(access_scope IN ('clinical','medsafety'))",
-        "description": "Phạm vi dữ liệu"
+        "name": "app_user_username_key",
+        "definition": "CREATE UNIQUE INDEX app_user_username_key ON public.app_user USING btree (username)"
       }
     ],
-    "constraints": [
-      "PRIMARY KEY(case_id,user_id,access_scope)"
+    "triggers": [
+      {
+        "name": "user_audit",
+        "definition": "CREATE TRIGGER user_audit AFTER INSERT OR DELETE OR UPDATE ON public.app_user FOR EACH ROW EXECUTE FUNCTION audit_record_change()"
+      }
     ],
-    "indexes": []
+    "row_level_security": []
   },
   {
-    "name": "encounter",
-    "description": "Lượt khám thuộc ca",
+    "name": "appointment",
+    "description": "Lịch hẹn 30 phút do bệnh nhân yêu cầu; xác nhận, hoàn thành hoặc hủy (FR-P02).",
     "columns": [
       {
         "name": "id",
         "type": "uuid",
-        "constraint": "PRIMARY KEY DEFAULT gen_random_uuid()",
-        "description": "Mã nội bộ"
+        "nullable": false,
+        "default_value": "gen_random_uuid()",
+        "description": "Định danh nội bộ UUID.",
+        "constraint": "NOT NULL; DEFAULT gen_random_uuid(); PRIMARY KEY (id)"
       },
       {
         "name": "case_id",
         "type": "uuid",
-        "constraint": "NOT NULL REFERENCES patient_case(id)",
-        "description": "Ca bệnh"
-      },
-      {
-        "name": "occurred_at",
-        "type": "timestamptz",
-        "constraint": "NOT NULL",
-        "description": "Thời gian khám"
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "constraint": "NOT NULL DEFAULT now()",
-        "description": "Thời điểm tạo"
-      }
-    ],
-    "constraints": [],
-    "indexes": [
-      "CREATE INDEX ix_encounter_case_time ON encounter(case_id,occurred_at DESC);"
-    ]
-  },
-  {
-    "name": "observation_type",
-    "description": "Danh mục chỉ số và kiểu giá trị",
-    "columns": [
-      {
-        "name": "code",
-        "type": "varchar(60)",
-        "constraint": "PRIMARY KEY",
-        "description": "Mã biến kỹ thuật"
-      },
-      {
-        "name": "label",
-        "type": "text",
-        "constraint": "NOT NULL",
-        "description": "Tên hiển thị"
-      },
-      {
-        "name": "value_kind",
-        "type": "varchar(10)",
-        "constraint": "NOT NULL CHECK(value_kind IN ('number','boolean','text'))",
-        "description": "Kiểu giá trị"
-      },
-      {
-        "name": "unit",
-        "type": "varchar(40)",
-        "constraint": "",
-        "description": "Đơn vị chuẩn; null nếu không có"
-      },
-      {
-        "name": "min_value",
-        "type": "numeric",
-        "constraint": "",
-        "description": "Miền hợp lệ kỹ thuật, không phải ngưỡng cảnh báo"
-      },
-      {
-        "name": "max_value",
-        "type": "numeric",
-        "constraint": "",
-        "description": "Giới hạn trên nếu có"
-      }
-    ],
-    "constraints": [
-      "CHECK(min_value IS NULL OR max_value IS NULL OR min_value<=max_value)"
-    ],
-    "indexes": []
-  },
-  {
-    "name": "observation",
-    "description": "Mỗi dòng một giá trị, giữ lịch sử qua các lần đo",
-    "columns": [
-      {
-        "name": "id",
-        "type": "uuid",
-        "constraint": "PRIMARY KEY DEFAULT gen_random_uuid()",
-        "description": "Mã nội bộ"
-      },
-      {
-        "name": "encounter_id",
-        "type": "uuid",
-        "constraint": "NOT NULL REFERENCES encounter(id)",
-        "description": "Lượt khám"
-      },
-      {
-        "name": "code",
-        "type": "varchar(60)",
-        "constraint": "NOT NULL REFERENCES observation_type(code)",
-        "description": "Loại chỉ số"
-      },
-      {
-        "name": "value_number",
-        "type": "numeric",
-        "constraint": "",
-        "description": "Giá trị số"
-      },
-      {
-        "name": "value_boolean",
-        "type": "boolean",
-        "constraint": "",
-        "description": "Giá trị có/không"
-      },
-      {
-        "name": "value_text",
-        "type": "text",
-        "constraint": "",
-        "description": "Giá trị phân loại hoặc kết quả mô phỏng"
-      },
-      {
-        "name": "status",
-        "type": "varchar(20)",
-        "constraint": "NOT NULL CHECK(status IN ('present','not_measured','unknown'))",
-        "description": "Thiếu không đổi thành 0"
-      },
-      {
-        "name": "observed_at",
-        "type": "timestamptz",
-        "constraint": "NOT NULL",
-        "description": "Thời gian đo/đánh giá"
-      },
-      {
-        "name": "source",
-        "type": "varchar(30)",
-        "constraint": "NOT NULL CHECK(source IN ('manual_synthetic','mock_his','mock_lis','mock_pacs'))",
-        "description": "Nguồn synthetic"
-      },
-      {
-        "name": "recorded_by",
-        "type": "uuid",
-        "constraint": "NOT NULL REFERENCES app_user(id)",
-        "description": "Người nhập"
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "constraint": "NOT NULL DEFAULT now()",
-        "description": "Thời điểm tạo"
-      }
-    ],
-    "constraints": [
-      "CHECK ((status = 'present' AND num_nonnulls(value_number,value_boolean,value_text)=1) OR (status<>'present' AND num_nonnulls(value_number,value_boolean,value_text)=0))"
-    ],
-    "indexes": [
-      "CREATE INDEX ix_observation_latest ON observation(encounter_id,code,observed_at DESC);"
-    ]
-  },
-  {
-    "name": "ingredient",
-    "description": "Danh mục hoạt chất dùng chung",
-    "columns": [
-      {
-        "name": "code",
-        "type": "varchar(60)",
-        "constraint": "PRIMARY KEY",
-        "description": "Mã hoạt chất"
-      },
-      {
-        "name": "display_name",
-        "type": "text",
-        "constraint": "NOT NULL",
-        "description": "Tên hiển thị"
-      }
-    ],
-    "constraints": [],
-    "indexes": []
-  },
-  {
-    "name": "medication",
-    "description": "Thuốc hiện tại hoặc đơn dự kiến; không phải y lệnh tự động",
-    "columns": [
-      {
-        "name": "id",
-        "type": "uuid",
-        "constraint": "PRIMARY KEY DEFAULT gen_random_uuid()",
-        "description": "Mã nội bộ"
-      },
-      {
-        "name": "encounter_id",
-        "type": "uuid",
-        "constraint": "NOT NULL REFERENCES encounter(id)",
-        "description": "Lượt khám"
-      },
-      {
-        "name": "ingredient_code",
-        "type": "varchar(60)",
-        "constraint": "NOT NULL REFERENCES ingredient(code)",
-        "description": "Hoạt chất"
-      },
-      {
-        "name": "dose",
-        "type": "numeric",
-        "constraint": "NOT NULL CHECK(dose>0)",
-        "description": "Liều đã nhập, không phải liều AI kê"
-      },
-      {
-        "name": "dose_unit",
-        "type": "varchar(10)",
-        "constraint": "NOT NULL CHECK(dose_unit IN ('mg','mcg','g','mL'))",
-        "description": "Đơn vị liều"
-      },
-      {
-        "name": "route",
-        "type": "varchar(10)",
-        "constraint": "NOT NULL CHECK(route IN ('oral','iv','other'))",
-        "description": "Đường dùng"
-      },
-      {
-        "name": "frequency_per_day",
-        "type": "smallint",
-        "constraint": "NOT NULL CHECK(frequency_per_day BETWEEN 1 AND 24)",
-        "description": "Số lần/ngày trong MVP"
-      },
-      {
-        "name": "kind",
-        "type": "varchar(10)",
-        "constraint": "NOT NULL CHECK(kind IN ('current','proposed'))",
-        "description": "Loại danh sách"
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "constraint": "NOT NULL DEFAULT now()",
-        "description": "Thời điểm tạo"
-      }
-    ],
-    "constraints": [],
-    "indexes": [
-      "CREATE INDEX ix_medication_encounter ON medication(encounter_id);"
-    ]
-  },
-  {
-    "name": "rule_version",
-    "description": "Phiên bản bộ quy tắc theo module",
-    "columns": [
-      {
-        "name": "id",
-        "type": "uuid",
-        "constraint": "PRIMARY KEY DEFAULT gen_random_uuid()",
-        "description": "Mã nội bộ"
-      },
-      {
-        "name": "code",
-        "type": "varchar(60)",
-        "constraint": "NOT NULL",
-        "description": "Mã bộ quy tắc"
-      },
-      {
-        "name": "version",
-        "type": "integer",
-        "constraint": "NOT NULL CHECK(version>0)",
-        "description": "Số phiên bản"
-      },
-      {
-        "name": "module",
-        "type": "varchar(20)",
-        "constraint": "NOT NULL CHECK(module IN ('diagnosis','lab_test','treatment','medsafety'))",
-        "description": "Module"
-      },
-      {
-        "name": "source_ref",
-        "type": "text",
-        "constraint": "NOT NULL",
-        "description": "Nguồn chuyên môn, trang/mục và phiên bản"
-      },
-      {
-        "name": "content_hash",
-        "type": "varchar(64)",
-        "constraint": "NOT NULL CHECK(content_hash ~ '^[a-f0-9]{64}$')",
-        "description": "SHA256 nội dung đã duyệt"
-      },
-      {
-        "name": "status",
-        "type": "varchar(12)",
-        "constraint": "NOT NULL CHECK(status IN ('draft','tested','approved','active','retired'))",
-        "description": "Vòng đời"
-      },
-      {
-        "name": "created_by",
-        "type": "uuid",
-        "constraint": "NOT NULL REFERENCES app_user(id)",
-        "description": "Người tạo"
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "constraint": "NOT NULL DEFAULT now()",
-        "description": "Thời điểm tạo"
-      }
-    ],
-    "constraints": [
-      "UNIQUE(code,version)"
-    ],
-    "indexes": [
-      "CREATE UNIQUE INDEX ux_rule_active ON rule_version(code) WHERE status='active';"
-    ]
-  },
-  {
-    "name": "rule_approval",
-    "description": "Bằng chứng duyệt ngoài hệ thống hoặc theo quyền được xác nhận",
-    "columns": [
-      {
-        "name": "rule_version_id",
-        "type": "uuid",
-        "constraint": "PRIMARY KEY REFERENCES rule_version(id)",
-        "description": "Phiên bản duyệt"
-      },
-      {
-        "name": "approval_ref",
-        "type": "text",
-        "constraint": "NOT NULL CHECK(length(trim(approval_ref))>0)",
-        "description": "Tham chiếu biên bản duyệt được xác minh"
-      },
-      {
-        "name": "approved_content_hash",
-        "type": "varchar(64)",
-        "constraint": "NOT NULL CHECK(approved_content_hash ~ '^[a-f0-9]{64}$')",
-        "description": "Hash nội dung đã duyệt"
-      },
-      {
-        "name": "approved_at",
-        "type": "timestamptz",
-        "constraint": "NOT NULL",
-        "description": "Thời điểm duyệt chuyên môn"
-      },
-      {
-        "name": "recorded_by",
-        "type": "uuid",
-        "constraint": "NOT NULL REFERENCES app_user(id)",
-        "description": "Người ghi nhận, không đồng nghĩa người duyệt"
-      }
-    ],
-    "constraints": [],
-    "indexes": []
-  },
-  {
-    "name": "evaluation",
-    "description": "Một lần đánh giá với ảnh chụp đầu vào bất biến",
-    "columns": [
-      {
-        "name": "id",
-        "type": "uuid",
-        "constraint": "PRIMARY KEY DEFAULT gen_random_uuid()",
-        "description": "Mã nội bộ"
-      },
-      {
-        "name": "encounter_id",
-        "type": "uuid",
-        "constraint": "NOT NULL REFERENCES encounter(id)",
-        "description": "Lượt khám"
-      },
-      {
-        "name": "input_revision",
-        "type": "integer",
-        "constraint": "NOT NULL CHECK(input_revision>0)",
-        "description": "Phiên bản ca lúc đánh giá"
-      },
-      {
-        "name": "input_snapshot",
-        "type": "jsonb",
-        "constraint": "NOT NULL CHECK(jsonb_typeof(input_snapshot)='object')",
-        "description": "Snapshot kiểm toán; ngoại lệ có chủ đích với dữ liệu chuẩn hóa"
-      },
-      {
-        "name": "requested_by",
-        "type": "uuid",
-        "constraint": "NOT NULL REFERENCES app_user(id)",
-        "description": "Người yêu cầu"
-      },
-      {
-        "name": "mode",
-        "type": "varchar(10)",
-        "constraint": "NOT NULL CHECK(mode IN ('stub','validated'))",
-        "description": "Phân biệt demo và đã thẩm định"
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "constraint": "NOT NULL DEFAULT now()",
-        "description": "Thời điểm tạo"
-      }
-    ],
-    "constraints": [],
-    "indexes": [
-      "CREATE INDEX ix_evaluation_history ON evaluation(encounter_id,created_at DESC);"
-    ]
-  },
-  {
-    "name": "module_result",
-    "description": "Đầu ra từng module của một lần đánh giá",
-    "columns": [
-      {
-        "name": "id",
-        "type": "uuid",
-        "constraint": "PRIMARY KEY DEFAULT gen_random_uuid()",
-        "description": "Mã nội bộ"
-      },
-      {
-        "name": "evaluation_id",
-        "type": "uuid",
-        "constraint": "NOT NULL REFERENCES evaluation(id)",
-        "description": "Lần đánh giá"
-      },
-      {
-        "name": "module",
-        "type": "varchar(20)",
-        "constraint": "NOT NULL CHECK(module IN ('diagnosis','lab_test','treatment','medsafety'))",
-        "description": "Module"
-      },
-      {
-        "name": "rule_version_id",
-        "type": "uuid",
-        "constraint": "REFERENCES rule_version(id)",
-        "description": "Null chỉ cho stub chưa chạy rule"
-      },
-      {
-        "name": "status",
-        "type": "varchar(30)",
-        "constraint": "NOT NULL CHECK(status IN ('mock_not_evaluated','completed','insufficient_data','failed'))",
-        "description": "Trạng thái"
-      },
-      {
-        "name": "message",
-        "type": "text",
-        "constraint": "NOT NULL",
-        "description": "Diễn giải"
-      }
-    ],
-    "constraints": [
-      "UNIQUE(evaluation_id,module)",
-      "CHECK(status='mock_not_evaluated' OR rule_version_id IS NOT NULL)"
-    ],
-    "indexes": []
-  },
-  {
-    "name": "recommendation",
-    "description": "Khuyến nghị thuộc kết quả module",
-    "columns": [
-      {
-        "name": "id",
-        "type": "uuid",
-        "constraint": "PRIMARY KEY DEFAULT gen_random_uuid()",
-        "description": "Mã nội bộ"
-      },
-      {
-        "name": "module_result_id",
-        "type": "uuid",
-        "constraint": "NOT NULL REFERENCES module_result(id)",
-        "description": "Kết quả nguồn"
-      },
-      {
-        "name": "code",
-        "type": "varchar(80)",
-        "constraint": "NOT NULL",
-        "description": "Mã gợi ý/cảnh báo"
-      },
-      {
-        "name": "severity",
-        "type": "varchar(12)",
-        "constraint": "NOT NULL CHECK(severity IN ('info','warning','critical'))",
-        "description": "Mức cảnh báo"
-      },
-      {
-        "name": "description",
-        "type": "text",
-        "constraint": "NOT NULL",
-        "description": "Nội dung"
-      },
-      {
-        "name": "source_ref",
-        "type": "text",
-        "constraint": "NOT NULL",
-        "description": "Căn cứ truy vết"
-      }
-    ],
-    "constraints": [],
-    "indexes": [
-      "CREATE INDEX ix_recommendation_result ON recommendation(module_result_id);"
-    ]
-  },
-  {
-    "name": "result_missing_field",
-    "description": "Danh sách thiếu tách thành dòng, không lưu chuỗi ghép",
-    "columns": [
-      {
-        "name": "module_result_id",
-        "type": "uuid",
-        "constraint": "NOT NULL REFERENCES module_result(id)",
-        "description": "Kết quả"
-      },
-      {
-        "name": "field_code",
-        "type": "varchar(60)",
-        "constraint": "NOT NULL REFERENCES observation_type(code)",
-        "description": "Biến còn thiếu"
-      }
-    ],
-    "constraints": [
-      "PRIMARY KEY(module_result_id,field_code)"
-    ],
-    "indexes": []
-  },
-  {
-    "name": "clinical_decision",
-    "description": "Quyết định của bác sĩ cho một lần đánh giá",
-    "columns": [
-      {
-        "name": "id",
-        "type": "uuid",
-        "constraint": "PRIMARY KEY DEFAULT gen_random_uuid()",
-        "description": "Mã nội bộ"
-      },
-      {
-        "name": "evaluation_id",
-        "type": "uuid",
-        "constraint": "NOT NULL UNIQUE REFERENCES evaluation(id)",
-        "description": "Lần đánh giá"
+        "nullable": false,
+        "default_value": null,
+        "description": "Hồ sơ bệnh nhân liên quan.",
+        "constraint": "NOT NULL; FOREIGN KEY (case_id) REFERENCES patient_case(id); FOREIGN KEY (encounter_id, case_id) REFERENCES encounter(id, case_id)"
       },
       {
         "name": "doctor_id",
         "type": "uuid",
-        "constraint": "NOT NULL REFERENCES app_user(id)",
-        "description": "Bác sĩ quyết định"
+        "nullable": false,
+        "default_value": null,
+        "description": "Bác sĩ phụ trách/xác nhận.",
+        "constraint": "NOT NULL; FOREIGN KEY (doctor_id) REFERENCES app_user(id)"
       },
       {
-        "name": "action",
-        "type": "varchar(10)",
-        "constraint": "NOT NULL CHECK(action IN ('accepted','adjusted','rejected'))",
-        "description": "Phản hồi"
+        "name": "slot_at",
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": null,
+        "description": "Thời điểm bắt đầu slot khám 30 phút.",
+        "constraint": "NOT NULL; CHECK (((EXTRACT(epoch FROM slot_at) % (1800)::numeric) = (0)::numeric))"
       },
       {
         "name": "reason",
-        "type": "text",
-        "constraint": "",
-        "description": "Lý do điều chỉnh/từ chối"
+        "type": "character varying(500)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Lý do yêu cầu/quyết định.",
+        "constraint": "NOT NULL; CHECK ((length(TRIM(BOTH FROM reason)) > 0))"
+      },
+      {
+        "name": "status",
+        "type": "character varying(12)",
+        "nullable": false,
+        "default_value": "'requested'::character varying",
+        "description": "Trạng thái; các giá trị hợp lệ được ghi trong CHECK bên dưới.",
+        "constraint": "NOT NULL; DEFAULT 'requested'::character varying; CHECK (((status)::text = ANY ((ARRAY['requested'::character varying, 'confirmed'::character varying, 'completed'::character varying, 'cancelled'::character varying])::text[])))"
+      },
+      {
+        "name": "requested_by",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Tài khoản yêu cầu thao tác.",
+        "constraint": "NOT NULL; FOREIGN KEY (requested_by) REFERENCES app_user(id)"
+      },
+      {
+        "name": "encounter_id",
+        "type": "uuid",
+        "nullable": true,
+        "default_value": null,
+        "description": "Lần khám/đợt điều trị liên quan.",
+        "constraint": "NULL; FOREIGN KEY (encounter_id, case_id) REFERENCES encounter(id, case_id)"
       },
       {
         "name": "created_at",
-        "type": "timestamptz",
-        "constraint": "NOT NULL DEFAULT now()",
-        "description": "Thời điểm tạo"
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": "now()",
+        "description": "Thời điểm tạo.",
+        "constraint": "NOT NULL; DEFAULT now()"
       }
     ],
     "constraints": [
-      "CHECK(action='accepted' OR length(trim(coalesce(reason,'')))>0)"
+      {
+        "name": "appointment_case_id_fkey",
+        "definition": "FOREIGN KEY (case_id) REFERENCES patient_case(id)",
+        "columns": [
+          "case_id"
+        ]
+      },
+      {
+        "name": "appointment_doctor_id_fkey",
+        "definition": "FOREIGN KEY (doctor_id) REFERENCES app_user(id)",
+        "columns": [
+          "doctor_id"
+        ]
+      },
+      {
+        "name": "appointment_encounter_id_case_id_fkey",
+        "definition": "FOREIGN KEY (encounter_id, case_id) REFERENCES encounter(id, case_id)",
+        "columns": [
+          "case_id",
+          "encounter_id"
+        ]
+      },
+      {
+        "name": "appointment_pkey",
+        "definition": "PRIMARY KEY (id)",
+        "columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "appointment_reason_check",
+        "definition": "CHECK ((length(TRIM(BOTH FROM reason)) > 0))",
+        "columns": [
+          "reason"
+        ]
+      },
+      {
+        "name": "appointment_requested_by_fkey",
+        "definition": "FOREIGN KEY (requested_by) REFERENCES app_user(id)",
+        "columns": [
+          "requested_by"
+        ]
+      },
+      {
+        "name": "appointment_slot_at_check",
+        "definition": "CHECK (((EXTRACT(epoch FROM slot_at) % (1800)::numeric) = (0)::numeric))",
+        "columns": [
+          "slot_at"
+        ]
+      },
+      {
+        "name": "appointment_status_check",
+        "definition": "CHECK (((status)::text = ANY ((ARRAY['requested'::character varying, 'confirmed'::character varying, 'completed'::character varying, 'cancelled'::character varying])::text[])))",
+        "columns": [
+          "status"
+        ]
+      }
     ],
-    "indexes": []
+    "indexes": [
+      {
+        "name": "appointment_pkey",
+        "definition": "CREATE UNIQUE INDEX appointment_pkey ON public.appointment USING btree (id)"
+      },
+      {
+        "name": "ix_appointment_case",
+        "definition": "CREATE INDEX ix_appointment_case ON public.appointment USING btree (case_id, slot_at DESC)"
+      },
+      {
+        "name": "ux_appointment_doctor_slot",
+        "definition": "CREATE UNIQUE INDEX ux_appointment_doctor_slot ON public.appointment USING btree (doctor_id, slot_at) WHERE ((status)::text = ANY ((ARRAY['requested'::character varying, 'confirmed'::character varying])::text[]))"
+      },
+      {
+        "name": "ux_appointment_patient_slot",
+        "definition": "CREATE UNIQUE INDEX ux_appointment_patient_slot ON public.appointment USING btree (case_id, slot_at) WHERE ((status)::text = ANY ((ARRAY['requested'::character varying, 'confirmed'::character varying])::text[]))"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "appointment_audit",
+        "definition": "CREATE TRIGGER appointment_audit AFTER INSERT OR UPDATE ON public.appointment FOR EACH ROW EXECUTE FUNCTION audit_record_change()"
+      },
+      {
+        "name": "appointment_validate",
+        "definition": "CREATE TRIGGER appointment_validate BEFORE INSERT OR UPDATE ON public.appointment FOR EACH ROW EXECUTE FUNCTION validate_appointment()"
+      }
+    ],
+    "row_level_security": [
+      {
+        "name": "patient_appointment_cancel",
+        "command": "UPDATE",
+        "using_expression": "((case_id = portal_case_id()) AND ((status)::text = ANY ((ARRAY['requested'::character varying, 'confirmed'::character varying])::text[])))",
+        "check_expression": "((case_id = portal_case_id()) AND ((status)::text = 'cancelled'::text))"
+      },
+      {
+        "name": "patient_appointment_create",
+        "command": "INSERT",
+        "using_expression": null,
+        "check_expression": "((case_id = portal_case_id()) AND (requested_by = current_app_user()) AND ((status)::text = 'requested'::text) AND (encounter_id IS NULL))"
+      },
+      {
+        "name": "patient_appointment_read",
+        "command": "SELECT",
+        "using_expression": "(case_id = portal_case_id())",
+        "check_expression": null
+      }
+    ]
   },
   {
     "name": "audit_event",
-    "description": "Nhật ký append-only, không chép giá trị dữ liệu lâm sàng",
+    "description": "Nhật ký bất biến: người hoặc tiến trình hệ thống, đối tượng, hành động và thời gian (FR-34).",
     "columns": [
       {
         "name": "id",
         "type": "uuid",
-        "constraint": "PRIMARY KEY DEFAULT gen_random_uuid()",
-        "description": "Mã nội bộ"
+        "nullable": false,
+        "default_value": "gen_random_uuid()",
+        "description": "Định danh nội bộ UUID.",
+        "constraint": "NOT NULL; DEFAULT gen_random_uuid(); PRIMARY KEY (id)"
       },
       {
         "name": "actor_id",
         "type": "uuid",
-        "constraint": "NOT NULL REFERENCES app_user(id)",
-        "description": "Tài khoản thao tác"
+        "nullable": true,
+        "default_value": null,
+        "description": "Tài khoản thao tác; null cho tiến trình hệ thống không gắn tài khoản.",
+        "constraint": "NULL; FOREIGN KEY (actor_id) REFERENCES app_user(id); CHECK (((((actor_kind)::text = 'user'::text) AND (actor_id IS NOT NULL)) OR (((actor_kind)::text = 'system'::text) AND (actor_id IS NULL))))"
+      },
+      {
+        "name": "actor_kind",
+        "type": "character varying(10)",
+        "nullable": false,
+        "default_value": "'user'::character varying",
+        "description": "user hoặc system.",
+        "constraint": "NOT NULL; DEFAULT 'user'::character varying; CHECK (((actor_kind)::text = ANY ((ARRAY['user'::character varying, 'system'::character varying])::text[]))); CHECK (((((actor_kind)::text = 'user'::text) AND (actor_id IS NOT NULL)) OR (((actor_kind)::text = 'system'::text) AND (actor_id IS NULL))))"
       },
       {
         "name": "action",
-        "type": "varchar(80)",
-        "constraint": "NOT NULL",
-        "description": "Tên sự kiện"
+        "type": "character varying(80)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Hành động/quyết định.",
+        "constraint": "NOT NULL"
       },
       {
         "name": "entity_type",
-        "type": "varchar(40)",
-        "constraint": "NOT NULL",
-        "description": "Loại đối tượng"
+        "type": "character varying(40)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Loại đối tượng nhật ký.",
+        "constraint": "NOT NULL"
       },
       {
         "name": "entity_id",
         "type": "uuid",
-        "constraint": "NOT NULL",
-        "description": "Mã đối tượng, tham chiếu đa hình do dịch vụ kiểm tra"
+        "nullable": false,
+        "default_value": null,
+        "description": "UUID đối tượng nhật ký.",
+        "constraint": "NOT NULL"
       },
       {
         "name": "created_at",
-        "type": "timestamptz",
-        "constraint": "NOT NULL DEFAULT now()",
-        "description": "Thời điểm tạo"
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": "now()",
+        "description": "Thời điểm tạo.",
+        "constraint": "NOT NULL; DEFAULT now()"
       }
     ],
-    "constraints": [],
+    "constraints": [
+      {
+        "name": "audit_event_actor_id_fkey",
+        "definition": "FOREIGN KEY (actor_id) REFERENCES app_user(id)",
+        "columns": [
+          "actor_id"
+        ]
+      },
+      {
+        "name": "audit_event_actor_kind_check",
+        "definition": "CHECK (((actor_kind)::text = ANY ((ARRAY['user'::character varying, 'system'::character varying])::text[])))",
+        "columns": [
+          "actor_kind"
+        ]
+      },
+      {
+        "name": "audit_event_check",
+        "definition": "CHECK (((((actor_kind)::text = 'user'::text) AND (actor_id IS NOT NULL)) OR (((actor_kind)::text = 'system'::text) AND (actor_id IS NULL))))",
+        "columns": [
+          "actor_id",
+          "actor_kind"
+        ]
+      },
+      {
+        "name": "audit_event_pkey",
+        "definition": "PRIMARY KEY (id)",
+        "columns": [
+          "id"
+        ]
+      }
+    ],
     "indexes": [
-      "CREATE INDEX ix_audit_entity_time ON audit_event(entity_type,entity_id,created_at DESC);"
+      {
+        "name": "audit_event_pkey",
+        "definition": "CREATE UNIQUE INDEX audit_event_pkey ON public.audit_event USING btree (id)"
+      },
+      {
+        "name": "ix_audit_entity_time",
+        "definition": "CREATE INDEX ix_audit_entity_time ON public.audit_event USING btree (entity_type, entity_id, created_at DESC)"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "audit_immutable",
+        "definition": "CREATE TRIGGER audit_immutable BEFORE DELETE OR UPDATE ON public.audit_event FOR EACH ROW EXECUTE FUNCTION prevent_mutation()"
+      }
+    ],
+    "row_level_security": []
+  },
+  {
+    "name": "auth_session",
+    "description": "Phiên xác thực có hạn dùng và trạng thái thu hồi; chỉ lưu hash token (FR-01).",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": "gen_random_uuid()",
+        "description": "Định danh nội bộ UUID.",
+        "constraint": "NOT NULL; DEFAULT gen_random_uuid(); PRIMARY KEY (id)"
+      },
+      {
+        "name": "user_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Tài khoản liên quan.",
+        "constraint": "NOT NULL; FOREIGN KEY (user_id) REFERENCES app_user(id)"
+      },
+      {
+        "name": "token_hash",
+        "type": "character varying(64)",
+        "nullable": false,
+        "default_value": null,
+        "description": "SHA-256 của token phiên, không lưu token rõ.",
+        "constraint": "NOT NULL; CHECK (((token_hash)::text ~ '^[a-f0-9]{64}$'::text)); UNIQUE (token_hash)"
+      },
+      {
+        "name": "expires_at",
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": null,
+        "description": "Thời điểm hết hạn phiên.",
+        "constraint": "NOT NULL; CHECK ((expires_at > created_at))"
+      },
+      {
+        "name": "revoked_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "default_value": null,
+        "description": "Thời điểm thu hồi phiên.",
+        "constraint": "NULL"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": "now()",
+        "description": "Thời điểm tạo.",
+        "constraint": "NOT NULL; DEFAULT now(); CHECK ((expires_at > created_at))"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "auth_session_check",
+        "definition": "CHECK ((expires_at > created_at))",
+        "columns": [
+          "expires_at",
+          "created_at"
+        ]
+      },
+      {
+        "name": "auth_session_pkey",
+        "definition": "PRIMARY KEY (id)",
+        "columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "auth_session_token_hash_check",
+        "definition": "CHECK (((token_hash)::text ~ '^[a-f0-9]{64}$'::text))",
+        "columns": [
+          "token_hash"
+        ]
+      },
+      {
+        "name": "auth_session_token_hash_key",
+        "definition": "UNIQUE (token_hash)",
+        "columns": [
+          "token_hash"
+        ]
+      },
+      {
+        "name": "auth_session_user_id_fkey",
+        "definition": "FOREIGN KEY (user_id) REFERENCES app_user(id)",
+        "columns": [
+          "user_id"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "auth_session_pkey",
+        "definition": "CREATE UNIQUE INDEX auth_session_pkey ON public.auth_session USING btree (id)"
+      },
+      {
+        "name": "auth_session_token_hash_key",
+        "definition": "CREATE UNIQUE INDEX auth_session_token_hash_key ON public.auth_session USING btree (token_hash)"
+      },
+      {
+        "name": "ix_auth_session_user",
+        "definition": "CREATE INDEX ix_auth_session_user ON public.auth_session USING btree (user_id, expires_at)"
+      }
+    ],
+    "triggers": [],
+    "row_level_security": []
+  },
+  {
+    "name": "case_access",
+    "description": "Phạm vi hồ sơ cấp riêng cho bác sĩ, điều dưỡng hoặc dược sĩ (FR-03).",
+    "columns": [
+      {
+        "name": "case_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Hồ sơ bệnh nhân liên quan.",
+        "constraint": "NOT NULL; FOREIGN KEY (case_id) REFERENCES patient_case(id); PRIMARY KEY (case_id, user_id, access_scope)"
+      },
+      {
+        "name": "user_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Tài khoản liên quan.",
+        "constraint": "NOT NULL; PRIMARY KEY (case_id, user_id, access_scope); FOREIGN KEY (user_id) REFERENCES app_user(id)"
+      },
+      {
+        "name": "access_scope",
+        "type": "character varying(20)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Phạm vi clinical, nursing hoặc medsafety.",
+        "constraint": "NOT NULL; CHECK (((access_scope)::text = ANY ((ARRAY['clinical'::character varying, 'nursing'::character varying, 'medsafety'::character varying])::text[]))); PRIMARY KEY (case_id, user_id, access_scope)"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "case_access_access_scope_check",
+        "definition": "CHECK (((access_scope)::text = ANY ((ARRAY['clinical'::character varying, 'nursing'::character varying, 'medsafety'::character varying])::text[])))",
+        "columns": [
+          "access_scope"
+        ]
+      },
+      {
+        "name": "case_access_case_id_fkey",
+        "definition": "FOREIGN KEY (case_id) REFERENCES patient_case(id)",
+        "columns": [
+          "case_id"
+        ]
+      },
+      {
+        "name": "case_access_pkey",
+        "definition": "PRIMARY KEY (case_id, user_id, access_scope)",
+        "columns": [
+          "case_id",
+          "user_id",
+          "access_scope"
+        ]
+      },
+      {
+        "name": "case_access_user_id_fkey",
+        "definition": "FOREIGN KEY (user_id) REFERENCES app_user(id)",
+        "columns": [
+          "user_id"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "case_access_pkey",
+        "definition": "CREATE UNIQUE INDEX case_access_pkey ON public.case_access USING btree (case_id, user_id, access_scope)"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "access_audit",
+        "definition": "CREATE TRIGGER access_audit AFTER INSERT OR DELETE OR UPDATE ON public.case_access FOR EACH ROW EXECUTE FUNCTION audit_record_change()"
+      },
+      {
+        "name": "case_access_validate",
+        "definition": "CREATE TRIGGER case_access_validate BEFORE INSERT OR UPDATE ON public.case_access FOR EACH ROW EXECUTE FUNCTION validate_case_staff()"
+      }
+    ],
+    "row_level_security": []
+  },
+  {
+    "name": "clinical_decision",
+    "description": "Quyết định bất biến của bác sĩ; điều chỉnh phải có nội dung và lý do (FR-31,33).",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": "gen_random_uuid()",
+        "description": "Định danh nội bộ UUID.",
+        "constraint": "NOT NULL; DEFAULT gen_random_uuid(); PRIMARY KEY (id)"
+      },
+      {
+        "name": "evaluation_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Lần đánh giá liên quan.",
+        "constraint": "NOT NULL; FOREIGN KEY (evaluation_id) REFERENCES evaluation(id); UNIQUE (evaluation_id)"
+      },
+      {
+        "name": "doctor_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Bác sĩ phụ trách/xác nhận.",
+        "constraint": "NOT NULL; FOREIGN KEY (doctor_id) REFERENCES app_user(id)"
+      },
+      {
+        "name": "action",
+        "type": "character varying(10)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Hành động/quyết định.",
+        "constraint": "NOT NULL; CHECK (((action)::text = ANY ((ARRAY['accepted'::character varying, 'adjusted'::character varying, 'rejected'::character varying])::text[]))); CHECK ((((action)::text = 'accepted'::text) OR (length(TRIM(BOTH FROM COALESCE(reason, ''::text))) > 0))); CHECK (((((action)::text = 'adjusted'::text) AND (adjustment_details IS NOT NULL) AND (jsonb_typeof(adjustment_details) = 'object'::text) AND (adjustment_details <> '{}'::jsonb)) OR (((action)::text <> 'adjusted'::text) AND (adjustment_details IS NULL))))"
+      },
+      {
+        "name": "reason",
+        "type": "text",
+        "nullable": true,
+        "default_value": null,
+        "description": "Lý do yêu cầu/quyết định.",
+        "constraint": "NULL; CHECK ((((action)::text = 'accepted'::text) OR (length(TRIM(BOTH FROM COALESCE(reason, ''::text))) > 0)))"
+      },
+      {
+        "name": "adjustment_details",
+        "type": "jsonb",
+        "nullable": true,
+        "default_value": null,
+        "description": "Nội dung bác sĩ điều chỉnh dưới dạng JSONB, bắt buộc khi adjusted.",
+        "constraint": "NULL; CHECK (((((action)::text = 'adjusted'::text) AND (adjustment_details IS NOT NULL) AND (jsonb_typeof(adjustment_details) = 'object'::text) AND (adjustment_details <> '{}'::jsonb)) OR (((action)::text <> 'adjusted'::text) AND (adjustment_details IS NULL))))"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": "now()",
+        "description": "Thời điểm tạo.",
+        "constraint": "NOT NULL; DEFAULT now()"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "clinical_decision_action_check",
+        "definition": "CHECK (((action)::text = ANY ((ARRAY['accepted'::character varying, 'adjusted'::character varying, 'rejected'::character varying])::text[])))",
+        "columns": [
+          "action"
+        ]
+      },
+      {
+        "name": "clinical_decision_check",
+        "definition": "CHECK ((((action)::text = 'accepted'::text) OR (length(TRIM(BOTH FROM COALESCE(reason, ''::text))) > 0)))",
+        "columns": [
+          "action",
+          "reason"
+        ]
+      },
+      {
+        "name": "clinical_decision_check1",
+        "definition": "CHECK (((((action)::text = 'adjusted'::text) AND (adjustment_details IS NOT NULL) AND (jsonb_typeof(adjustment_details) = 'object'::text) AND (adjustment_details <> '{}'::jsonb)) OR (((action)::text <> 'adjusted'::text) AND (adjustment_details IS NULL))))",
+        "columns": [
+          "action",
+          "adjustment_details"
+        ]
+      },
+      {
+        "name": "clinical_decision_doctor_id_fkey",
+        "definition": "FOREIGN KEY (doctor_id) REFERENCES app_user(id)",
+        "columns": [
+          "doctor_id"
+        ]
+      },
+      {
+        "name": "clinical_decision_evaluation_id_fkey",
+        "definition": "FOREIGN KEY (evaluation_id) REFERENCES evaluation(id)",
+        "columns": [
+          "evaluation_id"
+        ]
+      },
+      {
+        "name": "clinical_decision_evaluation_id_key",
+        "definition": "UNIQUE (evaluation_id)",
+        "columns": [
+          "evaluation_id"
+        ]
+      },
+      {
+        "name": "clinical_decision_pkey",
+        "definition": "PRIMARY KEY (id)",
+        "columns": [
+          "id"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "clinical_decision_evaluation_id_key",
+        "definition": "CREATE UNIQUE INDEX clinical_decision_evaluation_id_key ON public.clinical_decision USING btree (evaluation_id)"
+      },
+      {
+        "name": "clinical_decision_pkey",
+        "definition": "CREATE UNIQUE INDEX clinical_decision_pkey ON public.clinical_decision USING btree (id)"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "decision_audit",
+        "definition": "CREATE TRIGGER decision_audit AFTER INSERT ON public.clinical_decision FOR EACH ROW EXECUTE FUNCTION audit_record_change()"
+      },
+      {
+        "name": "decision_immutable",
+        "definition": "CREATE TRIGGER decision_immutable BEFORE DELETE OR UPDATE ON public.clinical_decision FOR EACH ROW EXECUTE FUNCTION prevent_mutation()"
+      },
+      {
+        "name": "decision_validate",
+        "definition": "CREATE TRIGGER decision_validate BEFORE INSERT ON public.clinical_decision FOR EACH ROW EXECUTE FUNCTION validate_evaluation_decision()"
+      }
+    ],
+    "row_level_security": []
+  },
+  {
+    "name": "clinical_note",
+    "description": "Ghi nhận chăm sóc, khám, chẩn đoán hoặc đánh giá lão khoa theo lần khám (FR-09,10,11).",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": "gen_random_uuid()",
+        "description": "Định danh nội bộ UUID.",
+        "constraint": "NOT NULL; DEFAULT gen_random_uuid(); PRIMARY KEY (id)"
+      },
+      {
+        "name": "encounter_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Lần khám/đợt điều trị liên quan.",
+        "constraint": "NOT NULL; FOREIGN KEY (encounter_id) REFERENCES encounter(id)"
+      },
+      {
+        "name": "kind",
+        "type": "character varying(20)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Loại bản ghi; xem CHECK của bảng.",
+        "constraint": "NOT NULL; CHECK (((kind)::text = ANY ((ARRAY['nursing'::character varying, 'examination'::character varying, 'diagnosis'::character varying, 'geriatric'::character varying])::text[])))"
+      },
+      {
+        "name": "content",
+        "type": "text",
+        "nullable": false,
+        "default_value": null,
+        "description": "Nội dung ghi nhận hoặc JSONB; xem kiểu và ràng buộc của bảng.",
+        "constraint": "NOT NULL; CHECK ((length(TRIM(BOTH FROM content)) > 0))"
+      },
+      {
+        "name": "recorded_by",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Người ghi nhận dữ liệu.",
+        "constraint": "NOT NULL; FOREIGN KEY (recorded_by) REFERENCES app_user(id)"
+      },
+      {
+        "name": "recorded_at",
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": "now()",
+        "description": "Thời điểm ghi nhận dữ liệu.",
+        "constraint": "NOT NULL; DEFAULT now()"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "clinical_note_content_check",
+        "definition": "CHECK ((length(TRIM(BOTH FROM content)) > 0))",
+        "columns": [
+          "content"
+        ]
+      },
+      {
+        "name": "clinical_note_encounter_id_fkey",
+        "definition": "FOREIGN KEY (encounter_id) REFERENCES encounter(id)",
+        "columns": [
+          "encounter_id"
+        ]
+      },
+      {
+        "name": "clinical_note_kind_check",
+        "definition": "CHECK (((kind)::text = ANY ((ARRAY['nursing'::character varying, 'examination'::character varying, 'diagnosis'::character varying, 'geriatric'::character varying])::text[])))",
+        "columns": [
+          "kind"
+        ]
+      },
+      {
+        "name": "clinical_note_pkey",
+        "definition": "PRIMARY KEY (id)",
+        "columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "clinical_note_recorded_by_fkey",
+        "definition": "FOREIGN KEY (recorded_by) REFERENCES app_user(id)",
+        "columns": [
+          "recorded_by"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "clinical_note_pkey",
+        "definition": "CREATE UNIQUE INDEX clinical_note_pkey ON public.clinical_note USING btree (id)"
+      },
+      {
+        "name": "ix_note_encounter",
+        "definition": "CREATE INDEX ix_note_encounter ON public.clinical_note USING btree (encounter_id, recorded_at DESC)"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "note_audit",
+        "definition": "CREATE TRIGGER note_audit AFTER INSERT OR DELETE OR UPDATE ON public.clinical_note FOR EACH ROW EXECUTE FUNCTION audit_record_change()"
+      },
+      {
+        "name": "note_revision",
+        "definition": "CREATE TRIGGER note_revision AFTER INSERT OR DELETE OR UPDATE ON public.clinical_note FOR EACH ROW EXECUTE FUNCTION bump_case_revision()"
+      },
+      {
+        "name": "note_staff_validate",
+        "definition": "CREATE TRIGGER note_staff_validate BEFORE INSERT OR UPDATE ON public.clinical_note FOR EACH ROW EXECUTE FUNCTION validate_staff_record()"
+      }
+    ],
+    "row_level_security": []
+  },
+  {
+    "name": "department",
+    "description": "Danh mục khoa giả lập (FR-04,07).",
+    "columns": [
+      {
+        "name": "code",
+        "type": "character varying(30)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Mã danh mục/quy tắc.",
+        "constraint": "NOT NULL; PRIMARY KEY (code)"
+      },
+      {
+        "name": "name",
+        "type": "text",
+        "nullable": false,
+        "default_value": null,
+        "description": "Tên danh mục.",
+        "constraint": "NOT NULL; CHECK ((length(TRIM(BOTH FROM name)) > 0))"
+      },
+      {
+        "name": "active",
+        "type": "boolean",
+        "nullable": false,
+        "default_value": "true",
+        "description": "Trạng thái được phép sử dụng.",
+        "constraint": "NOT NULL; DEFAULT true"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "department_name_check",
+        "definition": "CHECK ((length(TRIM(BOTH FROM name)) > 0))",
+        "columns": [
+          "name"
+        ]
+      },
+      {
+        "name": "department_pkey",
+        "definition": "PRIMARY KEY (code)",
+        "columns": [
+          "code"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "department_pkey",
+        "definition": "CREATE UNIQUE INDEX department_pkey ON public.department USING btree (code)"
+      }
+    ],
+    "triggers": [],
+    "row_level_security": []
+  },
+  {
+    "name": "drug_product",
+    "description": "Danh mục sản phẩm thuốc: hoạt chất, hàm lượng và dạng bào chế (FR-04,13).",
+    "columns": [
+      {
+        "name": "code",
+        "type": "character varying(60)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Mã danh mục/quy tắc.",
+        "constraint": "NOT NULL; UNIQUE (code, ingredient_code); PRIMARY KEY (code)"
+      },
+      {
+        "name": "ingredient_code",
+        "type": "character varying(60)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Hoạt chất liên quan.",
+        "constraint": "NOT NULL; UNIQUE (code, ingredient_code); FOREIGN KEY (ingredient_code) REFERENCES ingredient(code)"
+      },
+      {
+        "name": "display_name",
+        "type": "text",
+        "nullable": false,
+        "default_value": null,
+        "description": "Tên hiển thị danh mục.",
+        "constraint": "NOT NULL"
+      },
+      {
+        "name": "strength",
+        "type": "numeric",
+        "nullable": false,
+        "default_value": null,
+        "description": "Hàm lượng sản phẩm.",
+        "constraint": "NOT NULL; CHECK (((strength > (0)::numeric) AND ((strength)::text <> ALL (ARRAY['NaN'::text, 'Infinity'::text, '-Infinity'::text]))))"
+      },
+      {
+        "name": "strength_unit",
+        "type": "character varying(10)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Đơn vị hàm lượng.",
+        "constraint": "NOT NULL; CHECK (((strength_unit)::text = ANY ((ARRAY['mg'::character varying, 'mcg'::character varying, 'g'::character varying, 'mg/mL'::character varying])::text[])))"
+      },
+      {
+        "name": "dosage_form",
+        "type": "character varying(30)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Dạng bào chế.",
+        "constraint": "NOT NULL"
+      },
+      {
+        "name": "active",
+        "type": "boolean",
+        "nullable": false,
+        "default_value": "true",
+        "description": "Trạng thái được phép sử dụng.",
+        "constraint": "NOT NULL; DEFAULT true"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "drug_product_code_ingredient_code_key",
+        "definition": "UNIQUE (code, ingredient_code)",
+        "columns": [
+          "code",
+          "ingredient_code"
+        ]
+      },
+      {
+        "name": "drug_product_ingredient_code_fkey",
+        "definition": "FOREIGN KEY (ingredient_code) REFERENCES ingredient(code)",
+        "columns": [
+          "ingredient_code"
+        ]
+      },
+      {
+        "name": "drug_product_pkey",
+        "definition": "PRIMARY KEY (code)",
+        "columns": [
+          "code"
+        ]
+      },
+      {
+        "name": "drug_product_strength_check",
+        "definition": "CHECK (((strength > (0)::numeric) AND ((strength)::text <> ALL (ARRAY['NaN'::text, 'Infinity'::text, '-Infinity'::text]))))",
+        "columns": [
+          "strength"
+        ]
+      },
+      {
+        "name": "drug_product_strength_unit_check",
+        "definition": "CHECK (((strength_unit)::text = ANY ((ARRAY['mg'::character varying, 'mcg'::character varying, 'g'::character varying, 'mg/mL'::character varying])::text[])))",
+        "columns": [
+          "strength_unit"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "drug_product_code_ingredient_code_key",
+        "definition": "CREATE UNIQUE INDEX drug_product_code_ingredient_code_key ON public.drug_product USING btree (code, ingredient_code)"
+      },
+      {
+        "name": "drug_product_pkey",
+        "definition": "CREATE UNIQUE INDEX drug_product_pkey ON public.drug_product USING btree (code)"
+      }
+    ],
+    "triggers": [],
+    "row_level_security": []
+  },
+  {
+    "name": "drug_reaction",
+    "description": "Chi tiết dị ứng hoặc phản ứng có hại với hoạt chất, chỉ khi trạng thái là known (FR-14).",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": "gen_random_uuid()",
+        "description": "Định danh nội bộ UUID.",
+        "constraint": "NOT NULL; DEFAULT gen_random_uuid(); PRIMARY KEY (id)"
+      },
+      {
+        "name": "case_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Hồ sơ bệnh nhân liên quan.",
+        "constraint": "NOT NULL; FOREIGN KEY (case_id) REFERENCES allergy_status(case_id)"
+      },
+      {
+        "name": "ingredient_code",
+        "type": "character varying(60)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Hoạt chất liên quan.",
+        "constraint": "NOT NULL; FOREIGN KEY (ingredient_code) REFERENCES ingredient(code)"
+      },
+      {
+        "name": "kind",
+        "type": "character varying(10)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Loại bản ghi; xem CHECK của bảng.",
+        "constraint": "NOT NULL; CHECK (((kind)::text = ANY ((ARRAY['allergy'::character varying, 'adverse'::character varying])::text[])))"
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": false,
+        "default_value": null,
+        "description": "Mô tả nội dung.",
+        "constraint": "NOT NULL; CHECK ((length(TRIM(BOTH FROM description)) > 0))"
+      },
+      {
+        "name": "recorded_by",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Người ghi nhận dữ liệu.",
+        "constraint": "NOT NULL; FOREIGN KEY (recorded_by) REFERENCES app_user(id)"
+      },
+      {
+        "name": "recorded_at",
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": "now()",
+        "description": "Thời điểm ghi nhận dữ liệu.",
+        "constraint": "NOT NULL; DEFAULT now()"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "drug_reaction_case_id_fkey",
+        "definition": "FOREIGN KEY (case_id) REFERENCES allergy_status(case_id)",
+        "columns": [
+          "case_id"
+        ]
+      },
+      {
+        "name": "drug_reaction_description_check",
+        "definition": "CHECK ((length(TRIM(BOTH FROM description)) > 0))",
+        "columns": [
+          "description"
+        ]
+      },
+      {
+        "name": "drug_reaction_ingredient_code_fkey",
+        "definition": "FOREIGN KEY (ingredient_code) REFERENCES ingredient(code)",
+        "columns": [
+          "ingredient_code"
+        ]
+      },
+      {
+        "name": "drug_reaction_kind_check",
+        "definition": "CHECK (((kind)::text = ANY ((ARRAY['allergy'::character varying, 'adverse'::character varying])::text[])))",
+        "columns": [
+          "kind"
+        ]
+      },
+      {
+        "name": "drug_reaction_pkey",
+        "definition": "PRIMARY KEY (id)",
+        "columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "drug_reaction_recorded_by_fkey",
+        "definition": "FOREIGN KEY (recorded_by) REFERENCES app_user(id)",
+        "columns": [
+          "recorded_by"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "drug_reaction_pkey",
+        "definition": "CREATE UNIQUE INDEX drug_reaction_pkey ON public.drug_reaction USING btree (id)"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "reaction_audit",
+        "definition": "CREATE TRIGGER reaction_audit AFTER INSERT OR DELETE OR UPDATE ON public.drug_reaction FOR EACH ROW EXECUTE FUNCTION audit_record_change()"
+      },
+      {
+        "name": "reaction_revision",
+        "definition": "CREATE TRIGGER reaction_revision AFTER INSERT OR DELETE OR UPDATE ON public.drug_reaction FOR EACH ROW EXECUTE FUNCTION bump_case_revision()"
+      },
+      {
+        "name": "reaction_staff_validate",
+        "definition": "CREATE TRIGGER reaction_staff_validate BEFORE INSERT OR UPDATE ON public.drug_reaction FOR EACH ROW EXECUTE FUNCTION validate_staff_record()"
+      },
+      {
+        "name": "reaction_status_validate",
+        "definition": "CREATE TRIGGER reaction_status_validate BEFORE INSERT OR UPDATE ON public.drug_reaction FOR EACH ROW EXECUTE FUNCTION validate_allergies()"
+      }
+    ],
+    "row_level_security": []
+  },
+  {
+    "name": "encounter",
+    "description": "Lần khám ngoại trú/đợt nội trú, khoa, bác sĩ, trạng thái và thời điểm kết thúc (FR-07).",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": "gen_random_uuid()",
+        "description": "Định danh nội bộ UUID.",
+        "constraint": "NOT NULL; DEFAULT gen_random_uuid(); UNIQUE (id, case_id); PRIMARY KEY (id)"
+      },
+      {
+        "name": "case_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Hồ sơ bệnh nhân liên quan.",
+        "constraint": "NOT NULL; FOREIGN KEY (case_id) REFERENCES patient_case(id); UNIQUE (id, case_id)"
+      },
+      {
+        "name": "occurred_at",
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": null,
+        "description": "Thời điểm bắt đầu lần khám/đợt điều trị.",
+        "constraint": "NOT NULL; CHECK (((ended_at IS NULL) OR (ended_at >= occurred_at)))"
+      },
+      {
+        "name": "kind",
+        "type": "character varying(12)",
+        "nullable": false,
+        "default_value": "'outpatient'::character varying",
+        "description": "Loại bản ghi; xem CHECK của bảng.",
+        "constraint": "NOT NULL; DEFAULT 'outpatient'::character varying; CHECK (((kind)::text = ANY ((ARRAY['outpatient'::character varying, 'inpatient'::character varying])::text[])))"
+      },
+      {
+        "name": "department_code",
+        "type": "character varying(30)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Mã khoa.",
+        "constraint": "NOT NULL; FOREIGN KEY (department_code) REFERENCES department(code)"
+      },
+      {
+        "name": "doctor_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Bác sĩ phụ trách/xác nhận.",
+        "constraint": "NOT NULL; FOREIGN KEY (doctor_id) REFERENCES app_user(id)"
+      },
+      {
+        "name": "status",
+        "type": "character varying(12)",
+        "nullable": false,
+        "default_value": "'open'::character varying",
+        "description": "Trạng thái; các giá trị hợp lệ được ghi trong CHECK bên dưới.",
+        "constraint": "NOT NULL; DEFAULT 'open'::character varying; CHECK (((((status)::text = 'open'::text) AND (ended_at IS NULL)) OR (((status)::text <> 'open'::text) AND (ended_at IS NOT NULL)))); CHECK (((status)::text = ANY ((ARRAY['open'::character varying, 'completed'::character varying, 'cancelled'::character varying])::text[])))"
+      },
+      {
+        "name": "ended_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "default_value": null,
+        "description": "Thời điểm kết thúc.",
+        "constraint": "NULL; CHECK (((ended_at IS NULL) OR (ended_at >= occurred_at))); CHECK (((((status)::text = 'open'::text) AND (ended_at IS NULL)) OR (((status)::text <> 'open'::text) AND (ended_at IS NOT NULL))))"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": "now()",
+        "description": "Thời điểm tạo.",
+        "constraint": "NOT NULL; DEFAULT now()"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "encounter_case_id_fkey",
+        "definition": "FOREIGN KEY (case_id) REFERENCES patient_case(id)",
+        "columns": [
+          "case_id"
+        ]
+      },
+      {
+        "name": "encounter_check",
+        "definition": "CHECK (((ended_at IS NULL) OR (ended_at >= occurred_at)))",
+        "columns": [
+          "occurred_at",
+          "ended_at"
+        ]
+      },
+      {
+        "name": "encounter_check1",
+        "definition": "CHECK (((((status)::text = 'open'::text) AND (ended_at IS NULL)) OR (((status)::text <> 'open'::text) AND (ended_at IS NOT NULL))))",
+        "columns": [
+          "status",
+          "ended_at"
+        ]
+      },
+      {
+        "name": "encounter_department_code_fkey",
+        "definition": "FOREIGN KEY (department_code) REFERENCES department(code)",
+        "columns": [
+          "department_code"
+        ]
+      },
+      {
+        "name": "encounter_doctor_id_fkey",
+        "definition": "FOREIGN KEY (doctor_id) REFERENCES app_user(id)",
+        "columns": [
+          "doctor_id"
+        ]
+      },
+      {
+        "name": "encounter_id_case_id_key",
+        "definition": "UNIQUE (id, case_id)",
+        "columns": [
+          "id",
+          "case_id"
+        ]
+      },
+      {
+        "name": "encounter_kind_check",
+        "definition": "CHECK (((kind)::text = ANY ((ARRAY['outpatient'::character varying, 'inpatient'::character varying])::text[])))",
+        "columns": [
+          "kind"
+        ]
+      },
+      {
+        "name": "encounter_pkey",
+        "definition": "PRIMARY KEY (id)",
+        "columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "encounter_status_check",
+        "definition": "CHECK (((status)::text = ANY ((ARRAY['open'::character varying, 'completed'::character varying, 'cancelled'::character varying])::text[])))",
+        "columns": [
+          "status"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "encounter_id_case_id_key",
+        "definition": "CREATE UNIQUE INDEX encounter_id_case_id_key ON public.encounter USING btree (id, case_id)"
+      },
+      {
+        "name": "encounter_pkey",
+        "definition": "CREATE UNIQUE INDEX encounter_pkey ON public.encounter USING btree (id)"
+      },
+      {
+        "name": "ix_encounter_case_time",
+        "definition": "CREATE INDEX ix_encounter_case_time ON public.encounter USING btree (case_id, occurred_at DESC)"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "encounter_audit",
+        "definition": "CREATE TRIGGER encounter_audit AFTER INSERT OR DELETE OR UPDATE ON public.encounter FOR EACH ROW EXECUTE FUNCTION audit_record_change()"
+      },
+      {
+        "name": "encounter_revision",
+        "definition": "CREATE TRIGGER encounter_revision AFTER INSERT OR DELETE OR UPDATE ON public.encounter FOR EACH ROW EXECUTE FUNCTION bump_case_revision()"
+      },
+      {
+        "name": "encounter_staff_validate",
+        "definition": "CREATE TRIGGER encounter_staff_validate BEFORE INSERT OR UPDATE ON public.encounter FOR EACH ROW EXECUTE FUNCTION validate_case_staff()"
+      }
+    ],
+    "row_level_security": []
+  },
+  {
+    "name": "evaluation",
+    "description": "Snapshot bất biến của một lần đánh giá cùng revision nguồn và người yêu cầu (FR-18,33).",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": "gen_random_uuid()",
+        "description": "Định danh nội bộ UUID.",
+        "constraint": "NOT NULL; DEFAULT gen_random_uuid(); UNIQUE (id, encounter_id); PRIMARY KEY (id)"
+      },
+      {
+        "name": "encounter_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Lần khám/đợt điều trị liên quan.",
+        "constraint": "NOT NULL; FOREIGN KEY (encounter_id) REFERENCES encounter(id); UNIQUE (id, encounter_id)"
+      },
+      {
+        "name": "input_revision",
+        "type": "integer",
+        "nullable": false,
+        "default_value": null,
+        "description": "Revision của hồ sơ nguồn khi đánh giá.",
+        "constraint": "NOT NULL; CHECK ((input_revision > 0))"
+      },
+      {
+        "name": "input_snapshot",
+        "type": "jsonb",
+        "nullable": false,
+        "default_value": null,
+        "description": "Bản sao JSONB bất biến dữ liệu được dùng.",
+        "constraint": "NOT NULL; CHECK ((jsonb_typeof(input_snapshot) = 'object'::text))"
+      },
+      {
+        "name": "requested_by",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Tài khoản yêu cầu thao tác.",
+        "constraint": "NOT NULL; FOREIGN KEY (requested_by) REFERENCES app_user(id)"
+      },
+      {
+        "name": "mode",
+        "type": "character varying(10)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Chế độ stub hoặc validated; seed chỉ dùng stub.",
+        "constraint": "NOT NULL; CHECK (((mode)::text = ANY ((ARRAY['stub'::character varying, 'validated'::character varying])::text[])))"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": "now()",
+        "description": "Thời điểm tạo.",
+        "constraint": "NOT NULL; DEFAULT now()"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "evaluation_encounter_id_fkey",
+        "definition": "FOREIGN KEY (encounter_id) REFERENCES encounter(id)",
+        "columns": [
+          "encounter_id"
+        ]
+      },
+      {
+        "name": "evaluation_id_encounter_id_key",
+        "definition": "UNIQUE (id, encounter_id)",
+        "columns": [
+          "id",
+          "encounter_id"
+        ]
+      },
+      {
+        "name": "evaluation_input_revision_check",
+        "definition": "CHECK ((input_revision > 0))",
+        "columns": [
+          "input_revision"
+        ]
+      },
+      {
+        "name": "evaluation_input_snapshot_check",
+        "definition": "CHECK ((jsonb_typeof(input_snapshot) = 'object'::text))",
+        "columns": [
+          "input_snapshot"
+        ]
+      },
+      {
+        "name": "evaluation_mode_check",
+        "definition": "CHECK (((mode)::text = ANY ((ARRAY['stub'::character varying, 'validated'::character varying])::text[])))",
+        "columns": [
+          "mode"
+        ]
+      },
+      {
+        "name": "evaluation_pkey",
+        "definition": "PRIMARY KEY (id)",
+        "columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "evaluation_requested_by_fkey",
+        "definition": "FOREIGN KEY (requested_by) REFERENCES app_user(id)",
+        "columns": [
+          "requested_by"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "evaluation_id_encounter_id_key",
+        "definition": "CREATE UNIQUE INDEX evaluation_id_encounter_id_key ON public.evaluation USING btree (id, encounter_id)"
+      },
+      {
+        "name": "evaluation_pkey",
+        "definition": "CREATE UNIQUE INDEX evaluation_pkey ON public.evaluation USING btree (id)"
+      },
+      {
+        "name": "ix_evaluation_history",
+        "definition": "CREATE INDEX ix_evaluation_history ON public.evaluation USING btree (encounter_id, created_at DESC)"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "evaluation_audit",
+        "definition": "CREATE TRIGGER evaluation_audit AFTER INSERT ON public.evaluation FOR EACH ROW EXECUTE FUNCTION audit_record_change()"
+      },
+      {
+        "name": "evaluation_immutable",
+        "definition": "CREATE TRIGGER evaluation_immutable BEFORE DELETE OR UPDATE ON public.evaluation FOR EACH ROW EXECUTE FUNCTION prevent_mutation()"
+      },
+      {
+        "name": "evaluation_validate",
+        "definition": "CREATE TRIGGER evaluation_validate BEFORE INSERT ON public.evaluation FOR EACH ROW EXECUTE FUNCTION validate_evaluation_decision()"
+      }
+    ],
+    "row_level_security": []
+  },
+  {
+    "name": "import_batch",
+    "description": "Lần nhập file/API mô phỏng, mã nguồn, trạng thái và số dòng thành công/lỗi (FR-16,17).",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": "gen_random_uuid()",
+        "description": "Định danh nội bộ UUID.",
+        "constraint": "NOT NULL; DEFAULT gen_random_uuid(); PRIMARY KEY (id)"
+      },
+      {
+        "name": "encounter_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Lần khám/đợt điều trị liên quan.",
+        "constraint": "NOT NULL; FOREIGN KEY (encounter_id) REFERENCES encounter(id)"
+      },
+      {
+        "name": "source",
+        "type": "character varying(30)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Nguồn nhập giả lập hoặc nguồn mô phỏng.",
+        "constraint": "NOT NULL; CHECK (((source)::text = ANY ((ARRAY['file'::character varying, 'mock_his'::character varying, 'mock_lis'::character varying, 'mock_pacs'::character varying, 'mock_emr'::character varying])::text[]))); UNIQUE (source, external_ref)"
+      },
+      {
+        "name": "external_ref",
+        "type": "text",
+        "nullable": false,
+        "default_value": null,
+        "description": "Mã bản tin/báo cáo/batch nguồn giả lập.",
+        "constraint": "NOT NULL; UNIQUE (source, external_ref)"
+      },
+      {
+        "name": "status",
+        "type": "character varying(12)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Trạng thái; các giá trị hợp lệ được ghi trong CHECK bên dưới.",
+        "constraint": "NOT NULL; CHECK (((status)::text = ANY ((ARRAY['pending'::character varying, 'completed'::character varying, 'partial'::character varying, 'failed'::character varying])::text[])))"
+      },
+      {
+        "name": "accepted_rows",
+        "type": "integer",
+        "nullable": false,
+        "default_value": "0",
+        "description": "Số dòng nhập thành công.",
+        "constraint": "NOT NULL; DEFAULT 0; CHECK ((accepted_rows >= 0))"
+      },
+      {
+        "name": "rejected_rows",
+        "type": "integer",
+        "nullable": false,
+        "default_value": "0",
+        "description": "Số dòng nhập lỗi.",
+        "constraint": "NOT NULL; DEFAULT 0; CHECK ((rejected_rows >= 0))"
+      },
+      {
+        "name": "imported_by",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Người nhập batch.",
+        "constraint": "NOT NULL; FOREIGN KEY (imported_by) REFERENCES app_user(id)"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": "now()",
+        "description": "Thời điểm tạo.",
+        "constraint": "NOT NULL; DEFAULT now()"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "import_batch_accepted_rows_check",
+        "definition": "CHECK ((accepted_rows >= 0))",
+        "columns": [
+          "accepted_rows"
+        ]
+      },
+      {
+        "name": "import_batch_encounter_id_fkey",
+        "definition": "FOREIGN KEY (encounter_id) REFERENCES encounter(id)",
+        "columns": [
+          "encounter_id"
+        ]
+      },
+      {
+        "name": "import_batch_imported_by_fkey",
+        "definition": "FOREIGN KEY (imported_by) REFERENCES app_user(id)",
+        "columns": [
+          "imported_by"
+        ]
+      },
+      {
+        "name": "import_batch_pkey",
+        "definition": "PRIMARY KEY (id)",
+        "columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "import_batch_rejected_rows_check",
+        "definition": "CHECK ((rejected_rows >= 0))",
+        "columns": [
+          "rejected_rows"
+        ]
+      },
+      {
+        "name": "import_batch_source_check",
+        "definition": "CHECK (((source)::text = ANY ((ARRAY['file'::character varying, 'mock_his'::character varying, 'mock_lis'::character varying, 'mock_pacs'::character varying, 'mock_emr'::character varying])::text[])))",
+        "columns": [
+          "source"
+        ]
+      },
+      {
+        "name": "import_batch_source_external_ref_key",
+        "definition": "UNIQUE (source, external_ref)",
+        "columns": [
+          "source",
+          "external_ref"
+        ]
+      },
+      {
+        "name": "import_batch_status_check",
+        "definition": "CHECK (((status)::text = ANY ((ARRAY['pending'::character varying, 'completed'::character varying, 'partial'::character varying, 'failed'::character varying])::text[])))",
+        "columns": [
+          "status"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "import_batch_pkey",
+        "definition": "CREATE UNIQUE INDEX import_batch_pkey ON public.import_batch USING btree (id)"
+      },
+      {
+        "name": "import_batch_source_external_ref_key",
+        "definition": "CREATE UNIQUE INDEX import_batch_source_external_ref_key ON public.import_batch USING btree (source, external_ref)"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "import_audit",
+        "definition": "CREATE TRIGGER import_audit AFTER INSERT OR UPDATE ON public.import_batch FOR EACH ROW EXECUTE FUNCTION audit_record_change()"
+      },
+      {
+        "name": "import_staff_validate",
+        "definition": "CREATE TRIGGER import_staff_validate BEFORE INSERT OR UPDATE ON public.import_batch FOR EACH ROW EXECUTE FUNCTION validate_staff_record()"
+      }
+    ],
+    "row_level_security": []
+  },
+  {
+    "name": "import_error",
+    "description": "Lỗi nhập theo dòng, trường và thông báo (FR-16,18).",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": "gen_random_uuid()",
+        "description": "Định danh nội bộ UUID.",
+        "constraint": "NOT NULL; DEFAULT gen_random_uuid(); PRIMARY KEY (id)"
+      },
+      {
+        "name": "batch_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Batch nhập dữ liệu liên quan.",
+        "constraint": "NOT NULL; FOREIGN KEY (batch_id) REFERENCES import_batch(id)"
+      },
+      {
+        "name": "row_number",
+        "type": "integer",
+        "nullable": false,
+        "default_value": null,
+        "description": "Số dòng gây lỗi.",
+        "constraint": "NOT NULL; CHECK ((row_number > 0))"
+      },
+      {
+        "name": "field_code",
+        "type": "character varying(60)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Mã chỉ số/trường dữ liệu.",
+        "constraint": "NOT NULL"
+      },
+      {
+        "name": "message",
+        "type": "text",
+        "nullable": false,
+        "default_value": null,
+        "description": "Thông báo diễn giải/lỗi.",
+        "constraint": "NOT NULL"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "import_error_batch_id_fkey",
+        "definition": "FOREIGN KEY (batch_id) REFERENCES import_batch(id)",
+        "columns": [
+          "batch_id"
+        ]
+      },
+      {
+        "name": "import_error_pkey",
+        "definition": "PRIMARY KEY (id)",
+        "columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "import_error_row_number_check",
+        "definition": "CHECK ((row_number > 0))",
+        "columns": [
+          "row_number"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "import_error_pkey",
+        "definition": "CREATE UNIQUE INDEX import_error_pkey ON public.import_error USING btree (id)"
+      },
+      {
+        "name": "ix_import_error_batch",
+        "definition": "CREATE INDEX ix_import_error_batch ON public.import_error USING btree (batch_id)"
+      }
+    ],
+    "triggers": [],
+    "row_level_security": []
+  },
+  {
+    "name": "ingredient",
+    "description": "Danh mục hoạt chất; seed chỉ có hoạt chất giả lập (FR-04).",
+    "columns": [
+      {
+        "name": "code",
+        "type": "character varying(60)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Mã danh mục/quy tắc.",
+        "constraint": "NOT NULL; PRIMARY KEY (code)"
+      },
+      {
+        "name": "display_name",
+        "type": "text",
+        "nullable": false,
+        "default_value": null,
+        "description": "Tên hiển thị danh mục.",
+        "constraint": "NOT NULL"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "ingredient_pkey",
+        "definition": "PRIMARY KEY (code)",
+        "columns": [
+          "code"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "ingredient_pkey",
+        "definition": "CREATE UNIQUE INDEX ingredient_pkey ON public.ingredient USING btree (code)"
+      }
+    ],
+    "triggers": [],
+    "row_level_security": []
+  },
+  {
+    "name": "medication",
+    "description": "Thuốc hiện dùng/đề xuất, liều, đường dùng, tần suất, khoảng ngày và liên kết đơn (FR-13).",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": "gen_random_uuid()",
+        "description": "Định danh nội bộ UUID.",
+        "constraint": "NOT NULL; DEFAULT gen_random_uuid(); PRIMARY KEY (id)"
+      },
+      {
+        "name": "encounter_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Lần khám/đợt điều trị liên quan.",
+        "constraint": "NOT NULL; FOREIGN KEY (encounter_id) REFERENCES encounter(id); FOREIGN KEY (prescription_id, encounter_id) REFERENCES prescription(id, encounter_id)"
+      },
+      {
+        "name": "ingredient_code",
+        "type": "character varying(60)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Hoạt chất liên quan.",
+        "constraint": "NOT NULL; FOREIGN KEY (drug_product_code, ingredient_code) REFERENCES drug_product(code, ingredient_code); FOREIGN KEY (ingredient_code) REFERENCES ingredient(code)"
+      },
+      {
+        "name": "drug_product_code",
+        "type": "character varying(60)",
+        "nullable": true,
+        "default_value": null,
+        "description": "Sản phẩm thuốc; phải thuộc đúng hoạt chất.",
+        "constraint": "NULL; FOREIGN KEY (drug_product_code, ingredient_code) REFERENCES drug_product(code, ingredient_code)"
+      },
+      {
+        "name": "prescription_id",
+        "type": "uuid",
+        "nullable": true,
+        "default_value": null,
+        "description": "Đơn thuốc liên quan.",
+        "constraint": "NULL; CHECK (((prescription_id IS NULL) OR ((kind)::text = 'current'::text))); FOREIGN KEY (prescription_id, encounter_id) REFERENCES prescription(id, encounter_id)"
+      },
+      {
+        "name": "dose",
+        "type": "numeric",
+        "nullable": false,
+        "default_value": null,
+        "description": "Liều của một lần dùng.",
+        "constraint": "NOT NULL; CHECK (((dose > (0)::numeric) AND ((dose)::text <> ALL (ARRAY['NaN'::text, 'Infinity'::text, '-Infinity'::text]))))"
+      },
+      {
+        "name": "dose_unit",
+        "type": "character varying(10)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Đơn vị liều.",
+        "constraint": "NOT NULL; CHECK (((dose_unit)::text = ANY ((ARRAY['mg'::character varying, 'mcg'::character varying, 'g'::character varying, 'mL'::character varying])::text[])))"
+      },
+      {
+        "name": "route",
+        "type": "character varying(10)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Đường dùng.",
+        "constraint": "NOT NULL; CHECK (((route)::text = ANY ((ARRAY['oral'::character varying, 'iv'::character varying, 'other'::character varying])::text[])))"
+      },
+      {
+        "name": "frequency_per_day",
+        "type": "smallint",
+        "nullable": false,
+        "default_value": null,
+        "description": "Số lần dùng mỗi ngày.",
+        "constraint": "NOT NULL; CHECK (((frequency_per_day >= 1) AND (frequency_per_day <= 24)))"
+      },
+      {
+        "name": "kind",
+        "type": "character varying(10)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Loại bản ghi; xem CHECK của bảng.",
+        "constraint": "NOT NULL; CHECK (((prescription_id IS NULL) OR ((kind)::text = 'current'::text))); CHECK (((kind)::text = ANY ((ARRAY['current'::character varying, 'proposed'::character varying])::text[])))"
+      },
+      {
+        "name": "starts_on",
+        "type": "date",
+        "nullable": false,
+        "default_value": "CURRENT_DATE",
+        "description": "Ngày bắt đầu dùng.",
+        "constraint": "NOT NULL; DEFAULT CURRENT_DATE; CHECK (((ends_on IS NULL) OR (ends_on >= starts_on)))"
+      },
+      {
+        "name": "ends_on",
+        "type": "date",
+        "nullable": true,
+        "default_value": null,
+        "description": "Ngày kết thúc nếu có.",
+        "constraint": "NULL; CHECK (((ends_on IS NULL) OR (ends_on >= starts_on)))"
+      },
+      {
+        "name": "instructions",
+        "type": "text",
+        "nullable": false,
+        "default_value": "''::text",
+        "description": "Hướng dẫn dạng văn bản.",
+        "constraint": "NOT NULL; DEFAULT ''::text"
+      },
+      {
+        "name": "recorded_by",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Người ghi nhận dữ liệu.",
+        "constraint": "NOT NULL; FOREIGN KEY (recorded_by) REFERENCES app_user(id)"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": "now()",
+        "description": "Thời điểm tạo.",
+        "constraint": "NOT NULL; DEFAULT now()"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "medication_check",
+        "definition": "CHECK (((ends_on IS NULL) OR (ends_on >= starts_on)))",
+        "columns": [
+          "starts_on",
+          "ends_on"
+        ]
+      },
+      {
+        "name": "medication_check1",
+        "definition": "CHECK (((prescription_id IS NULL) OR ((kind)::text = 'current'::text)))",
+        "columns": [
+          "prescription_id",
+          "kind"
+        ]
+      },
+      {
+        "name": "medication_dose_check",
+        "definition": "CHECK (((dose > (0)::numeric) AND ((dose)::text <> ALL (ARRAY['NaN'::text, 'Infinity'::text, '-Infinity'::text]))))",
+        "columns": [
+          "dose"
+        ]
+      },
+      {
+        "name": "medication_dose_unit_check",
+        "definition": "CHECK (((dose_unit)::text = ANY ((ARRAY['mg'::character varying, 'mcg'::character varying, 'g'::character varying, 'mL'::character varying])::text[])))",
+        "columns": [
+          "dose_unit"
+        ]
+      },
+      {
+        "name": "medication_drug_product_code_ingredient_code_fkey",
+        "definition": "FOREIGN KEY (drug_product_code, ingredient_code) REFERENCES drug_product(code, ingredient_code)",
+        "columns": [
+          "ingredient_code",
+          "drug_product_code"
+        ]
+      },
+      {
+        "name": "medication_encounter_id_fkey",
+        "definition": "FOREIGN KEY (encounter_id) REFERENCES encounter(id)",
+        "columns": [
+          "encounter_id"
+        ]
+      },
+      {
+        "name": "medication_frequency_per_day_check",
+        "definition": "CHECK (((frequency_per_day >= 1) AND (frequency_per_day <= 24)))",
+        "columns": [
+          "frequency_per_day"
+        ]
+      },
+      {
+        "name": "medication_ingredient_code_fkey",
+        "definition": "FOREIGN KEY (ingredient_code) REFERENCES ingredient(code)",
+        "columns": [
+          "ingredient_code"
+        ]
+      },
+      {
+        "name": "medication_kind_check",
+        "definition": "CHECK (((kind)::text = ANY ((ARRAY['current'::character varying, 'proposed'::character varying])::text[])))",
+        "columns": [
+          "kind"
+        ]
+      },
+      {
+        "name": "medication_pkey",
+        "definition": "PRIMARY KEY (id)",
+        "columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "medication_prescription_id_encounter_id_fkey",
+        "definition": "FOREIGN KEY (prescription_id, encounter_id) REFERENCES prescription(id, encounter_id)",
+        "columns": [
+          "encounter_id",
+          "prescription_id"
+        ]
+      },
+      {
+        "name": "medication_recorded_by_fkey",
+        "definition": "FOREIGN KEY (recorded_by) REFERENCES app_user(id)",
+        "columns": [
+          "recorded_by"
+        ]
+      },
+      {
+        "name": "medication_route_check",
+        "definition": "CHECK (((route)::text = ANY ((ARRAY['oral'::character varying, 'iv'::character varying, 'other'::character varying])::text[])))",
+        "columns": [
+          "route"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "ix_medication_encounter",
+        "definition": "CREATE INDEX ix_medication_encounter ON public.medication USING btree (encounter_id)"
+      },
+      {
+        "name": "ix_medication_prescription",
+        "definition": "CREATE INDEX ix_medication_prescription ON public.medication USING btree (prescription_id)"
+      },
+      {
+        "name": "medication_pkey",
+        "definition": "CREATE UNIQUE INDEX medication_pkey ON public.medication USING btree (id)"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "medication_audit",
+        "definition": "CREATE TRIGGER medication_audit AFTER INSERT OR DELETE OR UPDATE ON public.medication FOR EACH ROW EXECUTE FUNCTION audit_record_change()"
+      },
+      {
+        "name": "medication_revision",
+        "definition": "CREATE TRIGGER medication_revision AFTER INSERT OR DELETE OR UPDATE ON public.medication FOR EACH ROW EXECUTE FUNCTION bump_case_revision()"
+      },
+      {
+        "name": "medication_staff_validate",
+        "definition": "CREATE TRIGGER medication_staff_validate BEFORE INSERT OR UPDATE ON public.medication FOR EACH ROW EXECUTE FUNCTION validate_staff_record()"
+      },
+      {
+        "name": "prescribed_medication_guard",
+        "definition": "CREATE TRIGGER prescribed_medication_guard BEFORE INSERT OR DELETE OR UPDATE ON public.medication FOR EACH ROW EXECUTE FUNCTION guard_prescribed_medication()"
+      }
+    ],
+    "row_level_security": [
+      {
+        "name": "patient_medication_read",
+        "command": "SELECT",
+        "using_expression": "portal_owns_medication(id)",
+        "check_expression": null
+      }
     ]
+  },
+  {
+    "name": "medication_reminder",
+    "description": "Một nhắc uống cho một giờ trong một ngày; pending/taken/skipped/cancelled (FR-P04).",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": "gen_random_uuid()",
+        "description": "Định danh nội bộ UUID.",
+        "constraint": "NOT NULL; DEFAULT gen_random_uuid(); PRIMARY KEY (id)"
+      },
+      {
+        "name": "schedule_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Giờ uống liên quan.",
+        "constraint": "NOT NULL; FOREIGN KEY (schedule_id) REFERENCES medication_schedule(id); UNIQUE (schedule_id, scheduled_on)"
+      },
+      {
+        "name": "scheduled_on",
+        "type": "date",
+        "nullable": false,
+        "default_value": null,
+        "description": "Ngày uống địa phương.",
+        "constraint": "NOT NULL; UNIQUE (schedule_id, scheduled_on)"
+      },
+      {
+        "name": "due_at",
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": null,
+        "description": "Thời điểm nhắc thực tế có múi giờ.",
+        "constraint": "NOT NULL"
+      },
+      {
+        "name": "status",
+        "type": "character varying(12)",
+        "nullable": false,
+        "default_value": "'pending'::character varying",
+        "description": "Trạng thái; các giá trị hợp lệ được ghi trong CHECK bên dưới.",
+        "constraint": "NOT NULL; DEFAULT 'pending'::character varying; CHECK (((((status)::text = ANY ((ARRAY['pending'::character varying, 'cancelled'::character varying])::text[])) AND (responded_at IS NULL)) OR (((status)::text = ANY ((ARRAY['taken'::character varying, 'skipped'::character varying])::text[])) AND (responded_at IS NOT NULL)))); CHECK (((status)::text = ANY ((ARRAY['pending'::character varying, 'taken'::character varying, 'skipped'::character varying, 'cancelled'::character varying])::text[])))"
+      },
+      {
+        "name": "responded_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "default_value": null,
+        "description": "Thời điểm đánh dấu đã uống/bỏ qua, do trigger ghi.",
+        "constraint": "NULL; CHECK (((((status)::text = ANY ((ARRAY['pending'::character varying, 'cancelled'::character varying])::text[])) AND (responded_at IS NULL)) OR (((status)::text = ANY ((ARRAY['taken'::character varying, 'skipped'::character varying])::text[])) AND (responded_at IS NOT NULL))))"
+      },
+      {
+        "name": "notified_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "default_value": null,
+        "description": "Thời điểm worker đã gửi thông báo nếu có.",
+        "constraint": "NULL"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": "now()",
+        "description": "Thời điểm tạo.",
+        "constraint": "NOT NULL; DEFAULT now()"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "medication_reminder_check",
+        "definition": "CHECK (((((status)::text = ANY ((ARRAY['pending'::character varying, 'cancelled'::character varying])::text[])) AND (responded_at IS NULL)) OR (((status)::text = ANY ((ARRAY['taken'::character varying, 'skipped'::character varying])::text[])) AND (responded_at IS NOT NULL))))",
+        "columns": [
+          "status",
+          "responded_at"
+        ]
+      },
+      {
+        "name": "medication_reminder_pkey",
+        "definition": "PRIMARY KEY (id)",
+        "columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "medication_reminder_schedule_id_fkey",
+        "definition": "FOREIGN KEY (schedule_id) REFERENCES medication_schedule(id)",
+        "columns": [
+          "schedule_id"
+        ]
+      },
+      {
+        "name": "medication_reminder_schedule_id_scheduled_on_key",
+        "definition": "UNIQUE (schedule_id, scheduled_on)",
+        "columns": [
+          "schedule_id",
+          "scheduled_on"
+        ]
+      },
+      {
+        "name": "medication_reminder_status_check",
+        "definition": "CHECK (((status)::text = ANY ((ARRAY['pending'::character varying, 'taken'::character varying, 'skipped'::character varying, 'cancelled'::character varying])::text[])))",
+        "columns": [
+          "status"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "ix_reminder_due",
+        "definition": "CREATE INDEX ix_reminder_due ON public.medication_reminder USING btree (due_at) WHERE ((status)::text = 'pending'::text)"
+      },
+      {
+        "name": "medication_reminder_pkey",
+        "definition": "CREATE UNIQUE INDEX medication_reminder_pkey ON public.medication_reminder USING btree (id)"
+      },
+      {
+        "name": "medication_reminder_schedule_id_scheduled_on_key",
+        "definition": "CREATE UNIQUE INDEX medication_reminder_schedule_id_scheduled_on_key ON public.medication_reminder USING btree (schedule_id, scheduled_on)"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "reminder_audit",
+        "definition": "CREATE TRIGGER reminder_audit AFTER INSERT OR UPDATE ON public.medication_reminder FOR EACH ROW EXECUTE FUNCTION audit_record_change()"
+      },
+      {
+        "name": "reminder_validate",
+        "definition": "CREATE TRIGGER reminder_validate BEFORE INSERT OR UPDATE ON public.medication_reminder FOR EACH ROW EXECUTE FUNCTION validate_reminder()"
+      }
+    ],
+    "row_level_security": [
+      {
+        "name": "patient_reminder_read",
+        "command": "SELECT",
+        "using_expression": "portal_owns_schedule(schedule_id)",
+        "check_expression": null
+      },
+      {
+        "name": "patient_reminder_respond",
+        "command": "UPDATE",
+        "using_expression": "(portal_owns_schedule(schedule_id) AND ((status)::text = 'pending'::text))",
+        "check_expression": "(portal_owns_schedule(schedule_id) AND ((status)::text = ANY ((ARRAY['taken'::character varying, 'skipped'::character varying])::text[])))"
+      }
+    ]
+  },
+  {
+    "name": "medication_schedule",
+    "description": "Giờ uống hằng ngày của từng thuốc trong đơn, theo múi giờ của đơn (FR-13,FR-P04).",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": "gen_random_uuid()",
+        "description": "Định danh nội bộ UUID.",
+        "constraint": "NOT NULL; DEFAULT gen_random_uuid(); PRIMARY KEY (id)"
+      },
+      {
+        "name": "medication_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Thuốc trong đơn liên quan.",
+        "constraint": "NOT NULL; UNIQUE (medication_id, dose_time); FOREIGN KEY (medication_id) REFERENCES medication(id)"
+      },
+      {
+        "name": "dose_time",
+        "type": "time without time zone",
+        "nullable": false,
+        "default_value": null,
+        "description": "Giờ uống địa phương hằng ngày; một dòng cho mỗi lần uống.",
+        "constraint": "NOT NULL; CHECK (((dose_time >= '00:00:00'::time without time zone) AND (dose_time < '24:00:00'::time without time zone))); UNIQUE (medication_id, dose_time)"
+      },
+      {
+        "name": "instructions",
+        "type": "text",
+        "nullable": false,
+        "default_value": "''::text",
+        "description": "Hướng dẫn dạng văn bản.",
+        "constraint": "NOT NULL; DEFAULT ''::text"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "medication_schedule_dose_time_check",
+        "definition": "CHECK (((dose_time >= '00:00:00'::time without time zone) AND (dose_time < '24:00:00'::time without time zone)))",
+        "columns": [
+          "dose_time"
+        ]
+      },
+      {
+        "name": "medication_schedule_medication_id_dose_time_key",
+        "definition": "UNIQUE (medication_id, dose_time)",
+        "columns": [
+          "medication_id",
+          "dose_time"
+        ]
+      },
+      {
+        "name": "medication_schedule_medication_id_fkey",
+        "definition": "FOREIGN KEY (medication_id) REFERENCES medication(id)",
+        "columns": [
+          "medication_id"
+        ]
+      },
+      {
+        "name": "medication_schedule_pkey",
+        "definition": "PRIMARY KEY (id)",
+        "columns": [
+          "id"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "medication_schedule_medication_id_dose_time_key",
+        "definition": "CREATE UNIQUE INDEX medication_schedule_medication_id_dose_time_key ON public.medication_schedule USING btree (medication_id, dose_time)"
+      },
+      {
+        "name": "medication_schedule_pkey",
+        "definition": "CREATE UNIQUE INDEX medication_schedule_pkey ON public.medication_schedule USING btree (id)"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "dose_time_audit",
+        "definition": "CREATE TRIGGER dose_time_audit AFTER INSERT OR DELETE OR UPDATE ON public.medication_schedule FOR EACH ROW EXECUTE FUNCTION audit_record_change()"
+      },
+      {
+        "name": "medication_schedule_guard",
+        "definition": "CREATE TRIGGER medication_schedule_guard BEFORE INSERT OR DELETE OR UPDATE ON public.medication_schedule FOR EACH ROW EXECUTE FUNCTION guard_prescribed_medication()"
+      }
+    ],
+    "row_level_security": [
+      {
+        "name": "patient_schedule_read",
+        "command": "SELECT",
+        "using_expression": "portal_owns_medication(medication_id)",
+        "check_expression": null
+      }
+    ]
+  },
+  {
+    "name": "module_result",
+    "description": "Kết quả một module: phiên bản quy tắc, trạng thái và diễn giải (FR-19..29).",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": "gen_random_uuid()",
+        "description": "Định danh nội bộ UUID.",
+        "constraint": "NOT NULL; DEFAULT gen_random_uuid(); PRIMARY KEY (id)"
+      },
+      {
+        "name": "evaluation_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Lần đánh giá liên quan.",
+        "constraint": "NOT NULL; FOREIGN KEY (evaluation_id) REFERENCES evaluation(id); UNIQUE (evaluation_id, module)"
+      },
+      {
+        "name": "module",
+        "type": "character varying(20)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Module diagnosis, lab_test, treatment hoặc medsafety.",
+        "constraint": "NOT NULL; UNIQUE (evaluation_id, module); CHECK (((module)::text = ANY ((ARRAY['diagnosis'::character varying, 'lab_test'::character varying, 'treatment'::character varying, 'medsafety'::character varying])::text[])))"
+      },
+      {
+        "name": "rule_version_id",
+        "type": "uuid",
+        "nullable": true,
+        "default_value": null,
+        "description": "Phiên bản quy tắc liên quan.",
+        "constraint": "NULL; CHECK ((((status)::text = 'mock_not_evaluated'::text) OR (rule_version_id IS NOT NULL))); FOREIGN KEY (rule_version_id) REFERENCES rule_version(id)"
+      },
+      {
+        "name": "status",
+        "type": "character varying(30)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Trạng thái; các giá trị hợp lệ được ghi trong CHECK bên dưới.",
+        "constraint": "NOT NULL; CHECK ((((status)::text = 'mock_not_evaluated'::text) OR (rule_version_id IS NOT NULL))); CHECK (((status)::text = ANY ((ARRAY['mock_not_evaluated'::character varying, 'completed'::character varying, 'insufficient_data'::character varying, 'failed'::character varying])::text[])))"
+      },
+      {
+        "name": "message",
+        "type": "text",
+        "nullable": false,
+        "default_value": null,
+        "description": "Thông báo diễn giải/lỗi.",
+        "constraint": "NOT NULL"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "module_result_check",
+        "definition": "CHECK ((((status)::text = 'mock_not_evaluated'::text) OR (rule_version_id IS NOT NULL)))",
+        "columns": [
+          "rule_version_id",
+          "status"
+        ]
+      },
+      {
+        "name": "module_result_evaluation_id_fkey",
+        "definition": "FOREIGN KEY (evaluation_id) REFERENCES evaluation(id)",
+        "columns": [
+          "evaluation_id"
+        ]
+      },
+      {
+        "name": "module_result_evaluation_id_module_key",
+        "definition": "UNIQUE (evaluation_id, module)",
+        "columns": [
+          "evaluation_id",
+          "module"
+        ]
+      },
+      {
+        "name": "module_result_module_check",
+        "definition": "CHECK (((module)::text = ANY ((ARRAY['diagnosis'::character varying, 'lab_test'::character varying, 'treatment'::character varying, 'medsafety'::character varying])::text[])))",
+        "columns": [
+          "module"
+        ]
+      },
+      {
+        "name": "module_result_pkey",
+        "definition": "PRIMARY KEY (id)",
+        "columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "module_result_rule_version_id_fkey",
+        "definition": "FOREIGN KEY (rule_version_id) REFERENCES rule_version(id)",
+        "columns": [
+          "rule_version_id"
+        ]
+      },
+      {
+        "name": "module_result_status_check",
+        "definition": "CHECK (((status)::text = ANY ((ARRAY['mock_not_evaluated'::character varying, 'completed'::character varying, 'insufficient_data'::character varying, 'failed'::character varying])::text[])))",
+        "columns": [
+          "status"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "module_result_evaluation_id_module_key",
+        "definition": "CREATE UNIQUE INDEX module_result_evaluation_id_module_key ON public.module_result USING btree (evaluation_id, module)"
+      },
+      {
+        "name": "module_result_pkey",
+        "definition": "CREATE UNIQUE INDEX module_result_pkey ON public.module_result USING btree (id)"
+      }
+    ],
+    "triggers": [],
+    "row_level_security": []
+  },
+  {
+    "name": "observation",
+    "description": "Chỉ số theo lần khám, có loại giá trị, trạng thái thiếu, nguồn và người ghi (FR-09,11,12).",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": "gen_random_uuid()",
+        "description": "Định danh nội bộ UUID.",
+        "constraint": "NOT NULL; DEFAULT gen_random_uuid(); PRIMARY KEY (id)"
+      },
+      {
+        "name": "encounter_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Lần khám/đợt điều trị liên quan.",
+        "constraint": "NOT NULL; FOREIGN KEY (encounter_id) REFERENCES encounter(id)"
+      },
+      {
+        "name": "code",
+        "type": "character varying(60)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Mã danh mục/quy tắc.",
+        "constraint": "NOT NULL; FOREIGN KEY (code) REFERENCES observation_type(code)"
+      },
+      {
+        "name": "value_number",
+        "type": "numeric",
+        "nullable": true,
+        "default_value": null,
+        "description": "Giá trị số; không nhận NaN/Infinity.",
+        "constraint": "NULL; CHECK (((((status)::text = 'present'::text) AND (num_nonnulls(value_number, value_boolean, value_text) = 1)) OR (((status)::text <> 'present'::text) AND (num_nonnulls(value_number, value_boolean, value_text) = 0))))"
+      },
+      {
+        "name": "value_boolean",
+        "type": "boolean",
+        "nullable": true,
+        "default_value": null,
+        "description": "Giá trị có/không.",
+        "constraint": "NULL; CHECK (((((status)::text = 'present'::text) AND (num_nonnulls(value_number, value_boolean, value_text) = 1)) OR (((status)::text <> 'present'::text) AND (num_nonnulls(value_number, value_boolean, value_text) = 0))))"
+      },
+      {
+        "name": "value_text",
+        "type": "text",
+        "nullable": true,
+        "default_value": null,
+        "description": "Giá trị văn bản.",
+        "constraint": "NULL; CHECK (((((status)::text = 'present'::text) AND (num_nonnulls(value_number, value_boolean, value_text) = 1)) OR (((status)::text <> 'present'::text) AND (num_nonnulls(value_number, value_boolean, value_text) = 0))))"
+      },
+      {
+        "name": "status",
+        "type": "character varying(20)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Trạng thái; các giá trị hợp lệ được ghi trong CHECK bên dưới.",
+        "constraint": "NOT NULL; CHECK (((((status)::text = 'present'::text) AND (num_nonnulls(value_number, value_boolean, value_text) = 1)) OR (((status)::text <> 'present'::text) AND (num_nonnulls(value_number, value_boolean, value_text) = 0)))); CHECK (((status)::text = ANY ((ARRAY['present'::character varying, 'not_measured'::character varying, 'unknown'::character varying])::text[])))"
+      },
+      {
+        "name": "observed_at",
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": null,
+        "description": "Thời điểm đo/đánh giá.",
+        "constraint": "NOT NULL"
+      },
+      {
+        "name": "source",
+        "type": "character varying(30)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Nguồn nhập giả lập hoặc nguồn mô phỏng.",
+        "constraint": "NOT NULL; CHECK (((source)::text = ANY ((ARRAY['manual_synthetic'::character varying, 'mock_his'::character varying, 'mock_lis'::character varying, 'mock_pacs'::character varying, 'mock_emr'::character varying])::text[])))"
+      },
+      {
+        "name": "recorded_by",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Người ghi nhận dữ liệu.",
+        "constraint": "NOT NULL; FOREIGN KEY (recorded_by) REFERENCES app_user(id)"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": "now()",
+        "description": "Thời điểm tạo.",
+        "constraint": "NOT NULL; DEFAULT now()"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "observation_check",
+        "definition": "CHECK (((((status)::text = 'present'::text) AND (num_nonnulls(value_number, value_boolean, value_text) = 1)) OR (((status)::text <> 'present'::text) AND (num_nonnulls(value_number, value_boolean, value_text) = 0))))",
+        "columns": [
+          "value_number",
+          "value_boolean",
+          "value_text",
+          "status"
+        ]
+      },
+      {
+        "name": "observation_code_fkey",
+        "definition": "FOREIGN KEY (code) REFERENCES observation_type(code)",
+        "columns": [
+          "code"
+        ]
+      },
+      {
+        "name": "observation_encounter_id_fkey",
+        "definition": "FOREIGN KEY (encounter_id) REFERENCES encounter(id)",
+        "columns": [
+          "encounter_id"
+        ]
+      },
+      {
+        "name": "observation_pkey",
+        "definition": "PRIMARY KEY (id)",
+        "columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "observation_recorded_by_fkey",
+        "definition": "FOREIGN KEY (recorded_by) REFERENCES app_user(id)",
+        "columns": [
+          "recorded_by"
+        ]
+      },
+      {
+        "name": "observation_source_check",
+        "definition": "CHECK (((source)::text = ANY ((ARRAY['manual_synthetic'::character varying, 'mock_his'::character varying, 'mock_lis'::character varying, 'mock_pacs'::character varying, 'mock_emr'::character varying])::text[])))",
+        "columns": [
+          "source"
+        ]
+      },
+      {
+        "name": "observation_status_check",
+        "definition": "CHECK (((status)::text = ANY ((ARRAY['present'::character varying, 'not_measured'::character varying, 'unknown'::character varying])::text[])))",
+        "columns": [
+          "status"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "ix_observation_latest",
+        "definition": "CREATE INDEX ix_observation_latest ON public.observation USING btree (encounter_id, code, observed_at DESC)"
+      },
+      {
+        "name": "observation_pkey",
+        "definition": "CREATE UNIQUE INDEX observation_pkey ON public.observation USING btree (id)"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "observation_audit",
+        "definition": "CREATE TRIGGER observation_audit AFTER INSERT OR DELETE OR UPDATE ON public.observation FOR EACH ROW EXECUTE FUNCTION audit_record_change()"
+      },
+      {
+        "name": "observation_revision",
+        "definition": "CREATE TRIGGER observation_revision AFTER INSERT OR DELETE OR UPDATE ON public.observation FOR EACH ROW EXECUTE FUNCTION bump_case_revision()"
+      },
+      {
+        "name": "observation_staff_validate",
+        "definition": "CREATE TRIGGER observation_staff_validate BEFORE INSERT OR UPDATE ON public.observation FOR EACH ROW EXECUTE FUNCTION validate_staff_record()"
+      },
+      {
+        "name": "observation_validate",
+        "definition": "CREATE TRIGGER observation_validate BEFORE INSERT OR UPDATE ON public.observation FOR EACH ROW EXECUTE FUNCTION validate_observation()"
+      }
+    ],
+    "row_level_security": []
+  },
+  {
+    "name": "observation_type",
+    "description": "Danh mục chỉ số, kiểu và đơn vị; giới hạn biểu diễn, không phải ngưỡng cảnh báo (FR-04,18).",
+    "columns": [
+      {
+        "name": "code",
+        "type": "character varying(60)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Mã danh mục/quy tắc.",
+        "constraint": "NOT NULL; PRIMARY KEY (code)"
+      },
+      {
+        "name": "label",
+        "type": "text",
+        "nullable": false,
+        "default_value": null,
+        "description": "Nhãn hiển thị.",
+        "constraint": "NOT NULL"
+      },
+      {
+        "name": "value_kind",
+        "type": "character varying(10)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Kiểu number, boolean hoặc text.",
+        "constraint": "NOT NULL; CHECK (((value_kind)::text = ANY ((ARRAY['number'::character varying, 'boolean'::character varying, 'text'::character varying])::text[])))"
+      },
+      {
+        "name": "unit",
+        "type": "character varying(40)",
+        "nullable": true,
+        "default_value": null,
+        "description": "Đơn vị chuẩn của chỉ số.",
+        "constraint": "NULL"
+      },
+      {
+        "name": "min_value",
+        "type": "numeric",
+        "nullable": true,
+        "default_value": null,
+        "description": "Giới hạn biểu diễn dưới; không phải ngưỡng y khoa.",
+        "constraint": "NULL; CHECK (((min_value IS NULL) OR (max_value IS NULL) OR (min_value <= max_value))); CHECK (((min_value)::text <> ALL (ARRAY['NaN'::text, 'Infinity'::text, '-Infinity'::text])))"
+      },
+      {
+        "name": "max_value",
+        "type": "numeric",
+        "nullable": true,
+        "default_value": null,
+        "description": "Giới hạn biểu diễn trên nếu áp dụng.",
+        "constraint": "NULL; CHECK (((min_value IS NULL) OR (max_value IS NULL) OR (min_value <= max_value))); CHECK (((max_value)::text <> ALL (ARRAY['NaN'::text, 'Infinity'::text, '-Infinity'::text])))"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "observation_type_check",
+        "definition": "CHECK (((min_value IS NULL) OR (max_value IS NULL) OR (min_value <= max_value)))",
+        "columns": [
+          "min_value",
+          "max_value"
+        ]
+      },
+      {
+        "name": "observation_type_max_value_check",
+        "definition": "CHECK (((max_value)::text <> ALL (ARRAY['NaN'::text, 'Infinity'::text, '-Infinity'::text])))",
+        "columns": [
+          "max_value"
+        ]
+      },
+      {
+        "name": "observation_type_min_value_check",
+        "definition": "CHECK (((min_value)::text <> ALL (ARRAY['NaN'::text, 'Infinity'::text, '-Infinity'::text])))",
+        "columns": [
+          "min_value"
+        ]
+      },
+      {
+        "name": "observation_type_pkey",
+        "definition": "PRIMARY KEY (code)",
+        "columns": [
+          "code"
+        ]
+      },
+      {
+        "name": "observation_type_value_kind_check",
+        "definition": "CHECK (((value_kind)::text = ANY ((ARRAY['number'::character varying, 'boolean'::character varying, 'text'::character varying])::text[])))",
+        "columns": [
+          "value_kind"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "observation_type_pkey",
+        "definition": "CREATE UNIQUE INDEX observation_type_pkey ON public.observation_type USING btree (code)"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "observation_catalog_guard",
+        "definition": "CREATE TRIGGER observation_catalog_guard BEFORE UPDATE ON public.observation_type FOR EACH ROW EXECUTE FUNCTION protect_observation_catalog()"
+      }
+    ],
+    "row_level_security": []
+  },
+  {
+    "name": "patient_account",
+    "description": "Liên kết duy nhất tài khoản patient với một hồ sơ synthetic (FR-P01).",
+    "columns": [
+      {
+        "name": "user_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Tài khoản liên quan.",
+        "constraint": "NOT NULL; PRIMARY KEY (user_id); FOREIGN KEY (user_id) REFERENCES app_user(id); FOREIGN KEY (user_id, role_code) REFERENCES user_role(user_id, role_code)"
+      },
+      {
+        "name": "case_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Hồ sơ bệnh nhân liên quan.",
+        "constraint": "NOT NULL; FOREIGN KEY (case_id) REFERENCES patient_case(id); UNIQUE (case_id)"
+      },
+      {
+        "name": "role_code",
+        "type": "character varying(20)",
+        "nullable": false,
+        "default_value": "'patient'::character varying",
+        "description": "Mã vai trò.",
+        "constraint": "NOT NULL; DEFAULT 'patient'::character varying; CHECK (((role_code)::text = 'patient'::text)); FOREIGN KEY (user_id, role_code) REFERENCES user_role(user_id, role_code)"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": "now()",
+        "description": "Thời điểm tạo.",
+        "constraint": "NOT NULL; DEFAULT now()"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "patient_account_case_id_fkey",
+        "definition": "FOREIGN KEY (case_id) REFERENCES patient_case(id)",
+        "columns": [
+          "case_id"
+        ]
+      },
+      {
+        "name": "patient_account_case_id_key",
+        "definition": "UNIQUE (case_id)",
+        "columns": [
+          "case_id"
+        ]
+      },
+      {
+        "name": "patient_account_pkey",
+        "definition": "PRIMARY KEY (user_id)",
+        "columns": [
+          "user_id"
+        ]
+      },
+      {
+        "name": "patient_account_role_code_check",
+        "definition": "CHECK (((role_code)::text = 'patient'::text))",
+        "columns": [
+          "role_code"
+        ]
+      },
+      {
+        "name": "patient_account_user_id_fkey",
+        "definition": "FOREIGN KEY (user_id) REFERENCES app_user(id)",
+        "columns": [
+          "user_id"
+        ]
+      },
+      {
+        "name": "patient_account_user_id_role_code_fkey",
+        "definition": "FOREIGN KEY (user_id, role_code) REFERENCES user_role(user_id, role_code)",
+        "columns": [
+          "user_id",
+          "role_code"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "patient_account_case_id_key",
+        "definition": "CREATE UNIQUE INDEX patient_account_case_id_key ON public.patient_account USING btree (case_id)"
+      },
+      {
+        "name": "patient_account_pkey",
+        "definition": "CREATE UNIQUE INDEX patient_account_pkey ON public.patient_account USING btree (user_id)"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "patient_account_immutable",
+        "definition": "CREATE TRIGGER patient_account_immutable BEFORE DELETE OR UPDATE ON public.patient_account FOR EACH ROW EXECUTE FUNCTION prevent_mutation()"
+      }
+    ],
+    "row_level_security": []
+  },
+  {
+    "name": "patient_case",
+    "description": "Hồ sơ synthetic, bác sĩ phụ trách và revision; không lưu định danh thật (FR-06).",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": "gen_random_uuid()",
+        "description": "Định danh nội bộ UUID.",
+        "constraint": "NOT NULL; DEFAULT gen_random_uuid(); PRIMARY KEY (id)"
+      },
+      {
+        "name": "synthetic_code",
+        "type": "character varying(30)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Mã hồ sơ giả lập duy nhất bắt đầu bằng SYN-.",
+        "constraint": "NOT NULL; CHECK (((synthetic_code)::text ~ '^SYN-[A-Z0-9-]{1,24}$'::text)); UNIQUE (synthetic_code)"
+      },
+      {
+        "name": "age",
+        "type": "smallint",
+        "nullable": false,
+        "default_value": null,
+        "description": "Tuổi ghi nhận trong hồ sơ.",
+        "constraint": "NOT NULL; CHECK (((age >= 0) AND (age <= 120)))"
+      },
+      {
+        "name": "sex",
+        "type": "character varying(10)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Giới tính hoặc chưa rõ.",
+        "constraint": "NOT NULL; CHECK (((sex)::text = ANY ((ARRAY['male'::character varying, 'female'::character varying, 'unknown'::character varying])::text[])))"
+      },
+      {
+        "name": "owner_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Bác sĩ phụ trách hồ sơ.",
+        "constraint": "NOT NULL; FOREIGN KEY (owner_id) REFERENCES app_user(id)"
+      },
+      {
+        "name": "revision",
+        "type": "integer",
+        "nullable": false,
+        "default_value": "1",
+        "description": "Tăng khi dữ liệu lâm sàng liên quan thay đổi.",
+        "constraint": "NOT NULL; DEFAULT 1; CHECK ((revision > 0))"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": "now()",
+        "description": "Thời điểm tạo.",
+        "constraint": "NOT NULL; DEFAULT now()"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "patient_case_age_check",
+        "definition": "CHECK (((age >= 0) AND (age <= 120)))",
+        "columns": [
+          "age"
+        ]
+      },
+      {
+        "name": "patient_case_owner_id_fkey",
+        "definition": "FOREIGN KEY (owner_id) REFERENCES app_user(id)",
+        "columns": [
+          "owner_id"
+        ]
+      },
+      {
+        "name": "patient_case_pkey",
+        "definition": "PRIMARY KEY (id)",
+        "columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "patient_case_revision_check",
+        "definition": "CHECK ((revision > 0))",
+        "columns": [
+          "revision"
+        ]
+      },
+      {
+        "name": "patient_case_sex_check",
+        "definition": "CHECK (((sex)::text = ANY ((ARRAY['male'::character varying, 'female'::character varying, 'unknown'::character varying])::text[])))",
+        "columns": [
+          "sex"
+        ]
+      },
+      {
+        "name": "patient_case_synthetic_code_check",
+        "definition": "CHECK (((synthetic_code)::text ~ '^SYN-[A-Z0-9-]{1,24}$'::text))",
+        "columns": [
+          "synthetic_code"
+        ]
+      },
+      {
+        "name": "patient_case_synthetic_code_key",
+        "definition": "UNIQUE (synthetic_code)",
+        "columns": [
+          "synthetic_code"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "ix_case_owner",
+        "definition": "CREATE INDEX ix_case_owner ON public.patient_case USING btree (owner_id)"
+      },
+      {
+        "name": "patient_case_pkey",
+        "definition": "CREATE UNIQUE INDEX patient_case_pkey ON public.patient_case USING btree (id)"
+      },
+      {
+        "name": "patient_case_synthetic_code_key",
+        "definition": "CREATE UNIQUE INDEX patient_case_synthetic_code_key ON public.patient_case USING btree (synthetic_code)"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "case_audit",
+        "definition": "CREATE TRIGGER case_audit AFTER INSERT OR UPDATE ON public.patient_case FOR EACH ROW EXECUTE FUNCTION audit_record_change()"
+      },
+      {
+        "name": "case_staff_validate",
+        "definition": "CREATE TRIGGER case_staff_validate BEFORE INSERT OR UPDATE ON public.patient_case FOR EACH ROW EXECUTE FUNCTION validate_case_staff()"
+      },
+      {
+        "name": "profile_revision",
+        "definition": "CREATE TRIGGER profile_revision BEFORE UPDATE ON public.patient_case FOR EACH ROW EXECUTE FUNCTION guard_profile_revision()"
+      }
+    ],
+    "row_level_security": []
+  },
+  {
+    "name": "patient_history",
+    "description": "Tiền sử, bệnh đồng mắc, gia đình và xã hội theo hồ sơ (FR-08).",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": "gen_random_uuid()",
+        "description": "Định danh nội bộ UUID.",
+        "constraint": "NOT NULL; DEFAULT gen_random_uuid(); PRIMARY KEY (id)"
+      },
+      {
+        "name": "case_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Hồ sơ bệnh nhân liên quan.",
+        "constraint": "NOT NULL; FOREIGN KEY (case_id) REFERENCES patient_case(id)"
+      },
+      {
+        "name": "kind",
+        "type": "character varying(20)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Loại bản ghi; xem CHECK của bảng.",
+        "constraint": "NOT NULL; CHECK (((kind)::text = ANY ((ARRAY['medical'::character varying, 'comorbidity'::character varying, 'family'::character varying, 'social'::character varying])::text[])))"
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": false,
+        "default_value": null,
+        "description": "Mô tả nội dung.",
+        "constraint": "NOT NULL; CHECK ((length(TRIM(BOTH FROM description)) > 0))"
+      },
+      {
+        "name": "recorded_by",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Người ghi nhận dữ liệu.",
+        "constraint": "NOT NULL; FOREIGN KEY (recorded_by) REFERENCES app_user(id)"
+      },
+      {
+        "name": "recorded_at",
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": "now()",
+        "description": "Thời điểm ghi nhận dữ liệu.",
+        "constraint": "NOT NULL; DEFAULT now()"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "patient_history_case_id_fkey",
+        "definition": "FOREIGN KEY (case_id) REFERENCES patient_case(id)",
+        "columns": [
+          "case_id"
+        ]
+      },
+      {
+        "name": "patient_history_description_check",
+        "definition": "CHECK ((length(TRIM(BOTH FROM description)) > 0))",
+        "columns": [
+          "description"
+        ]
+      },
+      {
+        "name": "patient_history_kind_check",
+        "definition": "CHECK (((kind)::text = ANY ((ARRAY['medical'::character varying, 'comorbidity'::character varying, 'family'::character varying, 'social'::character varying])::text[])))",
+        "columns": [
+          "kind"
+        ]
+      },
+      {
+        "name": "patient_history_pkey",
+        "definition": "PRIMARY KEY (id)",
+        "columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "patient_history_recorded_by_fkey",
+        "definition": "FOREIGN KEY (recorded_by) REFERENCES app_user(id)",
+        "columns": [
+          "recorded_by"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "ix_history_case",
+        "definition": "CREATE INDEX ix_history_case ON public.patient_history USING btree (case_id, recorded_at DESC)"
+      },
+      {
+        "name": "patient_history_pkey",
+        "definition": "CREATE UNIQUE INDEX patient_history_pkey ON public.patient_history USING btree (id)"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "history_audit",
+        "definition": "CREATE TRIGGER history_audit AFTER INSERT OR DELETE OR UPDATE ON public.patient_history FOR EACH ROW EXECUTE FUNCTION audit_record_change()"
+      },
+      {
+        "name": "history_revision",
+        "definition": "CREATE TRIGGER history_revision AFTER INSERT OR DELETE OR UPDATE ON public.patient_history FOR EACH ROW EXECUTE FUNCTION bump_case_revision()"
+      },
+      {
+        "name": "history_staff_validate",
+        "definition": "CREATE TRIGGER history_staff_validate BEFORE INSERT OR UPDATE ON public.patient_history FOR EACH ROW EXECUTE FUNCTION validate_staff_record()"
+      }
+    ],
+    "row_level_security": []
+  },
+  {
+    "name": "patient_measurement",
+    "description": "Chỉ số tự nhập tại nhà; không tự trở thành dữ liệu đã được nhân viên xác minh (FR-P03).",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": "gen_random_uuid()",
+        "description": "Định danh nội bộ UUID.",
+        "constraint": "NOT NULL; DEFAULT gen_random_uuid(); PRIMARY KEY (id)"
+      },
+      {
+        "name": "case_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Hồ sơ bệnh nhân liên quan.",
+        "constraint": "NOT NULL; FOREIGN KEY (case_id) REFERENCES patient_case(id)"
+      },
+      {
+        "name": "recorded_by",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Người ghi nhận dữ liệu.",
+        "constraint": "NOT NULL; FOREIGN KEY (recorded_by) REFERENCES patient_account(user_id)"
+      },
+      {
+        "name": "observed_at",
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": null,
+        "description": "Thời điểm đo/đánh giá.",
+        "constraint": "NOT NULL"
+      },
+      {
+        "name": "systolic_bp",
+        "type": "numeric",
+        "nullable": true,
+        "default_value": null,
+        "description": "Huyết áp tâm thu, mmHg; phải nhập cùng tâm trương.",
+        "constraint": "NULL; CHECK ((num_nonnulls(systolic_bp, diastolic_bp, heart_rate, weight_kg, spo2, temperature_c, symptoms) > 0)); CHECK ((((systolic_bp IS NULL) AND (diastolic_bp IS NULL)) OR ((systolic_bp IS NOT NULL) AND (diastolic_bp IS NOT NULL) AND (systolic_bp >= diastolic_bp)))); CHECK (((systolic_bp > (0)::numeric) AND ((systolic_bp)::text <> ALL (ARRAY['NaN'::text, 'Infinity'::text, '-Infinity'::text]))))"
+      },
+      {
+        "name": "diastolic_bp",
+        "type": "numeric",
+        "nullable": true,
+        "default_value": null,
+        "description": "Huyết áp tâm trương, mmHg.",
+        "constraint": "NULL; CHECK ((num_nonnulls(systolic_bp, diastolic_bp, heart_rate, weight_kg, spo2, temperature_c, symptoms) > 0)); CHECK ((((systolic_bp IS NULL) AND (diastolic_bp IS NULL)) OR ((systolic_bp IS NOT NULL) AND (diastolic_bp IS NOT NULL) AND (systolic_bp >= diastolic_bp)))); CHECK (((diastolic_bp > (0)::numeric) AND ((diastolic_bp)::text <> ALL (ARRAY['NaN'::text, 'Infinity'::text, '-Infinity'::text]))))"
+      },
+      {
+        "name": "heart_rate",
+        "type": "numeric",
+        "nullable": true,
+        "default_value": null,
+        "description": "Nhịp tim, bpm.",
+        "constraint": "NULL; CHECK ((num_nonnulls(systolic_bp, diastolic_bp, heart_rate, weight_kg, spo2, temperature_c, symptoms) > 0)); CHECK (((heart_rate > (0)::numeric) AND ((heart_rate)::text <> ALL (ARRAY['NaN'::text, 'Infinity'::text, '-Infinity'::text]))))"
+      },
+      {
+        "name": "weight_kg",
+        "type": "numeric",
+        "nullable": true,
+        "default_value": null,
+        "description": "Cân nặng, kg.",
+        "constraint": "NULL; CHECK ((num_nonnulls(systolic_bp, diastolic_bp, heart_rate, weight_kg, spo2, temperature_c, symptoms) > 0)); CHECK (((weight_kg > (0)::numeric) AND ((weight_kg)::text <> ALL (ARRAY['NaN'::text, 'Infinity'::text, '-Infinity'::text]))))"
+      },
+      {
+        "name": "spo2",
+        "type": "numeric",
+        "nullable": true,
+        "default_value": null,
+        "description": "Độ bão hòa oxy, %. Giới hạn biểu diễn 0–100.",
+        "constraint": "NULL; CHECK ((num_nonnulls(systolic_bp, diastolic_bp, heart_rate, weight_kg, spo2, temperature_c, symptoms) > 0)); CHECK ((((spo2 >= (0)::numeric) AND (spo2 <= (100)::numeric)) AND ((spo2)::text <> ALL (ARRAY['NaN'::text, 'Infinity'::text, '-Infinity'::text]))))"
+      },
+      {
+        "name": "temperature_c",
+        "type": "numeric",
+        "nullable": true,
+        "default_value": null,
+        "description": "Nhiệt độ, độ C.",
+        "constraint": "NULL; CHECK ((num_nonnulls(systolic_bp, diastolic_bp, heart_rate, weight_kg, spo2, temperature_c, symptoms) > 0)); CHECK (((temperature_c > '-273.15'::numeric) AND ((temperature_c)::text <> ALL (ARRAY['NaN'::text, 'Infinity'::text, '-Infinity'::text]))))"
+      },
+      {
+        "name": "symptoms",
+        "type": "character varying(500)",
+        "nullable": true,
+        "default_value": null,
+        "description": "Triệu chứng/ghi chú tự nhập, tối đa 500 ký tự.",
+        "constraint": "NULL; CHECK ((num_nonnulls(systolic_bp, diastolic_bp, heart_rate, weight_kg, spo2, temperature_c, symptoms) > 0)); CHECK (((symptoms IS NULL) OR (length(TRIM(BOTH FROM symptoms)) > 0)))"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": "now()",
+        "description": "Thời điểm tạo.",
+        "constraint": "NOT NULL; DEFAULT now()"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "patient_measurement_case_id_fkey",
+        "definition": "FOREIGN KEY (case_id) REFERENCES patient_case(id)",
+        "columns": [
+          "case_id"
+        ]
+      },
+      {
+        "name": "patient_measurement_check",
+        "definition": "CHECK ((num_nonnulls(systolic_bp, diastolic_bp, heart_rate, weight_kg, spo2, temperature_c, symptoms) > 0))",
+        "columns": [
+          "systolic_bp",
+          "diastolic_bp",
+          "heart_rate",
+          "weight_kg",
+          "spo2",
+          "temperature_c",
+          "symptoms"
+        ]
+      },
+      {
+        "name": "patient_measurement_check1",
+        "definition": "CHECK ((((systolic_bp IS NULL) AND (diastolic_bp IS NULL)) OR ((systolic_bp IS NOT NULL) AND (diastolic_bp IS NOT NULL) AND (systolic_bp >= diastolic_bp))))",
+        "columns": [
+          "systolic_bp",
+          "diastolic_bp"
+        ]
+      },
+      {
+        "name": "patient_measurement_diastolic_bp_check",
+        "definition": "CHECK (((diastolic_bp > (0)::numeric) AND ((diastolic_bp)::text <> ALL (ARRAY['NaN'::text, 'Infinity'::text, '-Infinity'::text]))))",
+        "columns": [
+          "diastolic_bp"
+        ]
+      },
+      {
+        "name": "patient_measurement_heart_rate_check",
+        "definition": "CHECK (((heart_rate > (0)::numeric) AND ((heart_rate)::text <> ALL (ARRAY['NaN'::text, 'Infinity'::text, '-Infinity'::text]))))",
+        "columns": [
+          "heart_rate"
+        ]
+      },
+      {
+        "name": "patient_measurement_pkey",
+        "definition": "PRIMARY KEY (id)",
+        "columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "patient_measurement_recorded_by_fkey",
+        "definition": "FOREIGN KEY (recorded_by) REFERENCES patient_account(user_id)",
+        "columns": [
+          "recorded_by"
+        ]
+      },
+      {
+        "name": "patient_measurement_spo2_check",
+        "definition": "CHECK ((((spo2 >= (0)::numeric) AND (spo2 <= (100)::numeric)) AND ((spo2)::text <> ALL (ARRAY['NaN'::text, 'Infinity'::text, '-Infinity'::text]))))",
+        "columns": [
+          "spo2"
+        ]
+      },
+      {
+        "name": "patient_measurement_symptoms_check",
+        "definition": "CHECK (((symptoms IS NULL) OR (length(TRIM(BOTH FROM symptoms)) > 0)))",
+        "columns": [
+          "symptoms"
+        ]
+      },
+      {
+        "name": "patient_measurement_systolic_bp_check",
+        "definition": "CHECK (((systolic_bp > (0)::numeric) AND ((systolic_bp)::text <> ALL (ARRAY['NaN'::text, 'Infinity'::text, '-Infinity'::text]))))",
+        "columns": [
+          "systolic_bp"
+        ]
+      },
+      {
+        "name": "patient_measurement_temperature_c_check",
+        "definition": "CHECK (((temperature_c > '-273.15'::numeric) AND ((temperature_c)::text <> ALL (ARRAY['NaN'::text, 'Infinity'::text, '-Infinity'::text]))))",
+        "columns": [
+          "temperature_c"
+        ]
+      },
+      {
+        "name": "patient_measurement_weight_kg_check",
+        "definition": "CHECK (((weight_kg > (0)::numeric) AND ((weight_kg)::text <> ALL (ARRAY['NaN'::text, 'Infinity'::text, '-Infinity'::text]))))",
+        "columns": [
+          "weight_kg"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "ix_patient_measurement_time",
+        "definition": "CREATE INDEX ix_patient_measurement_time ON public.patient_measurement USING btree (case_id, observed_at DESC)"
+      },
+      {
+        "name": "patient_measurement_pkey",
+        "definition": "CREATE UNIQUE INDEX patient_measurement_pkey ON public.patient_measurement USING btree (id)"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "measurement_audit",
+        "definition": "CREATE TRIGGER measurement_audit AFTER INSERT ON public.patient_measurement FOR EACH ROW EXECUTE FUNCTION audit_record_change()"
+      },
+      {
+        "name": "patient_measurement_immutable",
+        "definition": "CREATE TRIGGER patient_measurement_immutable BEFORE DELETE OR UPDATE ON public.patient_measurement FOR EACH ROW EXECUTE FUNCTION prevent_mutation()"
+      },
+      {
+        "name": "patient_measurement_validate",
+        "definition": "CREATE TRIGGER patient_measurement_validate BEFORE INSERT ON public.patient_measurement FOR EACH ROW EXECUTE FUNCTION validate_patient_measurement()"
+      }
+    ],
+    "row_level_security": [
+      {
+        "name": "patient_measurement_create",
+        "command": "INSERT",
+        "using_expression": null,
+        "check_expression": "((case_id = portal_case_id()) AND (recorded_by = current_app_user()))"
+      },
+      {
+        "name": "patient_measurement_read",
+        "command": "SELECT",
+        "using_expression": "(case_id = portal_case_id())",
+        "check_expression": null
+      }
+    ]
+  },
+  {
+    "name": "permission",
+    "description": "Danh mục quyền đặc biệt, gồm quyền phê duyệt chuyên môn rule.approve (FR-05).",
+    "columns": [
+      {
+        "name": "code",
+        "type": "character varying(60)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Mã danh mục/quy tắc.",
+        "constraint": "NOT NULL; PRIMARY KEY (code)"
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": false,
+        "default_value": null,
+        "description": "Mô tả nội dung.",
+        "constraint": "NOT NULL"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "permission_pkey",
+        "definition": "PRIMARY KEY (code)",
+        "columns": [
+          "code"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "permission_pkey",
+        "definition": "CREATE UNIQUE INDEX permission_pkey ON public.permission USING btree (code)"
+      }
+    ],
+    "triggers": [],
+    "row_level_security": []
+  },
+  {
+    "name": "pharmacist_review",
+    "description": "Nhận xét và đề xuất của dược sĩ được phân công về một lần đánh giá (FR-30).",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": "gen_random_uuid()",
+        "description": "Định danh nội bộ UUID.",
+        "constraint": "NOT NULL; DEFAULT gen_random_uuid(); PRIMARY KEY (id)"
+      },
+      {
+        "name": "evaluation_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Lần đánh giá liên quan.",
+        "constraint": "NOT NULL; FOREIGN KEY (evaluation_id) REFERENCES evaluation(id)"
+      },
+      {
+        "name": "pharmacist_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Dược sĩ nhận xét.",
+        "constraint": "NOT NULL; FOREIGN KEY (pharmacist_id) REFERENCES app_user(id)"
+      },
+      {
+        "name": "comment",
+        "type": "text",
+        "nullable": false,
+        "default_value": null,
+        "description": "Nhận xét dược sĩ.",
+        "constraint": "NOT NULL; CHECK ((length(TRIM(BOTH FROM comment)) > 0))"
+      },
+      {
+        "name": "proposal",
+        "type": "text",
+        "nullable": true,
+        "default_value": null,
+        "description": "Đề xuất để bác sĩ xem xét.",
+        "constraint": "NULL"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": "now()",
+        "description": "Thời điểm tạo.",
+        "constraint": "NOT NULL; DEFAULT now()"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "pharmacist_review_comment_check",
+        "definition": "CHECK ((length(TRIM(BOTH FROM comment)) > 0))",
+        "columns": [
+          "comment"
+        ]
+      },
+      {
+        "name": "pharmacist_review_evaluation_id_fkey",
+        "definition": "FOREIGN KEY (evaluation_id) REFERENCES evaluation(id)",
+        "columns": [
+          "evaluation_id"
+        ]
+      },
+      {
+        "name": "pharmacist_review_pharmacist_id_fkey",
+        "definition": "FOREIGN KEY (pharmacist_id) REFERENCES app_user(id)",
+        "columns": [
+          "pharmacist_id"
+        ]
+      },
+      {
+        "name": "pharmacist_review_pkey",
+        "definition": "PRIMARY KEY (id)",
+        "columns": [
+          "id"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "ix_review_evaluation",
+        "definition": "CREATE INDEX ix_review_evaluation ON public.pharmacist_review USING btree (evaluation_id)"
+      },
+      {
+        "name": "pharmacist_review_pkey",
+        "definition": "CREATE UNIQUE INDEX pharmacist_review_pkey ON public.pharmacist_review USING btree (id)"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "pharmacist_review_validate",
+        "definition": "CREATE TRIGGER pharmacist_review_validate BEFORE INSERT OR UPDATE ON public.pharmacist_review FOR EACH ROW EXECUTE FUNCTION validate_review_plan()"
+      },
+      {
+        "name": "review_audit",
+        "definition": "CREATE TRIGGER review_audit AFTER INSERT OR UPDATE ON public.pharmacist_review FOR EACH ROW EXECUTE FUNCTION audit_record_change()"
+      }
+    ],
+    "row_level_security": []
+  },
+  {
+    "name": "prescription",
+    "description": "Đơn thuốc do bác sĩ xác nhận; ngày dùng và múi giờ; bản xác nhận được giữ bất biến (FR-13,32,FR-P04).",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": "gen_random_uuid()",
+        "description": "Định danh nội bộ UUID.",
+        "constraint": "NOT NULL; DEFAULT gen_random_uuid(); UNIQUE (id, encounter_id); PRIMARY KEY (id)"
+      },
+      {
+        "name": "case_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Hồ sơ bệnh nhân liên quan.",
+        "constraint": "NOT NULL; FOREIGN KEY (case_id) REFERENCES patient_case(id); FOREIGN KEY (encounter_id, case_id) REFERENCES encounter(id, case_id)"
+      },
+      {
+        "name": "encounter_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Lần khám/đợt điều trị liên quan.",
+        "constraint": "NOT NULL; FOREIGN KEY (encounter_id, case_id) REFERENCES encounter(id, case_id); UNIQUE (id, encounter_id)"
+      },
+      {
+        "name": "doctor_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Bác sĩ phụ trách/xác nhận.",
+        "constraint": "NOT NULL; FOREIGN KEY (doctor_id) REFERENCES app_user(id)"
+      },
+      {
+        "name": "status",
+        "type": "character varying(12)",
+        "nullable": false,
+        "default_value": "'draft'::character varying",
+        "description": "Trạng thái; các giá trị hợp lệ được ghi trong CHECK bên dưới.",
+        "constraint": "NOT NULL; DEFAULT 'draft'::character varying; CHECK (((((status)::text = 'draft'::text) AND (confirmed_at IS NULL)) OR (((status)::text <> 'draft'::text) AND (confirmed_at IS NOT NULL)))); CHECK (((status)::text = ANY ((ARRAY['draft'::character varying, 'confirmed'::character varying, 'cancelled'::character varying])::text[])))"
+      },
+      {
+        "name": "starts_on",
+        "type": "date",
+        "nullable": false,
+        "default_value": null,
+        "description": "Ngày bắt đầu dùng.",
+        "constraint": "NOT NULL; CHECK (((ends_on IS NULL) OR (ends_on >= starts_on)))"
+      },
+      {
+        "name": "ends_on",
+        "type": "date",
+        "nullable": true,
+        "default_value": null,
+        "description": "Ngày kết thúc nếu có.",
+        "constraint": "NULL; CHECK (((ends_on IS NULL) OR (ends_on >= starts_on)))"
+      },
+      {
+        "name": "timezone",
+        "type": "character varying(60)",
+        "nullable": false,
+        "default_value": "'Asia/Ho_Chi_Minh'::character varying",
+        "description": "Múi giờ IANA của các giờ uống; mặc định Asia/Ho_Chi_Minh.",
+        "constraint": "NOT NULL; DEFAULT 'Asia/Ho_Chi_Minh'::character varying"
+      },
+      {
+        "name": "instructions",
+        "type": "text",
+        "nullable": false,
+        "default_value": "''::text",
+        "description": "Hướng dẫn dạng văn bản.",
+        "constraint": "NOT NULL; DEFAULT ''::text"
+      },
+      {
+        "name": "confirmed_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "default_value": null,
+        "description": "Thời điểm bác sĩ xác nhận đơn.",
+        "constraint": "NULL; CHECK (((((status)::text = 'draft'::text) AND (confirmed_at IS NULL)) OR (((status)::text <> 'draft'::text) AND (confirmed_at IS NOT NULL))))"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": "now()",
+        "description": "Thời điểm tạo.",
+        "constraint": "NOT NULL; DEFAULT now()"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "prescription_case_id_fkey",
+        "definition": "FOREIGN KEY (case_id) REFERENCES patient_case(id)",
+        "columns": [
+          "case_id"
+        ]
+      },
+      {
+        "name": "prescription_check",
+        "definition": "CHECK (((ends_on IS NULL) OR (ends_on >= starts_on)))",
+        "columns": [
+          "starts_on",
+          "ends_on"
+        ]
+      },
+      {
+        "name": "prescription_check1",
+        "definition": "CHECK (((((status)::text = 'draft'::text) AND (confirmed_at IS NULL)) OR (((status)::text <> 'draft'::text) AND (confirmed_at IS NOT NULL))))",
+        "columns": [
+          "status",
+          "confirmed_at"
+        ]
+      },
+      {
+        "name": "prescription_doctor_id_fkey",
+        "definition": "FOREIGN KEY (doctor_id) REFERENCES app_user(id)",
+        "columns": [
+          "doctor_id"
+        ]
+      },
+      {
+        "name": "prescription_encounter_id_case_id_fkey",
+        "definition": "FOREIGN KEY (encounter_id, case_id) REFERENCES encounter(id, case_id)",
+        "columns": [
+          "case_id",
+          "encounter_id"
+        ]
+      },
+      {
+        "name": "prescription_id_encounter_id_key",
+        "definition": "UNIQUE (id, encounter_id)",
+        "columns": [
+          "id",
+          "encounter_id"
+        ]
+      },
+      {
+        "name": "prescription_pkey",
+        "definition": "PRIMARY KEY (id)",
+        "columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "prescription_status_check",
+        "definition": "CHECK (((status)::text = ANY ((ARRAY['draft'::character varying, 'confirmed'::character varying, 'cancelled'::character varying])::text[])))",
+        "columns": [
+          "status"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "ix_prescription_case",
+        "definition": "CREATE INDEX ix_prescription_case ON public.prescription USING btree (case_id, created_at DESC)"
+      },
+      {
+        "name": "prescription_id_encounter_id_key",
+        "definition": "CREATE UNIQUE INDEX prescription_id_encounter_id_key ON public.prescription USING btree (id, encounter_id)"
+      },
+      {
+        "name": "prescription_pkey",
+        "definition": "CREATE UNIQUE INDEX prescription_pkey ON public.prescription USING btree (id)"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "prescription_audit",
+        "definition": "CREATE TRIGGER prescription_audit AFTER INSERT OR UPDATE ON public.prescription FOR EACH ROW EXECUTE FUNCTION audit_record_change()"
+      },
+      {
+        "name": "prescription_cancel_reminders",
+        "definition": "CREATE TRIGGER prescription_cancel_reminders AFTER UPDATE ON public.prescription FOR EACH ROW EXECUTE FUNCTION cancel_prescription_reminders()"
+      },
+      {
+        "name": "prescription_guard",
+        "definition": "CREATE TRIGGER prescription_guard BEFORE INSERT OR UPDATE ON public.prescription FOR EACH ROW EXECUTE FUNCTION guard_prescription()"
+      }
+    ],
+    "row_level_security": [
+      {
+        "name": "patient_prescription_read",
+        "command": "SELECT",
+        "using_expression": "((case_id = portal_case_id()) AND ((status)::text = ANY ((ARRAY['confirmed'::character varying, 'cancelled'::character varying])::text[])))",
+        "check_expression": null
+      }
+    ]
+  },
+  {
+    "name": "recommendation",
+    "description": "Gợi ý/cảnh báo có mức độ và nguồn tham chiếu; không tự tạo y lệnh (FR-21..29).",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": "gen_random_uuid()",
+        "description": "Định danh nội bộ UUID.",
+        "constraint": "NOT NULL; DEFAULT gen_random_uuid(); PRIMARY KEY (id)"
+      },
+      {
+        "name": "module_result_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Kết quả module liên quan.",
+        "constraint": "NOT NULL; FOREIGN KEY (module_result_id) REFERENCES module_result(id)"
+      },
+      {
+        "name": "code",
+        "type": "character varying(80)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Mã danh mục/quy tắc.",
+        "constraint": "NOT NULL"
+      },
+      {
+        "name": "severity",
+        "type": "character varying(12)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Mức info, warning hoặc critical.",
+        "constraint": "NOT NULL; CHECK (((severity)::text = ANY ((ARRAY['info'::character varying, 'warning'::character varying, 'critical'::character varying])::text[])))"
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": false,
+        "default_value": null,
+        "description": "Mô tả nội dung.",
+        "constraint": "NOT NULL"
+      },
+      {
+        "name": "source_ref",
+        "type": "text",
+        "nullable": false,
+        "default_value": null,
+        "description": "Nguồn tham chiếu của nội dung.",
+        "constraint": "NOT NULL"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "recommendation_module_result_id_fkey",
+        "definition": "FOREIGN KEY (module_result_id) REFERENCES module_result(id)",
+        "columns": [
+          "module_result_id"
+        ]
+      },
+      {
+        "name": "recommendation_pkey",
+        "definition": "PRIMARY KEY (id)",
+        "columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "recommendation_severity_check",
+        "definition": "CHECK (((severity)::text = ANY ((ARRAY['info'::character varying, 'warning'::character varying, 'critical'::character varying])::text[])))",
+        "columns": [
+          "severity"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "ix_recommendation_result",
+        "definition": "CREATE INDEX ix_recommendation_result ON public.recommendation USING btree (module_result_id)"
+      },
+      {
+        "name": "recommendation_pkey",
+        "definition": "CREATE UNIQUE INDEX recommendation_pkey ON public.recommendation USING btree (id)"
+      }
+    ],
+    "triggers": [],
+    "row_level_security": []
+  },
+  {
+    "name": "result_missing_field",
+    "description": "Các chỉ số còn thiếu cho một kết quả module (FR-18,29).",
+    "columns": [
+      {
+        "name": "module_result_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Kết quả module liên quan.",
+        "constraint": "NOT NULL; FOREIGN KEY (module_result_id) REFERENCES module_result(id); PRIMARY KEY (module_result_id, field_code)"
+      },
+      {
+        "name": "field_code",
+        "type": "character varying(60)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Mã chỉ số/trường dữ liệu.",
+        "constraint": "NOT NULL; FOREIGN KEY (field_code) REFERENCES observation_type(code); PRIMARY KEY (module_result_id, field_code)"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "result_missing_field_field_code_fkey",
+        "definition": "FOREIGN KEY (field_code) REFERENCES observation_type(code)",
+        "columns": [
+          "field_code"
+        ]
+      },
+      {
+        "name": "result_missing_field_module_result_id_fkey",
+        "definition": "FOREIGN KEY (module_result_id) REFERENCES module_result(id)",
+        "columns": [
+          "module_result_id"
+        ]
+      },
+      {
+        "name": "result_missing_field_pkey",
+        "definition": "PRIMARY KEY (module_result_id, field_code)",
+        "columns": [
+          "module_result_id",
+          "field_code"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "result_missing_field_pkey",
+        "definition": "CREATE UNIQUE INDEX result_missing_field_pkey ON public.result_missing_field USING btree (module_result_id, field_code)"
+      }
+    ],
+    "triggers": [],
+    "row_level_security": []
+  },
+  {
+    "name": "role",
+    "description": "Năm vai trò: doctor, nurse, pharmacist, admin, patient (FR-03,FR-P01).",
+    "columns": [
+      {
+        "name": "code",
+        "type": "character varying(20)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Mã danh mục/quy tắc.",
+        "constraint": "NOT NULL; CHECK (((code)::text = ANY ((ARRAY['doctor'::character varying, 'nurse'::character varying, 'pharmacist'::character varying, 'admin'::character varying, 'patient'::character varying])::text[]))); PRIMARY KEY (code)"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "role_code_check",
+        "definition": "CHECK (((code)::text = ANY ((ARRAY['doctor'::character varying, 'nurse'::character varying, 'pharmacist'::character varying, 'admin'::character varying, 'patient'::character varying])::text[])))",
+        "columns": [
+          "code"
+        ]
+      },
+      {
+        "name": "role_pkey",
+        "definition": "PRIMARY KEY (code)",
+        "columns": [
+          "code"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "role_pkey",
+        "definition": "CREATE UNIQUE INDEX role_pkey ON public.role USING btree (code)"
+      }
+    ],
+    "triggers": [],
+    "row_level_security": []
+  },
+  {
+    "name": "rule_approval",
+    "description": "Bằng chứng duyệt nội dung đã kiểm thử, hash, người duyệt có quyền và thời điểm (FR-05).",
+    "columns": [
+      {
+        "name": "rule_version_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Phiên bản quy tắc liên quan.",
+        "constraint": "NOT NULL; PRIMARY KEY (rule_version_id); FOREIGN KEY (rule_version_id) REFERENCES rule_version(id)"
+      },
+      {
+        "name": "approval_ref",
+        "type": "text",
+        "nullable": false,
+        "default_value": null,
+        "description": "Tham chiếu bằng chứng phê duyệt.",
+        "constraint": "NOT NULL; CHECK ((length(TRIM(BOTH FROM approval_ref)) > 0))"
+      },
+      {
+        "name": "approved_content_hash",
+        "type": "character varying(64)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Hash của nội dung được duyệt.",
+        "constraint": "NOT NULL; CHECK (((approved_content_hash)::text ~ '^[a-f0-9]{64}$'::text))"
+      },
+      {
+        "name": "approved_at",
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": null,
+        "description": "Thời điểm duyệt.",
+        "constraint": "NOT NULL"
+      },
+      {
+        "name": "recorded_by",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Người ghi nhận dữ liệu.",
+        "constraint": "NOT NULL; FOREIGN KEY (recorded_by) REFERENCES app_user(id)"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "rule_approval_approval_ref_check",
+        "definition": "CHECK ((length(TRIM(BOTH FROM approval_ref)) > 0))",
+        "columns": [
+          "approval_ref"
+        ]
+      },
+      {
+        "name": "rule_approval_approved_content_hash_check",
+        "definition": "CHECK (((approved_content_hash)::text ~ '^[a-f0-9]{64}$'::text))",
+        "columns": [
+          "approved_content_hash"
+        ]
+      },
+      {
+        "name": "rule_approval_pkey",
+        "definition": "PRIMARY KEY (rule_version_id)",
+        "columns": [
+          "rule_version_id"
+        ]
+      },
+      {
+        "name": "rule_approval_recorded_by_fkey",
+        "definition": "FOREIGN KEY (recorded_by) REFERENCES app_user(id)",
+        "columns": [
+          "recorded_by"
+        ]
+      },
+      {
+        "name": "rule_approval_rule_version_id_fkey",
+        "definition": "FOREIGN KEY (rule_version_id) REFERENCES rule_version(id)",
+        "columns": [
+          "rule_version_id"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "rule_approval_pkey",
+        "definition": "CREATE UNIQUE INDEX rule_approval_pkey ON public.rule_approval USING btree (rule_version_id)"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "approval_audit",
+        "definition": "CREATE TRIGGER approval_audit AFTER INSERT ON public.rule_approval FOR EACH ROW EXECUTE FUNCTION audit_record_change()"
+      },
+      {
+        "name": "rule_approval_immutable",
+        "definition": "CREATE TRIGGER rule_approval_immutable BEFORE DELETE OR UPDATE ON public.rule_approval FOR EACH ROW EXECUTE FUNCTION prevent_mutation()"
+      },
+      {
+        "name": "rule_approval_validate",
+        "definition": "CREATE TRIGGER rule_approval_validate BEFORE INSERT ON public.rule_approval FOR EACH ROW EXECUTE FUNCTION validate_approval()"
+      }
+    ],
+    "row_level_security": []
+  },
+  {
+    "name": "rule_required_field",
+    "description": "Chỉ số bắt buộc của phiên bản quy tắc; giữ nguyên từ trạng thái tested (FR-18).",
+    "columns": [
+      {
+        "name": "rule_version_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Phiên bản quy tắc liên quan.",
+        "constraint": "NOT NULL; PRIMARY KEY (rule_version_id, field_code); FOREIGN KEY (rule_version_id) REFERENCES rule_version(id)"
+      },
+      {
+        "name": "field_code",
+        "type": "character varying(60)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Mã chỉ số/trường dữ liệu.",
+        "constraint": "NOT NULL; FOREIGN KEY (field_code) REFERENCES observation_type(code); PRIMARY KEY (rule_version_id, field_code)"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "rule_required_field_field_code_fkey",
+        "definition": "FOREIGN KEY (field_code) REFERENCES observation_type(code)",
+        "columns": [
+          "field_code"
+        ]
+      },
+      {
+        "name": "rule_required_field_pkey",
+        "definition": "PRIMARY KEY (rule_version_id, field_code)",
+        "columns": [
+          "rule_version_id",
+          "field_code"
+        ]
+      },
+      {
+        "name": "rule_required_field_rule_version_id_fkey",
+        "definition": "FOREIGN KEY (rule_version_id) REFERENCES rule_version(id)",
+        "columns": [
+          "rule_version_id"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "rule_required_field_pkey",
+        "definition": "CREATE UNIQUE INDEX rule_required_field_pkey ON public.rule_required_field USING btree (rule_version_id, field_code)"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "required_field_guard",
+        "definition": "CREATE TRIGGER required_field_guard BEFORE INSERT OR DELETE OR UPDATE ON public.rule_required_field FOR EACH ROW EXECUTE FUNCTION guard_required_fields()"
+      }
+    ],
+    "row_level_security": []
+  },
+  {
+    "name": "rule_version",
+    "description": "Nội dung JSON, hash SHA-256, module, nguồn và vòng đời phiên bản quy tắc (FR-05).",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": "gen_random_uuid()",
+        "description": "Định danh nội bộ UUID.",
+        "constraint": "NOT NULL; DEFAULT gen_random_uuid(); PRIMARY KEY (id)"
+      },
+      {
+        "name": "code",
+        "type": "character varying(60)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Mã danh mục/quy tắc.",
+        "constraint": "NOT NULL; UNIQUE (code, version)"
+      },
+      {
+        "name": "version",
+        "type": "integer",
+        "nullable": false,
+        "default_value": null,
+        "description": "Số phiên bản quy tắc.",
+        "constraint": "NOT NULL; UNIQUE (code, version); CHECK ((version > 0))"
+      },
+      {
+        "name": "module",
+        "type": "character varying(20)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Module diagnosis, lab_test, treatment hoặc medsafety.",
+        "constraint": "NOT NULL; CHECK (((module)::text = ANY ((ARRAY['diagnosis'::character varying, 'lab_test'::character varying, 'treatment'::character varying, 'medsafety'::character varying])::text[])))"
+      },
+      {
+        "name": "source_ref",
+        "type": "text",
+        "nullable": false,
+        "default_value": null,
+        "description": "Nguồn tham chiếu của nội dung.",
+        "constraint": "NOT NULL"
+      },
+      {
+        "name": "content_hash",
+        "type": "character varying(64)",
+        "nullable": false,
+        "default_value": null,
+        "description": "SHA-256 của chuỗi JSONB content chuẩn hóa bởi PostgreSQL.",
+        "constraint": "NOT NULL; CHECK (((content_hash)::text ~ '^[a-f0-9]{64}$'::text))"
+      },
+      {
+        "name": "content",
+        "type": "jsonb",
+        "nullable": false,
+        "default_value": "'{}'::jsonb",
+        "description": "Nội dung ghi nhận hoặc JSONB; xem kiểu và ràng buộc của bảng.",
+        "constraint": "NOT NULL; DEFAULT '{}'::jsonb; CHECK ((jsonb_typeof(content) = 'object'::text))"
+      },
+      {
+        "name": "status",
+        "type": "character varying(12)",
+        "nullable": false,
+        "default_value": "'draft'::character varying",
+        "description": "Trạng thái; các giá trị hợp lệ được ghi trong CHECK bên dưới.",
+        "constraint": "NOT NULL; DEFAULT 'draft'::character varying; CHECK (((status)::text = ANY ((ARRAY['draft'::character varying, 'tested'::character varying, 'approved'::character varying, 'active'::character varying, 'retired'::character varying])::text[])))"
+      },
+      {
+        "name": "created_by",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Người tạo phiên bản.",
+        "constraint": "NOT NULL; FOREIGN KEY (created_by) REFERENCES app_user(id)"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": "now()",
+        "description": "Thời điểm tạo.",
+        "constraint": "NOT NULL; DEFAULT now()"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "rule_version_code_version_key",
+        "definition": "UNIQUE (code, version)",
+        "columns": [
+          "code",
+          "version"
+        ]
+      },
+      {
+        "name": "rule_version_content_check",
+        "definition": "CHECK ((jsonb_typeof(content) = 'object'::text))",
+        "columns": [
+          "content"
+        ]
+      },
+      {
+        "name": "rule_version_content_hash_check",
+        "definition": "CHECK (((content_hash)::text ~ '^[a-f0-9]{64}$'::text))",
+        "columns": [
+          "content_hash"
+        ]
+      },
+      {
+        "name": "rule_version_created_by_fkey",
+        "definition": "FOREIGN KEY (created_by) REFERENCES app_user(id)",
+        "columns": [
+          "created_by"
+        ]
+      },
+      {
+        "name": "rule_version_module_check",
+        "definition": "CHECK (((module)::text = ANY ((ARRAY['diagnosis'::character varying, 'lab_test'::character varying, 'treatment'::character varying, 'medsafety'::character varying])::text[])))",
+        "columns": [
+          "module"
+        ]
+      },
+      {
+        "name": "rule_version_pkey",
+        "definition": "PRIMARY KEY (id)",
+        "columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "rule_version_status_check",
+        "definition": "CHECK (((status)::text = ANY ((ARRAY['draft'::character varying, 'tested'::character varying, 'approved'::character varying, 'active'::character varying, 'retired'::character varying])::text[])))",
+        "columns": [
+          "status"
+        ]
+      },
+      {
+        "name": "rule_version_version_check",
+        "definition": "CHECK ((version > 0))",
+        "columns": [
+          "version"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "rule_version_code_version_key",
+        "definition": "CREATE UNIQUE INDEX rule_version_code_version_key ON public.rule_version USING btree (code, version)"
+      },
+      {
+        "name": "rule_version_pkey",
+        "definition": "CREATE UNIQUE INDEX rule_version_pkey ON public.rule_version USING btree (id)"
+      },
+      {
+        "name": "ux_rule_active",
+        "definition": "CREATE UNIQUE INDEX ux_rule_active ON public.rule_version USING btree (code) WHERE ((status)::text = 'active'::text)"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "rule_activation_guard",
+        "definition": "CREATE TRIGGER rule_activation_guard BEFORE INSERT OR UPDATE ON public.rule_version FOR EACH ROW EXECUTE FUNCTION guard_rule_activation()"
+      },
+      {
+        "name": "rule_audit",
+        "definition": "CREATE TRIGGER rule_audit AFTER INSERT OR UPDATE ON public.rule_version FOR EACH ROW EXECUTE FUNCTION audit_record_change()"
+      }
+    ],
+    "row_level_security": []
+  },
+  {
+    "name": "test_report",
+    "description": "Báo cáo xét nghiệm, siêu âm, ECG hoặc thăm dò, có thời điểm và nguồn (FR-12).",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": "gen_random_uuid()",
+        "description": "Định danh nội bộ UUID.",
+        "constraint": "NOT NULL; DEFAULT gen_random_uuid(); PRIMARY KEY (id)"
+      },
+      {
+        "name": "encounter_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Lần khám/đợt điều trị liên quan.",
+        "constraint": "NOT NULL; FOREIGN KEY (encounter_id) REFERENCES encounter(id)"
+      },
+      {
+        "name": "kind",
+        "type": "character varying(10)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Loại bản ghi; xem CHECK của bảng.",
+        "constraint": "NOT NULL; CHECK (((kind)::text = ANY ((ARRAY['lab'::character varying, 'echo'::character varying, 'ecg'::character varying, 'other'::character varying])::text[])))"
+      },
+      {
+        "name": "performed_at",
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": null,
+        "description": "Thời điểm thực hiện xét nghiệm/thăm dò.",
+        "constraint": "NOT NULL"
+      },
+      {
+        "name": "source",
+        "type": "character varying(30)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Nguồn nhập giả lập hoặc nguồn mô phỏng.",
+        "constraint": "NOT NULL; CHECK (((source)::text = ANY ((ARRAY['manual_synthetic'::character varying, 'mock_his'::character varying, 'mock_lis'::character varying, 'mock_pacs'::character varying, 'mock_emr'::character varying])::text[])))"
+      },
+      {
+        "name": "external_ref",
+        "type": "text",
+        "nullable": true,
+        "default_value": null,
+        "description": "Mã bản tin/báo cáo/batch nguồn giả lập.",
+        "constraint": "NULL"
+      },
+      {
+        "name": "content",
+        "type": "jsonb",
+        "nullable": false,
+        "default_value": null,
+        "description": "Nội dung ghi nhận hoặc JSONB; xem kiểu và ràng buộc của bảng.",
+        "constraint": "NOT NULL; CHECK ((jsonb_typeof(content) = 'object'::text))"
+      },
+      {
+        "name": "recorded_by",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Người ghi nhận dữ liệu.",
+        "constraint": "NOT NULL; FOREIGN KEY (recorded_by) REFERENCES app_user(id)"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": "now()",
+        "description": "Thời điểm tạo.",
+        "constraint": "NOT NULL; DEFAULT now()"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "test_report_content_check",
+        "definition": "CHECK ((jsonb_typeof(content) = 'object'::text))",
+        "columns": [
+          "content"
+        ]
+      },
+      {
+        "name": "test_report_encounter_id_fkey",
+        "definition": "FOREIGN KEY (encounter_id) REFERENCES encounter(id)",
+        "columns": [
+          "encounter_id"
+        ]
+      },
+      {
+        "name": "test_report_kind_check",
+        "definition": "CHECK (((kind)::text = ANY ((ARRAY['lab'::character varying, 'echo'::character varying, 'ecg'::character varying, 'other'::character varying])::text[])))",
+        "columns": [
+          "kind"
+        ]
+      },
+      {
+        "name": "test_report_pkey",
+        "definition": "PRIMARY KEY (id)",
+        "columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "test_report_recorded_by_fkey",
+        "definition": "FOREIGN KEY (recorded_by) REFERENCES app_user(id)",
+        "columns": [
+          "recorded_by"
+        ]
+      },
+      {
+        "name": "test_report_source_check",
+        "definition": "CHECK (((source)::text = ANY ((ARRAY['manual_synthetic'::character varying, 'mock_his'::character varying, 'mock_lis'::character varying, 'mock_pacs'::character varying, 'mock_emr'::character varying])::text[])))",
+        "columns": [
+          "source"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "ix_test_report_encounter",
+        "definition": "CREATE INDEX ix_test_report_encounter ON public.test_report USING btree (encounter_id, performed_at DESC)"
+      },
+      {
+        "name": "test_report_pkey",
+        "definition": "CREATE UNIQUE INDEX test_report_pkey ON public.test_report USING btree (id)"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "report_audit",
+        "definition": "CREATE TRIGGER report_audit AFTER INSERT OR DELETE OR UPDATE ON public.test_report FOR EACH ROW EXECUTE FUNCTION audit_record_change()"
+      },
+      {
+        "name": "report_revision",
+        "definition": "CREATE TRIGGER report_revision AFTER INSERT OR DELETE OR UPDATE ON public.test_report FOR EACH ROW EXECUTE FUNCTION bump_case_revision()"
+      },
+      {
+        "name": "report_staff_validate",
+        "definition": "CREATE TRIGGER report_staff_validate BEFORE INSERT OR UPDATE ON public.test_report FOR EACH ROW EXECUTE FUNCTION validate_staff_record()"
+      }
+    ],
+    "row_level_security": []
+  },
+  {
+    "name": "treatment_plan",
+    "description": "Kế hoạch điều trị, theo dõi, ra viện hoặc tái khám do bác sĩ nhập (FR-32).",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": "gen_random_uuid()",
+        "description": "Định danh nội bộ UUID.",
+        "constraint": "NOT NULL; DEFAULT gen_random_uuid(); PRIMARY KEY (id)"
+      },
+      {
+        "name": "encounter_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Lần khám/đợt điều trị liên quan.",
+        "constraint": "NOT NULL; FOREIGN KEY (encounter_id) REFERENCES encounter(id)"
+      },
+      {
+        "name": "doctor_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Bác sĩ phụ trách/xác nhận.",
+        "constraint": "NOT NULL; FOREIGN KEY (doctor_id) REFERENCES app_user(id)"
+      },
+      {
+        "name": "decision_id",
+        "type": "uuid",
+        "nullable": true,
+        "default_value": null,
+        "description": "Quyết định gốc nếu kế hoạch dùng kết quả hỗ trợ.",
+        "constraint": "NULL; FOREIGN KEY (decision_id) REFERENCES clinical_decision(id)"
+      },
+      {
+        "name": "kind",
+        "type": "character varying(12)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Loại bản ghi; xem CHECK của bảng.",
+        "constraint": "NOT NULL; CHECK (((kind)::text = ANY ((ARRAY['treatment'::character varying, 'monitoring'::character varying, 'discharge'::character varying, 'follow_up'::character varying])::text[])))"
+      },
+      {
+        "name": "content",
+        "type": "text",
+        "nullable": false,
+        "default_value": null,
+        "description": "Nội dung ghi nhận hoặc JSONB; xem kiểu và ràng buộc của bảng.",
+        "constraint": "NOT NULL; CHECK ((length(TRIM(BOTH FROM content)) > 0))"
+      },
+      {
+        "name": "follow_up_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "default_value": null,
+        "description": "Thời điểm tái khám dự kiến.",
+        "constraint": "NULL"
+      },
+      {
+        "name": "status",
+        "type": "character varying(12)",
+        "nullable": false,
+        "default_value": "'draft'::character varying",
+        "description": "Trạng thái; các giá trị hợp lệ được ghi trong CHECK bên dưới.",
+        "constraint": "NOT NULL; DEFAULT 'draft'::character varying; CHECK (((status)::text = ANY ((ARRAY['draft'::character varying, 'confirmed'::character varying, 'cancelled'::character varying])::text[])))"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": "now()",
+        "description": "Thời điểm tạo.",
+        "constraint": "NOT NULL; DEFAULT now()"
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "default_value": "now()",
+        "description": "Thời điểm cập nhật gần nhất.",
+        "constraint": "NOT NULL; DEFAULT now()"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "treatment_plan_content_check",
+        "definition": "CHECK ((length(TRIM(BOTH FROM content)) > 0))",
+        "columns": [
+          "content"
+        ]
+      },
+      {
+        "name": "treatment_plan_decision_id_fkey",
+        "definition": "FOREIGN KEY (decision_id) REFERENCES clinical_decision(id)",
+        "columns": [
+          "decision_id"
+        ]
+      },
+      {
+        "name": "treatment_plan_doctor_id_fkey",
+        "definition": "FOREIGN KEY (doctor_id) REFERENCES app_user(id)",
+        "columns": [
+          "doctor_id"
+        ]
+      },
+      {
+        "name": "treatment_plan_encounter_id_fkey",
+        "definition": "FOREIGN KEY (encounter_id) REFERENCES encounter(id)",
+        "columns": [
+          "encounter_id"
+        ]
+      },
+      {
+        "name": "treatment_plan_kind_check",
+        "definition": "CHECK (((kind)::text = ANY ((ARRAY['treatment'::character varying, 'monitoring'::character varying, 'discharge'::character varying, 'follow_up'::character varying])::text[])))",
+        "columns": [
+          "kind"
+        ]
+      },
+      {
+        "name": "treatment_plan_pkey",
+        "definition": "PRIMARY KEY (id)",
+        "columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "treatment_plan_status_check",
+        "definition": "CHECK (((status)::text = ANY ((ARRAY['draft'::character varying, 'confirmed'::character varying, 'cancelled'::character varying])::text[])))",
+        "columns": [
+          "status"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "ix_plan_encounter",
+        "definition": "CREATE INDEX ix_plan_encounter ON public.treatment_plan USING btree (encounter_id, created_at DESC)"
+      },
+      {
+        "name": "treatment_plan_pkey",
+        "definition": "CREATE UNIQUE INDEX treatment_plan_pkey ON public.treatment_plan USING btree (id)"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "plan_audit",
+        "definition": "CREATE TRIGGER plan_audit AFTER INSERT OR UPDATE ON public.treatment_plan FOR EACH ROW EXECUTE FUNCTION audit_record_change()"
+      },
+      {
+        "name": "treatment_plan_validate",
+        "definition": "CREATE TRIGGER treatment_plan_validate BEFORE INSERT OR UPDATE ON public.treatment_plan FOR EACH ROW EXECUTE FUNCTION validate_review_plan()"
+      }
+    ],
+    "row_level_security": []
+  },
+  {
+    "name": "user_permission",
+    "description": "Cấp quyền đặc biệt theo tài khoản; admin không tự có quyền phê duyệt chuyên môn (FR-05).",
+    "columns": [
+      {
+        "name": "user_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Tài khoản liên quan.",
+        "constraint": "NOT NULL; PRIMARY KEY (user_id, permission_code); FOREIGN KEY (user_id) REFERENCES app_user(id)"
+      },
+      {
+        "name": "permission_code",
+        "type": "character varying(60)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Mã quyền đặc biệt.",
+        "constraint": "NOT NULL; FOREIGN KEY (permission_code) REFERENCES permission(code); PRIMARY KEY (user_id, permission_code)"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "user_permission_permission_code_fkey",
+        "definition": "FOREIGN KEY (permission_code) REFERENCES permission(code)",
+        "columns": [
+          "permission_code"
+        ]
+      },
+      {
+        "name": "user_permission_pkey",
+        "definition": "PRIMARY KEY (user_id, permission_code)",
+        "columns": [
+          "user_id",
+          "permission_code"
+        ]
+      },
+      {
+        "name": "user_permission_user_id_fkey",
+        "definition": "FOREIGN KEY (user_id) REFERENCES app_user(id)",
+        "columns": [
+          "user_id"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "user_permission_pkey",
+        "definition": "CREATE UNIQUE INDEX user_permission_pkey ON public.user_permission USING btree (user_id, permission_code)"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "permission_audit",
+        "definition": "CREATE TRIGGER permission_audit AFTER INSERT OR DELETE OR UPDATE ON public.user_permission FOR EACH ROW EXECUTE FUNCTION audit_record_change()"
+      }
+    ],
+    "row_level_security": []
+  },
+  {
+    "name": "user_role",
+    "description": "Các vai trò tài khoản; tài khoản bệnh nhân tách khỏi tài khoản nhân viên (FR-03,FR-P01).",
+    "columns": [
+      {
+        "name": "user_id",
+        "type": "uuid",
+        "nullable": false,
+        "default_value": null,
+        "description": "Tài khoản liên quan.",
+        "constraint": "NOT NULL; PRIMARY KEY (user_id, role_code); FOREIGN KEY (user_id) REFERENCES app_user(id)"
+      },
+      {
+        "name": "role_code",
+        "type": "character varying(20)",
+        "nullable": false,
+        "default_value": null,
+        "description": "Mã vai trò.",
+        "constraint": "NOT NULL; PRIMARY KEY (user_id, role_code); FOREIGN KEY (role_code) REFERENCES role(code)"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "user_role_pkey",
+        "definition": "PRIMARY KEY (user_id, role_code)",
+        "columns": [
+          "user_id",
+          "role_code"
+        ]
+      },
+      {
+        "name": "user_role_role_code_fkey",
+        "definition": "FOREIGN KEY (role_code) REFERENCES role(code)",
+        "columns": [
+          "role_code"
+        ]
+      },
+      {
+        "name": "user_role_user_id_fkey",
+        "definition": "FOREIGN KEY (user_id) REFERENCES app_user(id)",
+        "columns": [
+          "user_id"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "user_role_pkey",
+        "definition": "CREATE UNIQUE INDEX user_role_pkey ON public.user_role USING btree (user_id, role_code)"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "role_audit",
+        "definition": "CREATE TRIGGER role_audit AFTER INSERT OR DELETE OR UPDATE ON public.user_role FOR EACH ROW EXECUTE FUNCTION audit_record_change()"
+      },
+      {
+        "name": "user_role_validate",
+        "definition": "CREATE TRIGGER user_role_validate BEFORE INSERT OR UPDATE ON public.user_role FOR EACH ROW EXECUTE FUNCTION validate_roles()"
+      }
+    ],
+    "row_level_security": []
   }
 ]
