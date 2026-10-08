@@ -225,7 +225,7 @@ def _rule_out(row: dict[str, Any]) -> RuleOut:
     )
 
 
-def _evaluation_result(row: dict[str, Any], modules: list[str]) -> EvaluationOut:
+def _evaluation_result(row: dict[str, Any], results: list[ModuleResultOut]) -> EvaluationOut:
     # Never copy recommendations, diagnoses, or other clinical results from SQL.
     # The route itself only persists stub rows; this response stays fail-closed if
     # an unrelated writer has left unexpected child rows behind.
@@ -235,7 +235,7 @@ def _evaluation_result(row: dict[str, Any], modules: list[str]) -> EvaluationOut
         encounter_id=row["encounter_id"],
         input_revision=row["input_revision"],
         created_at=row["created_at"],
-        results=[ModuleResultOut(module=module) for module in modules],
+        results=results,
     )
 
 
@@ -254,12 +254,13 @@ def _evaluation_header(conn: Any, evaluation_id: UUID, *, lock_case: bool = Fals
     ).fetchone()
 
 
-def _evaluation_modules(conn: Any, evaluation_id: UUID) -> list[str]:
+def _evaluation_modules(conn: Any, evaluation_id: UUID) -> list[ModuleResultOut]:
     rows = conn.execute(
         """
         SELECT m.module, m.status, m.rule_version_id,
                EXISTS (SELECT 1 FROM recommendation AS r WHERE r.module_result_id = m.id) AS has_recommendations,
-               EXISTS (SELECT 1 FROM result_missing_field AS f WHERE f.module_result_id = m.id) AS has_missing_fields
+               ARRAY(SELECT f.field_code FROM result_missing_field AS f
+                     WHERE f.module_result_id = m.id ORDER BY f.field_code) AS missing_fields
         FROM module_result AS m
         WHERE m.evaluation_id = %s
         ORDER BY m.module
@@ -272,15 +273,14 @@ def _evaluation_modules(conn: Any, evaluation_id: UUID) -> list[str]:
         row["status"] != "mock_not_evaluated"
         or row["rule_version_id"] is not None
         or row["has_recommendations"]
-        or row["has_missing_fields"]
         for row in rows
     ):
         raise HTTPException(status_code=409, detail="Đánh giá chứa kết quả ngoài chế độ stub")
-    return [row["module"] for row in rows]
+    return [ModuleResultOut(module=row["module"], missing_fields=row["missing_fields"]) for row in rows]
 
 
-def _load_evaluation(conn: Any, header: dict[str, Any], modules: list[str]) -> EvaluationOut:
-    return _evaluation_result(header, modules)
+def _load_evaluation(conn: Any, header: dict[str, Any], results: list[ModuleResultOut]) -> EvaluationOut:
+    return _evaluation_result(header, results)
 
 
 def build_rules_router() -> APIRouter:
@@ -390,7 +390,7 @@ def build_rules_router() -> APIRouter:
                         **inserted,
                         "case_id": encounter["case_id"],
                     },
-                    body.modules,
+                    [ModuleResultOut(module=module) for module in body.modules],
                 )
         except HTTPException:
             raise
@@ -414,7 +414,7 @@ def build_rules_router() -> APIRouter:
                 scope = "clinical" if actor.role == "doctor" else "medsafety"
                 require_case_access(conn, actor, header["case_id"], {scope})
                 modules = _evaluation_modules(conn, evaluation_id)
-                if actor.role == "pharmacist" and any(module != "medsafety" for module in modules):
+                if actor.role == "pharmacist" and any(result.module != "medsafety" for result in modules):
                     raise HTTPException(status_code=403, detail="Dược sĩ chỉ được xem kết quả MedSafety")
                 return _load_evaluation(conn, header, modules)
         except HTTPException:
