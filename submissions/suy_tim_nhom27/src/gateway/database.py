@@ -32,6 +32,13 @@ def create_pool(database_url: str | None = None) -> ConnectionPool | None:
     )
 
 
+def _pool_for(request: Request) -> ConnectionPool:
+    pool: ConnectionPool | None = getattr(request.app.state, "pool", None)
+    if pool is None:
+        raise HTTPException(status_code=503, detail="Cơ sở dữ liệu demo chưa được cấu hình")
+    return pool
+
+
 @contextmanager
 def staff_connection(request: Request, actor: "Actor") -> Iterator[Connection]:
     """Yield a transaction-scoped table-owner connection with a trusted actor.
@@ -39,11 +46,20 @@ def staff_connection(request: Request, actor: "Actor") -> Iterator[Connection]:
     API role and case-scope checks must run before repository work. The SET LOCAL
     statements are transaction-scoped and cannot leak through the connection pool.
     """
-    pool: ConnectionPool | None = getattr(request.app.state, "pool", None)
-    if pool is None:
-        raise HTTPException(status_code=503, detail="Cơ sở dữ liệu demo chưa được cấu hình")
-    with pool.connection() as conn:
+    with _pool_for(request).connection() as conn:
         conn.execute("SET LOCAL ROLE hf_demo_owner")
+        conn.execute(
+            "SELECT set_config('app.user_id', %s, true)",
+            (str(actor.user_id),),
+        )
+        yield conn
+
+
+@contextmanager
+def portal_connection(request: Request, actor: "Actor") -> Iterator[Connection]:
+    """Yield a transaction as the restricted patient portal role under its own identity."""
+    with _pool_for(request).connection() as conn:
+        conn.execute("SET LOCAL ROLE hf_patient_portal")
         conn.execute(
             "SELECT set_config('app.user_id', %s, true)",
             (str(actor.user_id),),
@@ -54,10 +70,7 @@ def staff_connection(request: Request, actor: "Actor") -> Iterator[Connection]:
 @contextmanager
 def plain_connection(request: Request) -> Iterator[Connection]:
     """Yield an ordinary runtime connection for authentication/session queries."""
-    pool: ConnectionPool | None = getattr(request.app.state, "pool", None)
-    if pool is None:
-        raise HTTPException(status_code=503, detail="Cơ sở dữ liệu demo chưa được cấu hình")
-    with pool.connection() as conn:
+    with _pool_for(request).connection() as conn:
         yield conn
 
 

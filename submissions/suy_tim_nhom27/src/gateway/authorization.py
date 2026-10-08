@@ -41,7 +41,7 @@ def _actor_from_session(conn: Any, user_id: UUID, username: str) -> Actor:
         "SELECT role_code FROM user_role WHERE user_id = %s ORDER BY role_code",
         (user_id,),
     ).fetchall()
-    roles = [row[0] for row in role_rows]
+    roles = [row["role_code"] for row in role_rows]
     # The API contract has one active role per account. Fail closed if the
     # database has zero, duplicate, or unsupported role assignments.
     if len(roles) != 1 or roles[0] not in _VALID_ROLES:
@@ -50,7 +50,7 @@ def _actor_from_session(conn: Any, user_id: UUID, username: str) -> Actor:
         "SELECT permission_code FROM user_permission WHERE user_id = %s ORDER BY permission_code",
         (user_id,),
     ).fetchall()
-    permissions = frozenset(row[0] for row in permission_rows)
+    permissions = frozenset(row["permission_code"] for row in permission_rows)
     return Actor(
         user_id=user_id,
         username=username,
@@ -77,7 +77,9 @@ def get_current_actor(
     with pool.connection() as conn:
         row = conn.execute(
             """
-            SELECT u.id, u.username, u.active, s.expires_at, s.revoked_at
+            SELECT u.id AS user_id, u.username, u.active,
+                   (s.expires_at > now()) AS session_unexpired,
+                   s.revoked_at
             FROM auth_session AS s
             JOIN app_user AS u ON u.id = s.user_id
             WHERE s.token_hash = %s
@@ -86,13 +88,9 @@ def get_current_actor(
         ).fetchone()
         if row is None:
             raise _unauthorized()
-        user_id, username, active, expires_at, revoked_at = row
-        # Compare against the database clock to avoid host clock skew.
-        valid = conn.execute(
-            "SELECT (%s::timestamptz > now())",
-            (expires_at,),
-        ).fetchone()[0]
-        if not active or revoked_at is not None or not valid:
+        user_id = row["user_id"]
+        username = row["username"]
+        if not row["active"] or row["revoked_at"] is not None or not row["session_unexpired"]:
             raise _unauthorized()
         return _actor_from_session(conn, user_id, username)
 
@@ -152,7 +150,7 @@ def require_case_access(
     is_clinical_owner = (
         actor.role == "doctor"
         and "clinical" in eligible_scopes
-        and str(case_row[0]) == str(actor.user_id)
+        and str(case_row["owner_id"]) == str(actor.user_id)
     )
     if access_row is None and not is_clinical_owner:
         raise HTTPException(status_code=403, detail="Không có quyền truy cập ca")

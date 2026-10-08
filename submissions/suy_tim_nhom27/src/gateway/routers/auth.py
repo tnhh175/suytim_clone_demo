@@ -80,14 +80,16 @@ def login(body: LoginPayload, request: Request) -> TokenResponse:
     pool = _pool(request)
     with pool.connection() as conn:
         row = conn.execute(
-            "SELECT id, password_hash, active FROM app_user WHERE username = %s",
+            "SELECT id AS user_id, password_hash, active FROM app_user WHERE username = %s",
             (body.username,),
         ).fetchone()
         if row is None:
             _burn_password_verification(body.password)
             raise HTTPException(status_code=401, detail="Thông tin đăng nhập không hợp lệ")
 
-        user_id, password_hash, active = row
+        user_id = row["user_id"]
+        password_hash = row["password_hash"]
+        active = row["active"]
         password_matches = verify_password(body.password, password_hash)
         if not password_matches or not active:
             raise HTTPException(status_code=401, detail="Thông tin đăng nhập không hợp lệ")
