@@ -40,6 +40,7 @@ class FakeDatabase:
         self.case_revision = 4
         self.evaluations = {}
         self.module_results = {}
+        self.module_result_details = {}
         self.decisions = {}
         self.rules = {}
         self.approvals = {}
@@ -124,10 +125,10 @@ class FakeDatabase:
         if normalized.startswith("select m.module, m.status, m.rule_version_id"):
             return Cursor([{
                 "module": module,
-                "status": "mock_not_evaluated",
-                "rule_version_id": None,
-                "has_recommendations": False,
-                "has_missing_fields": False,
+                "status": self.module_result_details.get((params[0], module), {}).get("status", "mock_not_evaluated"),
+                "rule_version_id": self.module_result_details.get((params[0], module), {}).get("rule_version_id"),
+                "has_recommendations": self.module_result_details.get((params[0], module), {}).get("has_recommendations", False),
+                "missing_fields": self.module_result_details.get((params[0], module), {}).get("missing_fields", []),
             } for module in self.module_results.get(params[0], [])])
         if normalized.startswith("insert into clinical_decision("):
             evaluation_id, doctor_id, action, reason, adjustment_json = params
@@ -302,6 +303,35 @@ def test_case_history_and_export_are_clinical_scope_only(monkeypatch):
     pharmacist, _ = make_client(monkeypatch, role="pharmacist", database=database)
     assert pharmacist.get(f"/api/v1/cases/{CASE_ID}/history").status_code == 403
     assert pharmacist.get(f"/api/v1/cases/{CASE_ID}/export").status_code == 403
+
+
+def test_mock_missing_fields_are_visible_in_evaluation_history_and_export(monkeypatch):
+    client, database = make_client(monkeypatch)
+    created = client.post("/api/v1/evaluations", json={
+        "encounter_id": str(ENCOUNTER_ID), "expected_revision": 4, "modules": ["diagnosis", "lab_test"],
+    })
+    assert created.status_code == 201
+    evaluation_id = UUID(created.json()["id"])
+    # Match the seeded SYN-DEMO-001 result: a mock diagnosis module with missing EF.
+    database.module_result_details[(evaluation_id, "diagnosis")] = {"missing_fields": ["ef"]}
+
+    evaluation = client.get(f"/api/v1/evaluations/{evaluation_id}")
+    assert evaluation.status_code == 200
+    assert next(row for row in evaluation.json()["results"] if row["module"] == "diagnosis")["missing_fields"] == ["ef"]
+
+    history = client.get(f"/api/v1/cases/{CASE_ID}/history")
+    assert history.status_code == 200
+    assert next(row for row in history.json()[0]["results"] if row["module"] == "diagnosis")["missing_fields"] == ["ef"]
+
+    export = client.get(f"/api/v1/cases/{CASE_ID}/export")
+    assert export.status_code == 200
+    assert next(row for row in export.json()["evaluations"][0]["results"] if row["module"] == "diagnosis")["missing_fields"] == ["ef"]
+
+    # Actual clinical result content remains fail-closed even with missing fields present.
+    database.module_result_details[(evaluation_id, "diagnosis")]["status"] = "completed"
+    assert client.get(f"/api/v1/evaluations/{evaluation_id}").status_code == 409
+    assert client.get(f"/api/v1/cases/{CASE_ID}/history").status_code == 409
+    assert client.get(f"/api/v1/cases/{CASE_ID}/export").status_code == 409
 
 
 def test_evaluation_rejects_rule_linkage_and_decision_requires_adjustment_details(monkeypatch):
