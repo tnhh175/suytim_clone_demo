@@ -13,6 +13,7 @@ const caseId = '10000000-0000-4000-8000-000000000001';
 const draftRule = '50000000-0000-4000-8000-000000000001';
 const decidedResult = '52000000-0000-4000-8000-000000000001';
 const treatmentResult = '52000000-0000-4000-8000-000000000003';
+let replayStable;
 
 async function scalar(sql, params = []) { return Object.values((await db.query(sql, params)).rows[0])[0]; }
 async function failure(sql, pattern, params = []) {
@@ -42,11 +43,23 @@ before(async () => {
   for (const file of ['schema.sql', 'seed.sql', 'portal_permissions.sql', 'migrations/001_result_integrity.sql']) {
     await db.exec(await readFile(new URL(file, root), 'utf8'));
   }
+  const snapshot = async () => (await db.query(`SELECT
+    (SELECT count(*) FROM module_result) AS results,
+    (SELECT count(*) FROM recommendation) AS recommendations,
+    (SELECT count(*) FROM result_missing_field) AS missing_fields,
+    (SELECT count(*) FROM audit_event) AS audit,
+    (SELECT sum(revision) FROM patient_case) AS revisions`)).rows;
+  const beforeReplay = await snapshot();
+  await db.exec(await readFile(new URL('seed.sql', root), 'utf8'));
+  replayStable = JSON.stringify(beforeReplay) === JSON.stringify(await snapshot());
 });
 beforeEach(async () => { await db.exec('BEGIN'); });
 afterEach(async () => { await db.exec('ROLLBACK'); });
 after(async () => { await db.close(); });
 
+test('bootstrap then seed then migration permits unchanged seed replay', () => {
+  assert.ok(replayStable);
+});
 test('regression: decided result cannot be rewritten to completed with a draft rule', async () => {
   await failure(`UPDATE module_result SET message='Rewritten after decision',status='completed',rule_version_id=$1
     WHERE id=$2`, /Append-only/, [draftRule, decidedResult]);
@@ -117,8 +130,11 @@ test('a clinical decision prevents appending module results, recommendations and
   const id = await evaluation();
   const completed = await result(id);
   await db.query("INSERT INTO clinical_decision(evaluation_id,doctor_id,action) VALUES($1,$2,'accepted')", [id, doctor]);
-  await failure(`INSERT INTO module_result(evaluation_id,module,rule_version_id,status,message)
-    VALUES($1,'diagnosis',$2,'completed','Extra result')`, /finalized/, [id, draftRule]);
+  const stub = await evaluation('stub');
+  await result(stub, 'mock_not_evaluated', 'diagnosis', null);
+  await db.query("INSERT INTO clinical_decision(evaluation_id,doctor_id,action) VALUES($1,$2,'accepted')", [stub, doctor]);
+  await failure(`INSERT INTO module_result(evaluation_id,module,status,message)
+    VALUES($1,'lab_test','mock_not_evaluated','Extra result')`, /finalized/, [stub]);
   await failure(recommendation, /finalized/, [completed]);
   await failure("INSERT INTO result_missing_field(module_result_id,field_code) VALUES($1,'ef')", /finalized/, [completed]);
   await failure("INSERT INTO result_missing_field(module_result_id,field_code) VALUES($1,'egfr')", /finalized/, [decidedResult]);
