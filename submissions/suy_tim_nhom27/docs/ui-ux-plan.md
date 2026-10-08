@@ -10,7 +10,7 @@ Banner luôn hiện ở đầu ứng dụng, kể cả khi cuộn:
 
 **Demo — Synthetic Data — Not for Clinical Use**
 
-Gateway hiện là stub trong RAM, không nối PostgreSQL; dữ liệu ở database/seed.sql là nguồn fixtures riêng và không tự xuất hiện trong Gateway. Tài khoản/role trong seed cũng chưa được nối với luồng đăng nhập của Gateway. UI chỉ được hiển thị dữ liệu mà endpoint đang trả; không được hard-code lại seed để bù endpoint thiếu.
+Gateway dùng PostgreSQL cho session và các luồng clinical/portal được triển khai. Tài khoản từ seed xác thực qua `/api/v1/auth/token`; browser chỉ gọi API và không đọc DB trực tiếp. Các trang vẫn phải phản ánh đúng phần SRS chưa có endpoint.
 
 Mỗi lần đánh giá và từng module luôn hiển thị **mock_not_evaluated**. Không hiển thị chẩn đoán, mức độ nguy cơ, đề xuất xét nghiệm, thuốc/liều, cảnh báo tương tác, điểm tin cậy hoặc biểu đồ kết quả lâm sàng. Không suy diễn “bình thường”, “không có” hay “đã an toàn” từ trường rỗng hoặc dữ liệu thiếu. Trạng thái unknown, not_measured và present phải được giữ riêng biệt.
 
@@ -66,20 +66,20 @@ Role trong schema/SRS là doctor, nurse, pharmacist, admin, patient. Điều hư
 | Admin | Tài khoản và role; Danh mục; Quy tắc; Nhật ký | Quyền quản trị kỹ thuật không cấp quyền đọc hồ sơ lâm sàng hoặc quyết định y khoa. Quyền duyệt chuyên môn rule.approve là quyền riêng. |
 | Patient | Lịch khám; Chỉ số tại nhà; Đơn đã xác nhận; Nhắc thuốc | Chỉ một hồ sơ gắn với tài khoản. Có thể yêu cầu/hủy lịch chưa hoàn thành, nhập chỉ số của mình và phản hồi nhắc uống. Không sửa đơn, liều, đường dùng hoặc giờ uống. |
 
-Gateway hiện chỉ định tuyến cho doctor, pharmacist và admin. Role nurse/patient có trong schema và seed nhưng chưa có API Gateway; không tạo đăng nhập giả, không cho chuyển role trong cùng phiên và không hiển thị thao tác như thể đã lưu. Chỉ bật các màn hình nurse/patient khi có API xác thực quyền và dữ liệu tương ứng.
+Demo có đăng nhập và điều hướng cho đủ năm role doctor, nurse, pharmacist, admin, patient. Ẩn menu không thay thế kiểm tra quyền server; cổng patient giới hạn theo case từ session/RLS, staff giới hạn theo role và scope.
 
 ## 5. Màn hình và candidate API
 
-Các đường dẫn dưới đây là hợp đồng hiện có trong api/openapi.yaml, trừ khi ghi rõ là candidate từ schema/seed. Không gọi database trực tiếp từ browser. Candidate từ schema chỉ ra dữ liệu cần có cho API tương lai, không phải endpoint đã triển khai.
+Các đường dẫn dưới đây là API hiện được giao diện gọi; những mục được ghi “chưa có” vẫn là candidate từ SRS/schema. Không gọi database trực tiếp từ browser.
 
 ### Doctor
 
 | Màn hình / thao tác | Candidate API và hành vi |
 | --- | --- |
-| Đăng nhập | POST /api/v1/auth/token. Gateway hiện dùng cấu hình mật khẩu demo dùng chung và token RAM; phiên này không phải xác thực production. |
+| Đăng nhập | POST /api/v1/auth/token. Mật khẩu PBKDF2 theo tài khoản, session lưu hash trong DB; token opaque có hạn một giờ. |
 | Tổng quan và danh sách hồ sơ | GET /api/v1/cases. Tạo hồ sơ synthetic bằng POST /api/v1/cases; chi tiết GET /api/v1/cases/{case_id}; cập nhật PUT /api/v1/cases/{case_id} với expected_revision. Các route hồ sơ chỉ dành cho doctor. |
-| Encounter | Tạo bằng POST /api/v1/cases/{case_id}/encounters; đọc một encounter đã biết ID bằng GET /api/v1/encounters/{encounter_id}. OpenAPI chưa có route liệt kê encounter theo case. |
-| Observation và thuốc | GET/POST /api/v1/encounters/{encounter_id}/observations; GET/POST /api/v1/encounters/{encounter_id}/medications. Dữ liệu không được ghi đè âm thầm; observation mới là bản ghi mới theo contract hiện tại. |
+| Encounter | GET danh sách `/cases/{case_id}/encounters`, POST tạo encounter có revision, GET `/encounters/{encounter_id}`. Tất cả ID/scope do API kiểm tra. |
+| Observation và thuốc | GET/POST observations, PUT observation theo revision; GET/POST medications. POST thuốc chỉ ghi bản ghi synthetic, không tạo prescription/schedule. |
 | Timeline và lịch sử | GET /api/v1/cases/{case_id}/history hiện chỉ trả lịch sử evaluations và decision, không phải timeline đầy đủ của hồ sơ. Cần API liệt kê encounter và sự kiện lâm sàng trước khi tuyên bố timeline hoàn chỉnh. |
 | Đánh giá demo | POST /api/v1/evaluations nhận encounter, revision và danh sách module; GET /api/v1/evaluations/{evaluation_id} đọc lại. Tất cả module luôn là mock_not_evaluated, mode stub, không có kết quả lâm sàng. |
 | Thao tác decision demo | POST /api/v1/evaluations/{evaluation_id}/decisions có trong OpenAPI. Vì evaluation không có gợi ý thật, UI không được gọi thao tác này là “chấp nhận phác đồ” hay “ra y lệnh”; nếu dùng để trình diễn route, phải ghi rõ là thao tác stub. |
@@ -89,9 +89,9 @@ Các đường dẫn dưới đây là hợp đồng hiện có trong api/openap
 
 | Màn hình / thao tác | Candidate API và dữ liệu nguồn |
 | --- | --- |
-| Ca được phân công | Schema: case_access với scope nursing, patient_case, encounter. Chưa có API Gateway để liệt kê ca theo scope; không dùng GET /cases vì route hiện chỉ cho doctor. |
-| Theo dõi encounter | Schema: encounter, observation, observation_type, clinical_note. Chưa có API Gateway đọc timeline theo role nurse. |
-| Nhập sinh hiệu, cân nặng, triệu chứng và ghi chú chăm sóc | SRS FR-09; candidate DB tables observation và clinical_note. OpenAPI hiện giới hạn POST observations cho doctor, do đó không gọi route hiện có như nurse. Cần endpoint được cấp scope nursing trước khi bật lưu. |
+| Ca được phân công | GET `/api/v1/cases`; API chỉ trả ca theo nursing scope của điều dưỡng. |
+| Theo dõi encounter | GET danh sách/detail encounter trong nursing scope; GET observations và notes theo encounter. |
+| Nhập sinh hiệu, cân nặng, triệu chứng và ghi chú chăm sóc | POST observation theo nursing allowlist và POST note với `kind=nursing`; yêu cầu revision, ghi actor từ session. |
 
 ### Pharmacist
 
@@ -115,11 +115,11 @@ Các đường dẫn dưới đây là hợp đồng hiện có trong api/openap
 
 | Màn hình / thao tác | Candidate API và dữ liệu nguồn |
 | --- | --- |
-| Lịch khám | Schema có appointment; FR-P02 cho phép xem/yêu cầu/hủy lịch chưa hoàn thành, slot 30 phút trong tương lai. Chưa có route portal trong OpenAPI/Gateway. |
-| Chỉ số tại nhà | Schema có patient_measurement; chỉ đọc/ghi bản ghi của hồ sơ gắn với tài khoản. Nội dung tự nhập không được đưa thành kết quả đã nhân viên kiểm tra và không tạo lời khuyên điều trị. |
-| Đơn đã xác nhận | Candidate view patient_prescription_view và các bảng prescription/medication/schedule; chỉ hiển thị đơn đã xác nhận hoặc trạng thái được phép. Chỉ đọc; không có form sửa đơn, liều hay giờ uống. |
-| Nhắc thuốc | Candidate view patient_reminder_view; bệnh nhân chỉ đổi trạng thái nhắc theo quyền schema. Không thay đổi medication schedule. |
-| Phạm vi | patient_account gắn một tài khoản với đúng một case; policy portal giới hạn theo case đó. Chưa có API Gateway nên không mở cổng patient trong demo đang chạy. |
+| Lịch khám | GET/POST `/api/v1/patient/appointments`; POST `/appointments/{id}/cancel`. Patient chỉ yêu cầu lịch và hủy trạng thái chưa hoàn thành; staff confirm/complete chưa có trong demo. |
+| Chỉ số tại nhà | GET/POST `/api/v1/patient/measurements`; server gắn case và recorded_by từ session. Nội dung lưu riêng, giữ nhãn bệnh nhân tự nhập, không tạo tư vấn. |
+| Đơn đã xác nhận | GET `/api/v1/patient/prescriptions`; dữ liệu chỉ đọc từ view/RLS. Demo không tạo/sửa prescription hoặc schedule. |
+| Nhắc thuốc | GET `/api/v1/patient/reminders`; PATCH `/reminders/{id}` chỉ cho phép phản hồi pending thành taken/skipped. Không có worker hoặc notification thật. |
+| Phạm vi | `patient_account` gắn một tài khoản với một case; session server và `hf_patient_portal`/RLS giới hạn mọi thao tác vào hồ sơ đó. |
 
 ## 6. Trạng thái, lỗi và an toàn thao tác
 
