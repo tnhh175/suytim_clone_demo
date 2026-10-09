@@ -32,6 +32,8 @@ Tất cả endpoint trên có đầy đủ prefix `/api/v1`. Xem schema cụ th�
 
 Gửi token nhận được trong header `Authorization: Bearer <access_token>`. Tài khoản chỉ dùng dữ liệu synthetic của seed.
 
+Giao diện đăng nhập gửi thêm `selected_role`: một trong `doctor`, `nurse`, `pharmacist`, `patient`, `admin`. Server xác thực tài khoản và so vai trò đã chọn với vai trò trong database trước khi tạo phiên. Sai tài khoản, mật khẩu hoặc vai trò cùng trả `401` với thông báo chung; vai trò ngoài danh sách trả `422`. Trường này không cấp quyền và là tùy chọn để giữ tương thích với caller chỉ gửi `username`/`password`.
+
 ## Đăng ký bệnh nhân
 
 `POST /api/v1/auth/register` công khai nhận:

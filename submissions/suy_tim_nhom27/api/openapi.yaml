@@ -1767,6 +1767,16 @@ components:
           maxLength: 200
           minLength: 1
           title: Password
+        selected_role:
+          title: Selected Role
+          nullable: true
+          type: string
+          enum:
+          - doctor
+          - nurse
+          - pharmacist
+          - patient
+          - admin
       additionalProperties: false
       type: object
       required:

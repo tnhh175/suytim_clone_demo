@@ -196,6 +196,20 @@ def test_login_rejects_wrong_password_unknown_account_and_client_role():
     }).status_code == 422
 
 
+def test_selected_role_is_checked_before_creating_a_session():
+    pool = FakePool()
+    client = client_for(pool)
+    credentials = {"username": "doctor_demo", "password": "DemoOnly!2026"}
+    response = client.post("/api/v1/auth/token", json={**credentials, "selected_role": "admin"})
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Thông tin đăng nhập không hợp lệ"
+    assert not pool.sessions
+    assert client.post("/api/v1/auth/token", json={**credentials, "selected_role": "unknown"}).status_code == 422
+    assert not pool.sessions
+    assert client.post("/api/v1/auth/token", json={**credentials, "selected_role": "doctor"}).status_code == 200
+    assert len(pool.sessions) == 1
+
+
 def test_case_access_checks_existence_role_and_assigned_scope():
     pool = FakePool()
     with pool.connection() as conn:
