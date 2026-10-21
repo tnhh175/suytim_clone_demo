@@ -1,0 +1,60 @@
+﻿Mã,Ưu tiên,Nguồn yêu cầu,User Stories,Use Case,BDD,Trạng thái nghiệm thu
+FR01,P1,Báo cáo mục 4.1,US-01,UC02,US-01,Chưa nghiệm thu theo bộ SRS mới
+FR02,P3,Báo cáo mục 4.1,US-04,UC02,US-04,Chưa nghiệm thu theo bộ SRS mới
+FR03,P3,Báo cáo mục 4.1,"US-05, US-06",UC03,"US-05, US-06",Chưa nghiệm thu theo bộ SRS mới
+FR04,P1,Báo cáo mục 4.1,US-07,UC04,US-07,Chưa nghiệm thu theo bộ SRS mới
+FR05,P1,Báo cáo mục 4.1,US-08,UC04,US-08,Chưa nghiệm thu theo bộ SRS mới
+FR06,P1,Báo cáo mục 4.1,US-09,UC04,US-09,Chưa nghiệm thu theo bộ SRS mới
+FR07,P1,Báo cáo mục 4.1,US-10,UC04,US-10,Chưa nghiệm thu theo bộ SRS mới
+FR08,P1,Báo cáo mục 4.1,US-11,UC05,US-11,Chưa nghiệm thu theo bộ SRS mới
+FR09,P1,Báo cáo mục 4.1,US-12,UC05,US-12,Chưa nghiệm thu theo bộ SRS mới
+FR10,P1,Báo cáo mục 4.1,US-13,UC05,US-13,Chưa nghiệm thu theo bộ SRS mới
+FR11,P1,Báo cáo mục 4.1,US-14,UC05,US-14,Chưa nghiệm thu theo bộ SRS mới
+FR12,P1,Báo cáo mục 4.1,US-15,UC05,US-15,Chưa nghiệm thu theo bộ SRS mới
+FR13,P1,Báo cáo mục 4.1,US-16,UC06,US-16,Chưa nghiệm thu theo bộ SRS mới
+FR14,P1,Báo cáo mục 4.1,US-17,UC06,US-17,Chưa nghiệm thu theo bộ SRS mới
+FR15,P1,Báo cáo mục 4.1,US-18,UC06,US-18,Chưa nghiệm thu theo bộ SRS mới
+FR16,P1,Báo cáo mục 4.1,US-19,UC07,US-19,Chưa nghiệm thu theo bộ SRS mới
+FR17,P1,Báo cáo mục 4.1,US-20,UC07,US-20,Chưa nghiệm thu theo bộ SRS mới
+FR18,P1,Báo cáo mục 4.1,US-21,UC07,US-21,Chưa nghiệm thu theo bộ SRS mới
+FR19,P1,Báo cáo mục 4.1,US-22,UC07,US-22,Chưa nghiệm thu theo bộ SRS mới
+FR20,P1,Báo cáo mục 4.1,US-23,UC07,US-23,Chưa nghiệm thu theo bộ SRS mới
+FR21,P1,Báo cáo mục 4.1,US-24,UC07,US-24,Chưa nghiệm thu theo bộ SRS mới
+FR22,P1,Báo cáo mục 4.1,US-25,UC07,US-25,Chưa nghiệm thu theo bộ SRS mới
+FR23,P1,Báo cáo mục 4.1,US-26,UC07,US-26,Chưa nghiệm thu theo bộ SRS mới
+FR24,P1,Báo cáo mục 4.1,US-27,UC07,US-27,Chưa nghiệm thu theo bộ SRS mới
+FR25,P1,Báo cáo mục 4.1,US-28,UC07,US-28,Chưa nghiệm thu theo bộ SRS mới
+FR26,P1,Báo cáo mục 4.1,US-29,UC07,US-29,Chưa nghiệm thu theo bộ SRS mới
+FR27,P1,Đề xuất chuẩn hóa từ chức năng 4.1 đến 4.3 và US-30 đến US-35,US-30,UC08,US-30,Chưa nghiệm thu theo bộ SRS mới
+FR28,P1,Đề xuất chuẩn hóa từ chức năng 4.1 đến 4.3 và US-30 đến US-35,US-31,UC08,US-31,Chưa nghiệm thu theo bộ SRS mới
+FR29,P1,Đề xuất chuẩn hóa từ chức năng 4.1 đến 4.3 và US-30 đến US-35,US-32,UC08,US-32,Chưa nghiệm thu theo bộ SRS mới
+FR30,P1,Đề xuất chuẩn hóa từ chức năng 4.1 đến 4.3 và US-30 đến US-35,US-32,UC08,US-32,Chưa nghiệm thu theo bộ SRS mới
+FR31,P1,Đề xuất chuẩn hóa từ chức năng 4.1 đến 4.3 và US-30 đến US-35,US-33,UC08,US-33,Chưa nghiệm thu theo bộ SRS mới
+FR32,P1,Đề xuất chuẩn hóa từ chức năng 4.1 đến 4.3 và US-30 đến US-35,US-34,UC08,US-34,Chưa nghiệm thu theo bộ SRS mới
+FR33,P3,Đề xuất chuẩn hóa từ chức năng 4.1 đến 4.3 và US-30 đến US-35,US-35,UC09,US-35,Chưa nghiệm thu theo bộ SRS mới
+FR34,P3,Đề xuất chuẩn hóa từ chức năng 4.1 đến 4.3 và US-30 đến US-35,US-35,UC09,US-35,Chưa nghiệm thu theo bộ SRS mới
+FR35,P3,Báo cáo mục 4.1,US-06,UC03,US-06,Chưa nghiệm thu theo bộ SRS mới
+FR36,P3,Báo cáo mục 4.1,US-36,UC09,US-36,Chưa nghiệm thu theo bộ SRS mới
+FR37,P3,Báo cáo mục 4.1,US-37,UC10,US-37,Chưa nghiệm thu theo bộ SRS mới
+FR38,P3,Báo cáo mục 4.1,US-38,UC10,US-38,Chưa nghiệm thu theo bộ SRS mới
+FR39,P3,Báo cáo mục 4.1,US-39,UC10,US-39,Chưa nghiệm thu theo bộ SRS mới
+FR40,P1,Báo cáo mục 4.1,"US-02, US-03",UC01 / UC12,"US-02, US-03",Chưa nghiệm thu theo bộ SRS mới
+FR41,P1,Báo cáo mục 4.1,US-40,UC11,US-40,Chưa nghiệm thu theo bộ SRS mới
+FR42,P1,Báo cáo mục 4.1,US-41,UC12,US-41,Chưa nghiệm thu theo bộ SRS mới
+FR43,P1,Báo cáo mục 4.1,US-42,UC12,US-42,Chưa nghiệm thu theo bộ SRS mới
+FR44,P1,Báo cáo mục 4.1,US-43,UC12,US-43,Chưa nghiệm thu theo bộ SRS mới
+FR45,P1,Báo cáo mục 4.1,US-44,UC12,US-44,Chưa nghiệm thu theo bộ SRS mới
+FR46,P2,Báo cáo mục 4.1,US-45,UC01,US-45,Chưa nghiệm thu theo bộ SRS mới
+NFR01,P1,Báo cáo mục 4.2,Yêu cầu chất lượng dùng chung,Theo chức năng liên quan,Cần xây dựng ca NFR theo môi trường đã chốt,Chưa nghiệm thu theo bộ SRS mới
+NFR02,P1,Báo cáo mục 4.2,Yêu cầu chất lượng dùng chung,Theo chức năng liên quan,Cần xây dựng ca NFR theo môi trường đã chốt,Chưa nghiệm thu theo bộ SRS mới
+NFR03,P1,Báo cáo mục 4.2,Yêu cầu chất lượng dùng chung,Theo chức năng liên quan,Cần xây dựng ca NFR theo môi trường đã chốt,Chưa nghiệm thu theo bộ SRS mới
+NFR04,P1,Báo cáo mục 4.2,Yêu cầu chất lượng dùng chung,Theo chức năng liên quan,Cần xây dựng ca NFR theo môi trường đã chốt,Chưa nghiệm thu theo bộ SRS mới
+NFR05,P1,Báo cáo mục 4.2,Yêu cầu chất lượng dùng chung,Theo chức năng liên quan,Cần xây dựng ca NFR theo môi trường đã chốt,Chưa nghiệm thu theo bộ SRS mới
+NFR06,P1,Báo cáo mục 4.2,Yêu cầu chất lượng dùng chung,Theo chức năng liên quan,Cần xây dựng ca NFR theo môi trường đã chốt,Chưa nghiệm thu theo bộ SRS mới
+NFR07,P1,Báo cáo mục 4.2,Yêu cầu chất lượng dùng chung,Theo chức năng liên quan,Cần xây dựng ca NFR theo môi trường đã chốt,Chưa nghiệm thu theo bộ SRS mới
+NFR08,P2,Báo cáo mục 4.2,Yêu cầu chất lượng dùng chung,Theo chức năng liên quan,Cần xây dựng ca NFR theo môi trường đã chốt,Chưa nghiệm thu theo bộ SRS mới
+NFR09,P1,Báo cáo mục 4.2,Yêu cầu chất lượng dùng chung,Theo chức năng liên quan,Cần xây dựng ca NFR theo môi trường đã chốt,Chưa nghiệm thu theo bộ SRS mới
+NFR10,P2,Báo cáo mục 4.2,Yêu cầu chất lượng dùng chung,Theo chức năng liên quan,Cần xây dựng ca NFR theo môi trường đã chốt,Chưa nghiệm thu theo bộ SRS mới
+NFR11,P2,Báo cáo mục 4.2,Yêu cầu chất lượng dùng chung,Theo chức năng liên quan,Cần xây dựng ca NFR theo môi trường đã chốt,Chưa nghiệm thu theo bộ SRS mới
+NFR12,P1,Báo cáo mục 4.2,Yêu cầu chất lượng dùng chung,Theo chức năng liên quan,Cần xây dựng ca NFR theo môi trường đã chốt,Chưa nghiệm thu theo bộ SRS mới
+NFR13,P1,Báo cáo mục 4.2,Yêu cầu chất lượng dùng chung,Theo chức năng liên quan,Cần xây dựng ca NFR theo môi trường đã chốt,Chưa nghiệm thu theo bộ SRS mới
