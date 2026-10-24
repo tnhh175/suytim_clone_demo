@@ -1,0 +1,47 @@
+{
+  "scope": "Independent exact save() function harness with mocked DOM/API, not UI test",
+  "sourceSha256": "eaa8eb2bba80aa6c9f982831211b3a958c8f1e86f9e9f31bb04a88712f4d7c38",
+  "pass": true,
+  "scenarios": [
+    {
+      "mode": "success",
+      "locked": true,
+      "restored": true,
+      "dirty": {},
+      "revision": 1,
+      "notices": [
+        {
+          "msg": "Máy chủ đã xác nhận lưu thành công.",
+          "kind": "success"
+        }
+      ]
+    },
+    {
+      "mode": "save-fail",
+      "locked": true,
+      "restored": true,
+      "dirty": {
+        "can_nang": 0
+      },
+      "revision": 0,
+      "notices": [
+        {
+          "msg": "synthetic failure"
+        }
+      ]
+    },
+    {
+      "mode": "reload-fail",
+      "locked": true,
+      "restored": true,
+      "dirty": {},
+      "revision": 1,
+      "notices": [
+        {
+          "msg": "Máy chủ đã xác nhận lưu phiên bản 1, nhưng chưa tải lại được bản đọc mới. synthetic reload failure",
+          "kind": "warn"
+        }
+      ]
+    }
+  ]
+}

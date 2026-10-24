@@ -12,3 +12,9 @@ Thumbs.db
 .ipynb_checkpoints/
 node_modules/
 changed_files.txt
+.venv/
+.pytest_cache/
+.context-shears/
+local-data/
+uploads/
+*.log

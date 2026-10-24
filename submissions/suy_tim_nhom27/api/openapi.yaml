@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: Nhóm 27 — Demo quản lý bệnh viện
+  title: Hệ thống quản lý bệnh nhân suy tim
   description: Demo dùng dữ liệu synthetic và PostgreSQL. Bốn module lâm sàng luôn
     mock_not_evaluated; không cung cấp chẩn đoán, khuyến nghị hay đơn thuốc lâm sàng.
   version: 0.2.0
@@ -117,6 +117,467 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ActorResponse'
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+      - HTTPBearer: []
+  /api/forms/auth/admin:
+    post:
+      tags:
+      - Biểu mẫu suy tim
+      summary: Admin Login
+      operationId: admin_login_api_forms_auth_admin_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Credentials'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/forms/auth/doctor:
+    post:
+      tags:
+      - Biểu mẫu suy tim
+      summary: Doctor Login
+      operationId: doctor_login_api_forms_auth_doctor_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Credentials'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/forms/fields:
+    get:
+      tags:
+      - Biểu mẫu suy tim
+      summary: Fields
+      operationId: fields_api_forms_fields_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+      - HTTPBearer: []
+    post:
+      tags:
+      - Biểu mẫu suy tim
+      summary: Add Field
+      operationId: add_field_api_forms_fields_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FieldDefinition'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+      - HTTPBearer: []
+  /api/forms/fields/{code}:
+    patch:
+      tags:
+      - Biểu mẫu suy tim
+      summary: Edit Field
+      operationId: edit_field_api_forms_fields__code__patch
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FieldEdit'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/forms/patients:
+    get:
+      tags:
+      - Biểu mẫu suy tim
+      summary: Patients
+      operationId: patients_api_forms_patients_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+      - HTTPBearer: []
+    post:
+      tags:
+      - Biểu mẫu suy tim
+      summary: Create Patient
+      operationId: create_patient_api_forms_patients_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatientCreate'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+      - HTTPBearer: []
+  /api/forms/patients/{patient_id}/visits:
+    get:
+      tags:
+      - Biểu mẫu suy tim
+      summary: Visits
+      operationId: visits_api_forms_patients__patient_id__visits_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: patient_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Patient Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+      - Biểu mẫu suy tim
+      summary: Create Visit
+      operationId: create_visit_api_forms_patients__patient_id__visits_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: patient_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Patient Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VisitCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/forms/visits/{visit_id}:
+    get:
+      tags:
+      - Biểu mẫu suy tim
+      summary: Get Visit
+      operationId: get_visit_api_forms_visits__visit_id__get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: visit_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Visit Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      tags:
+      - Biểu mẫu suy tim
+      summary: Save
+      operationId: save_api_forms_visits__visit_id__patch
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: visit_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Visit Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Save'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/forms/visits/{visit_id}/history:
+    get:
+      tags:
+      - Biểu mẫu suy tim
+      summary: History
+      operationId: history_api_forms_visits__visit_id__history_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: visit_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Visit Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/forms/imports/limits:
+    get:
+      tags:
+      - Nhập biểu mẫu
+      summary: Limits
+      operationId: limits_api_forms_imports_limits_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+      - HTTPBearer: []
+  /api/forms/imports/excel/inspect:
+    post:
+      tags:
+      - Nhập biểu mẫu
+      summary: Excel Inspect
+      operationId: excel_inspect_api_forms_imports_excel_inspect_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExcelInspect'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+      - HTTPBearer: []
+  /api/forms/imports/excel/preview:
+    post:
+      tags:
+      - Nhập biểu mẫu
+      summary: Excel Preview
+      operationId: excel_preview_api_forms_imports_excel_preview_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExcelPreview'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+      - HTTPBearer: []
+  /api/forms/imports/commit:
+    post:
+      tags:
+      - Nhập biểu mẫu
+      summary: Commit
+      operationId: commit_api_forms_imports_commit_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Commit'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+      - HTTPBearer: []
+  /api/forms/imports/history:
+    get:
+      tags:
+      - Nhập biểu mẫu
+      summary: Import History
+      operationId: import_history_api_forms_imports_history_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+      - HTTPBearer: []
+  /api/forms/imports/template.xlsx:
+    get:
+      tags:
+      - Nhập biểu mẫu
+      summary: Excel Template
+      operationId: excel_template_api_forms_imports_template_xlsx_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
         '422':
           description: Dữ liệu không hợp lệ
           content:
@@ -1490,6 +1951,23 @@ components:
       - age
       - sex
       title: CaseUpdate
+    Choice:
+      properties:
+        code:
+          type: string
+          pattern: ^[a-zA-Z0-9_-]{1,60}$
+          title: Code
+        label:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Label
+      additionalProperties: false
+      type: object
+      required:
+      - code
+      - label
+      title: Choice
     ClinicalNoteOut:
       properties:
         id:
@@ -1541,6 +2019,94 @@ components:
       - kind
       - content
       title: ClinicalNoteWrite
+    ColumnMap:
+      properties:
+        column:
+          type: integer
+          maximum: 500.0
+          minimum: 1.0
+          title: Column
+        target:
+          type: string
+          maxLength: 80
+          minLength: 1
+          title: Target
+        unit_confirmed:
+          type: boolean
+          title: Unit Confirmed
+          default: false
+        conversion:
+          type: string
+          enum:
+          - native
+          - dot_number
+          - boolean_01
+          - boolean_true_false
+          - iso_date
+          title: Conversion
+          default: native
+      additionalProperties: false
+      type: object
+      required:
+      - column
+      - target
+      title: ColumnMap
+    Commit:
+      properties:
+        preview_token:
+          type: string
+          maxLength: 12000000
+          minLength: 10
+          title: Preview Token
+        records:
+          items:
+            $ref: '#/components/schemas/Decision'
+          type: array
+          maxItems: 100
+          minItems: 1
+          title: Records
+      additionalProperties: false
+      type: object
+      required:
+      - preview_token
+      - records
+      title: Commit
+    Credentials:
+      properties:
+        username:
+          type: string
+          maxLength: 80
+          minLength: 1
+          title: Username
+        password:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Password
+      additionalProperties: false
+      type: object
+      required:
+      - username
+      - password
+      title: Credentials
+    Decision:
+      properties:
+        index:
+          type: integer
+          maximum: 99.0
+          minimum: 0.0
+          title: Index
+        override_fields:
+          items:
+            type: string
+          type: array
+          maxItems: 500
+          title: Override Fields
+      additionalProperties: false
+      type: object
+      required:
+      - index
+      title: Decision
     DecisionCreate:
       properties:
         action:
@@ -1746,6 +2312,211 @@ components:
       - results
       - created_at
       title: EvaluationOut
+    ExcelInspect:
+      properties:
+        filename:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Filename
+        content_base64:
+          type: string
+          maxLength: 5592408
+          title: Content Base64
+        sheet:
+          title: Sheet
+          nullable: true
+          type: string
+          maxLength: 200
+        header_row:
+          type: integer
+          maximum: 100.0
+          minimum: 1.0
+          title: Header Row
+          default: 1
+      additionalProperties: false
+      type: object
+      required:
+      - filename
+      - content_base64
+      title: ExcelInspect
+    ExcelPreview:
+      properties:
+        filename:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Filename
+        content_base64:
+          type: string
+          maxLength: 5592408
+          title: Content Base64
+        sheet:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Sheet
+        header_row:
+          type: integer
+          maximum: 100.0
+          minimum: 1.0
+          title: Header Row
+        mapping:
+          items:
+            $ref: '#/components/schemas/ColumnMap'
+          type: array
+          maxItems: 500
+          minItems: 1
+          title: Mapping
+        patient_column:
+          title: Patient Column
+          nullable: true
+          type: integer
+          maximum: 500.0
+          minimum: 1.0
+        visit_column:
+          title: Visit Column
+          nullable: true
+          type: integer
+          maximum: 500.0
+          minimum: 1.0
+        explicit_target:
+          nullable: true
+          allOf:
+          - $ref: '#/components/schemas/ExplicitTarget'
+      additionalProperties: false
+      type: object
+      required:
+      - filename
+      - content_base64
+      - sheet
+      - header_row
+      - mapping
+      title: ExcelPreview
+    ExplicitTarget:
+      properties:
+        row:
+          type: integer
+          maximum: 1100.0
+          minimum: 2.0
+          title: Row
+        visit_id:
+          type: string
+          format: uuid
+          title: Visit Id
+        confirmed:
+          type: boolean
+          title: Confirmed
+          enum:
+          - true
+      additionalProperties: false
+      type: object
+      required:
+      - row
+      - visit_id
+      - confirmed
+      title: ExplicitTarget
+    FieldDefinition:
+      properties:
+        code:
+          type: string
+          pattern: ^[a-z][a-z0-9_]{1,79}$
+          title: Code
+        label:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Label
+        group:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Group
+        type:
+          type: string
+          enum:
+          - integer
+          - number
+          - boolean
+          - select
+          - multiselect
+          - text
+          - textarea
+          - date
+          - datetime
+          title: Type
+        unit:
+          title: Unit
+          nullable: true
+          type: string
+          maxLength: 60
+        choices:
+          items:
+            $ref: '#/components/schemas/Choice'
+          type: array
+          maxItems: 100
+          title: Choices
+        help:
+          type: string
+          maxLength: 1000
+          title: Help
+          default: ''
+        order:
+          type: integer
+          maximum: 10000.0
+          minimum: 0.0
+          title: Order
+          default: 1000
+        active:
+          type: boolean
+          title: Active
+          default: true
+      additionalProperties: false
+      type: object
+      required:
+      - code
+      - label
+      - group
+      - type
+      title: FieldDefinition
+    FieldEdit:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+        label:
+          title: Label
+          nullable: true
+          type: string
+          maxLength: 200
+          minLength: 1
+        group:
+          title: Group
+          nullable: true
+          type: string
+          maxLength: 100
+          minLength: 1
+        help:
+          title: Help
+          nullable: true
+          type: string
+          maxLength: 1000
+        order:
+          title: Order
+          nullable: true
+          type: integer
+          maximum: 10000.0
+          minimum: 0.0
+        active:
+          title: Active
+          nullable: true
+          type: boolean
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      title: FieldEdit
     HTTPValidationError:
       properties:
         detail:
@@ -1805,7 +2576,6 @@ components:
             exclusiveMinimum: true
             minimum: 0.0
           - type: string
-            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
           title: Systolic Bp
           nullable: true
         diastolic_bp:
@@ -1814,7 +2584,6 @@ components:
             exclusiveMinimum: true
             minimum: 0.0
           - type: string
-            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
           title: Diastolic Bp
           nullable: true
         heart_rate:
@@ -1823,7 +2592,6 @@ components:
             exclusiveMinimum: true
             minimum: 0.0
           - type: string
-            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
           title: Heart Rate
           nullable: true
         weight_kg:
@@ -1832,7 +2600,6 @@ components:
             exclusiveMinimum: true
             minimum: 0.0
           - type: string
-            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
           title: Weight Kg
           nullable: true
         spo2:
@@ -1841,7 +2608,6 @@ components:
             maximum: 100.0
             minimum: 0.0
           - type: string
-            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
           title: Spo2
           nullable: true
         temperature_c:
@@ -1850,7 +2616,6 @@ components:
             exclusiveMinimum: true
             minimum: 0.0
           - type: string
-            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
           title: Temperature C
           nullable: true
         symptoms:
@@ -1873,32 +2638,26 @@ components:
           title: Systolic Bp
           nullable: true
           type: string
-          pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
         diastolic_bp:
           title: Diastolic Bp
           nullable: true
           type: string
-          pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
         heart_rate:
           title: Heart Rate
           nullable: true
           type: string
-          pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
         weight_kg:
           title: Weight Kg
           nullable: true
           type: string
-          pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
         spo2:
           title: Spo2
           nullable: true
           type: string
-          pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
         temperature_c:
           title: Temperature C
           nullable: true
           type: string
-          pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
         symptoms:
           title: Symptoms
           nullable: true
@@ -2220,6 +2979,35 @@ components:
       - observed_at
       - source
       title: ObservationWrite
+    PatientCreate:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        code:
+          type: string
+          maxLength: 60
+          minLength: 1
+          pattern: ^[A-Za-z0-9_-]+$
+          title: Code
+        external_id:
+          title: External Id
+          nullable: true
+          type: string
+          maxLength: 100
+          minLength: 1
+        display_name:
+          title: Display Name
+          nullable: true
+          type: string
+          maxLength: 200
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - code
+      title: PatientCreate
     PrescriptionOut:
       properties:
         prescription_id:
@@ -2264,7 +3052,6 @@ components:
           type: string
         dose:
           type: string
-          pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
           title: Dose
         dose_unit:
           type: string
@@ -2388,7 +3175,6 @@ components:
           title: Ingredient
         dose:
           type: string
-          pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
           title: Dose
         dose_unit:
           type: string
@@ -2631,6 +3417,33 @@ components:
       - rule_id
       - content_hash
       title: RuleTestOut
+    Save:
+      properties:
+        expected_revision:
+          type: integer
+          minimum: 0.0
+          title: Expected Revision
+        catalog_revision:
+          type: integer
+          minimum: 1.0
+          title: Catalog Revision
+        mutation_id:
+          type: string
+          format: uuid
+          title: Mutation Id
+        values:
+          additionalProperties: true
+          type: object
+          maxProperties: 500
+          title: Values
+      additionalProperties: false
+      type: object
+      required:
+      - expected_revision
+      - catalog_revision
+      - mutation_id
+      - values
+      title: Save
     TokenResponse:
       properties:
         access_token:
@@ -2676,6 +3489,28 @@ components:
       - msg
       - type
       title: ValidationError
+    VisitCreate:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        external_id:
+          title: External Id
+          nullable: true
+          type: string
+          maxLength: 100
+          minLength: 1
+        occurred_at:
+          title: Occurred At
+          nullable: true
+          type: string
+          format: date-time
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      title: VisitCreate
     Error:
       title: Error
       type: object

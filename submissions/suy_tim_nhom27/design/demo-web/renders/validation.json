@@ -1,0 +1,25 @@
+{
+  "jsonImportActions": 0,
+  "renderedAt": "2026-10-23T16:25:08.846Z",
+  "browser": "Microsoft Edge headless via Playwright",
+  "viewportDesktop": "1440x1100",
+  "viewportMobile": "390x844",
+  "pageErrors": [],
+  "mobileHorizontalOverflow": false,
+  "keyboardFirstTab": {
+    "tag": "A",
+    "text": "Đến nội dung chính",
+    "href": "#main"
+  },
+  "skipTarget": "main",
+  "doctorAdminActionCount": 0,
+  "checks": [
+    "doctor navigation",
+    "structured row add",
+    "dirty state",
+    "simulated save",
+    "Excel conflict step",
+    "Excel sheet step",
+    "admin options and preview"
+  ]
+}

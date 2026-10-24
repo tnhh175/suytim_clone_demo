@@ -1,0 +1,26 @@
+{
+  "scope": "Exact Excel preview functions with mock connection/access, no DB/API/UI test",
+  "sourceSha256": "9f38f8bd2314cc9dd8a4b7dc363370a3b654bead459516ce3e8aa10606c0d57c",
+  "checks": [
+    {
+      "name": "explicit blank-code visit 00000000-0000-0000-0000-000000000001",
+      "pass": true
+    },
+    {
+      "name": "explicit blank-code visit 00000000-0000-0000-0000-000000000002",
+      "pass": true
+    },
+    {
+      "name": "scope denial propagated",
+      "pass": true
+    }
+  ],
+  "accessCalls": [
+    "00000000-0000-0000-0000-000000000001",
+    "00000000-0000-0000-0000-000000000001",
+    "00000000-0000-0000-0000-000000000002",
+    "00000000-0000-0000-0000-000000000002",
+    "00000000-0000-0000-0000-000000000063"
+  ],
+  "pass": true
+}

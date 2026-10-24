@@ -2,13 +2,14 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 from pathlib import Path
+import secrets
 from typing import AsyncIterator
 
 import psycopg
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from psycopg_pool import ConnectionPool, PoolTimeout
 
@@ -18,6 +19,8 @@ from .patient_portal import build_patient_portal_router
 from .routers.auth import RegistrationLimiter, router as auth_router
 from .routers.medications import build_medications_router
 from .routers.rules import build_rules_router
+from .forms.router import router as forms_router
+from .forms.imports import router as imports_router
 
 
 def create_app(
@@ -38,7 +41,7 @@ def create_app(
                 owned_pool.close()
 
     app = FastAPI(
-        title="Nhóm 27 — Demo quản lý bệnh viện",
+        title="Hệ thống quản lý bệnh nhân suy tim",
         version="0.2.0",
         description=(
             "Demo dùng dữ liệu synthetic và PostgreSQL. Bốn module lâm sàng luôn "
@@ -47,6 +50,7 @@ def create_app(
         lifespan=lifespan,
     )
     app.state.pool = owned_pool
+    app.state.form_preview_secret = secrets.token_bytes(32)
     app.state.registration_limiter = RegistrationLimiter()
     app.add_middleware(
         CORSMiddleware,
@@ -88,6 +92,8 @@ def create_app(
         return {"status": "ok", "mode": "stub", "persistence": "postgres"}
 
     app.include_router(auth_router)
+    app.include_router(forms_router)
+    app.include_router(imports_router)
     app.include_router(build_clinical_router())
     app.include_router(build_medications_router())
     app.include_router(build_rules_router())
@@ -99,6 +105,13 @@ def create_app(
 
     web_root = Path(__file__).resolve().parents[2] / "web"
     if web_root.is_dir():
+        @app.get("/", include_in_schema=False)
+        @app.get("/admin/login", include_in_schema=False)
+        @app.get("/bac-si/login", include_in_schema=False)
+        @app.get("/forms", include_in_schema=False)
+        def forms_page():
+            return FileResponse(web_root / "forms.html")
+
         app.mount("/", StaticFiles(directory=web_root, html=True), name="web")
 
     return app

@@ -1,0 +1,83 @@
+{
+  "scope": "Independent pure validator/parser tests; no HTTP, database or UI assertions",
+  "checks": [
+    {
+      "name": "number zero retained",
+      "status": "PASS"
+    },
+    {
+      "name": "boolean false retained",
+      "status": "PASS"
+    },
+    {
+      "name": "missing remains null",
+      "status": "PASS"
+    },
+    {
+      "name": "whitespace normalizes null",
+      "status": "PASS"
+    },
+    {
+      "name": "numeric string rejected",
+      "status": "PASS"
+    },
+    {
+      "name": "boolean not numeric",
+      "status": "PASS"
+    },
+    {
+      "name": "invalid choice rejected",
+      "status": "PASS"
+    },
+    {
+      "name": "multiselect null distinguished",
+      "status": "PASS"
+    },
+    {
+      "name": "multiselect empty retained",
+      "status": "PASS"
+    },
+    {
+      "name": "timezone required",
+      "status": "PASS"
+    },
+    {
+      "name": "invalid calendar day rejected",
+      "status": "PASS"
+    },
+    {
+      "name": "structured results preserve two rows",
+      "status": "PASS"
+    },
+    {
+      "name": "result numeric string rejected",
+      "status": "PASS"
+    },
+    {
+      "name": "medication missing name rejected",
+      "status": "PASS"
+    },
+    {
+      "name": "inspect leading zeros preserved",
+      "status": "PASS"
+    },
+    {
+      "name": "inspect false zero preserved",
+      "status": "PASS"
+    },
+    {
+      "name": "inspect no-write declaration",
+      "status": "PASS"
+    },
+    {
+      "name": "native mapping zero preserved",
+      "status": "PASS"
+    },
+    {
+      "name": "unconfirmed unit rejected",
+      "status": "PASS"
+    }
+  ],
+  "passed": 19,
+  "failed": 0
+}
