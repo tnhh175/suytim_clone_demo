@@ -14,18 +14,23 @@ DSN = os.getenv('FORM_TEST_DSN')
 pytestmark = pytest.mark.skipif(not DSN, reason='FORM_TEST_DSN dedicated synthetic schema required')
 
 
+class QASession(tuple):
+    def __repr__(self):
+        return '<synthetic forms QA session; credentials and tokens redacted>'
+
+
 @pytest.fixture(scope='module')
 def live():
-    assert 'd3_form_' in conninfo_to_dict(DSN).get('options', ''), 'Refuse real/public schema'
+    assert conninfo_to_dict(DSN).get('options', '') == '-csearch_path=d3_form_qa_20261023,public', 'Refuse live/public schema'
     credentials = json.loads(Path(os.environ['FORM_TEST_CREDENTIALS']).read_text(encoding='utf-8'))
     with TestClient(create_app(database_url=DSN)) as client:
         headers = {}
         for role in ('admin', 'doctor'):
             account = credentials['accounts'][role]
-            response = client.post('/api/forms/auth/' + role, json={'username': account['username'], 'password': account['password']})
+            response = client.post('/api/v1/auth/token', json={'username': account['username'], 'password': account['password']})
             assert response.status_code == 200
             headers[role] = {'Authorization': 'Bearer ' + response.json()['access_token']}
-        yield client, headers, credentials
+        yield QASession((client, headers, credentials))
 
 
 def checked(response, status=200):
@@ -36,7 +41,7 @@ def checked(response, status=200):
 def case(live, role='doctor'):
     client, headers, _ = live
     identity = str(uuid4())
-    p = checked(client.post('/api/forms/patients', headers=headers[role], json={'id': identity, 'code': 'QA-' + identity}), 201)
+    p = checked(client.post('/api/forms/patients', headers=headers[role], json={'id': identity, 'external_id': 'QA-' + identity}), 201)
     v = checked(client.post('/api/forms/patients/' + p['id'] + '/visits', headers=headers[role], json={'id': str(uuid4()), 'external_id': 'V-' + identity}), 201)
     return p, v
 
@@ -51,7 +56,27 @@ def patch(live, visit, values, **extra):
     return live[0].patch('/api/forms/visits/' + visit['id'], headers=live[1]['doctor'], json=body), body
 
 
-def test_two_portals_and_spoofed_role(live):
+@pytest.mark.parametrize('role', ['admin', 'doctor'])
+def test_unified_login_resolves_account_role_and_rejects_wrong_password(live, role):
+    c, _, credentials = live
+    account = credentials['accounts'][role]
+    body = {key: account[key] for key in ('username', 'password')}
+    token = checked(c.post('/api/v1/auth/token', json=body))
+    assert token['token_type'] == 'bearer'
+    assert token['expires_in'] > 0
+    headers = {'Authorization': 'Bearer ' + token['access_token']}
+    actor = checked(c.get('/api/v1/auth/me', headers=headers))
+    assert (actor['user_id'], actor['username'], actor['role']) == (account['id'], account['username'], role)
+    assert 'password' not in actor and 'password_hash' not in actor
+    checked(c.get('/api/forms/fields', headers=headers))
+    checked(c.post('/api/v1/auth/token', json={**body, 'password': 'wrong-' + uuid4().hex}), 401)
+    checked(c.post('/api/v1/auth/token', json={**body, 'role': 'admin'}), 422)
+    checked(c.post('/api/v1/auth/logout', headers=headers))
+    checked(c.get('/api/v1/auth/me', headers=headers), 401)
+    checked(c.get('/api/forms/fields', headers=headers), 401)
+
+
+def test_legacy_role_endpoints_remain_compatible_and_reject_spoofed_role(live):
     c, h, credentials = live
     for actual, wrong in [('doctor', 'admin'), ('admin', 'doctor')]:
         account = credentials['accounts'][actual]
@@ -73,7 +98,7 @@ def test_two_patients_two_visits_and_owner_scope(live):
     for p in (p1, p2):
         checked(c.post('/api/forms/patients/' + p['id'] + '/visits', headers=h['doctor'], json={'id': str(uuid4())}), 201)
         assert len(checked(c.get('/api/forms/patients/' + p['id'] + '/visits', headers=h['doctor']))) == 2
-        checked(c.get('/api/forms/patients/' + p['id'] + '/visits', headers=h['admin']), 404)
+        assert len(checked(c.get('/api/forms/patients/' + p['id'] + '/visits', headers=h['admin']))) == 2
     checked(patch(live, v1, {'can_nang': 0})[0])
     assert snapshot(live, v2)['values_json']['can_nang'] is None
 
@@ -102,7 +127,7 @@ def test_null_false_zero_partial_save_clear_and_idempotent_retry(live):
     assert history[-1]['actor_id'] == live[2]['accounts']['doctor']['id']
 
 
-@pytest.mark.parametrize('values', [{'can_nang': '4'}, {'can_nang': False}, {'gioi_tinh': 'unknown'}, {'unknown_field': 1}])
+@pytest.mark.parametrize('values', [{'can_nang': '4'}, {'can_nang': False}, {'can_nang': 10 ** 400}, {'gioi_tinh': 'unknown'}, {'unknown_field': 1}])
 def test_invalid_values_rejected_without_mutation(live, values):
     _, visit = case(live)
     checked(patch(live, visit, values)[0], 422)
@@ -111,11 +136,14 @@ def test_invalid_values_rejected_without_mutation(live, values):
 
 def test_dynamic_field_rename_retire_history_and_type_unit_block(live):
     c, h, _ = live
-    _, visit = case(live)
+    _, old_visit = case(live)
     code = 'qa_' + uuid4().hex
     definition = {'code': code, 'label': 'Ghi chú giả lập QA', 'group': 'QA', 'type': 'textarea'}
     new = checked(c.post('/api/forms/fields', headers=h['admin'], json=definition), 201)
     checked(c.post('/api/forms/fields', headers=h['admin'], json=definition), 409)
+    assert code not in snapshot(live, old_visit)['values_json']
+    checked(patch(live, old_visit, {code:'Not in old snapshot'})[0],422)
+    _, visit = case(live)
     assert snapshot(live, visit)['values_json'][code] is None
     checked(patch(live, visit, {code: 'Giả lập'})[0])
     checked(c.patch('/api/forms/fields/' + code, headers=h['admin'], json={'expected_version': 1, 'label': 'Nhãn thay đổi QA'}))
@@ -125,8 +153,11 @@ def test_dynamic_field_rename_retire_history_and_type_unit_block(live):
     history = checked(c.get('/api/forms/visits/' + visit['id'] + '/history', headers=h['doctor']))
     assert history[0]['definitions_json'][code]['label'] == definition['label']
     checked(c.patch('/api/forms/fields/' + code, headers=h['admin'], json={'expected_version': 2, 'active': False}))
-    checked(patch(live, visit, {code: 'Không được nhập'})[0], 422)
-    assert snapshot(live, visit)['values_json'][code] == 'Giả lập'
+    checked(patch(live, visit, {code: 'Vẫn dùng mẫu cũ'})[0])
+    assert snapshot(live, visit)['values_json'][code] == 'Vẫn dùng mẫu cũ'
+    assert next(f for f in snapshot(live,visit)['fields'] if f['code']==code)['label']==definition['label']
+    _, newer=case(live)
+    checked(patch(live,newer,{code:'Đã ngừng ở mẫu mới'})[0],422)
 
 
 def test_concurrent_save_one_wins_and_catalog_stale(live):
@@ -146,6 +177,6 @@ def test_recreate_app_persists_and_logout_revokes(live):
     checked(patch(live, visit, {'can_nang': 42})[0])
     with TestClient(create_app(database_url=DSN)) as restarted:
         assert checked(restarted.get('/api/forms/visits/' + visit['id'], headers=h['doctor']))['values_json']['can_nang'] == 42
-    for path in ('/', '/admin/login', '/bac-si/login', '/forms'):
+    for path in ('/', '/login', '/forms'):
         response = c.get(path)
         assert response.status_code == 200 and 'forms.js' in response.text

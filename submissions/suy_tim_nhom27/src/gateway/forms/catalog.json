@@ -1195,10 +1195,10 @@
     "code": "dai_thao_duong",
     "label": "Đái tháo đường",
     "group": "Tiền sử và bệnh đồng mắc",
-    "type": "unavailable",
+    "type": "boolean",
     "unit": null,
     "choices": [],
-    "help": "Cần làm rõ cấu trúc/thang đo/đơn vị/nguồn dẫn xuất; giữ NULL, không tự tính.",
+    "help": "Ghi nhận tình trạng đã biết: Có/Không/Chưa có dữ liệu. Không tính hoặc suy ra từ HbA1c/eGFR; thành phần xét nghiệm còn chờ đặc tả.",
     "order": 45,
     "active": true,
     "source": {
@@ -1215,7 +1215,7 @@
       "stt": 46.0
     },
     "data_role": "recorded_input",
-    "implementation_status": "unresolved",
+    "implementation_status": "supported_condition_only",
     "definition_version": 1
   },
   {
@@ -1249,10 +1249,10 @@
     "code": "benh_than_man",
     "label": "Bệnh thận mạn",
     "group": "Tiền sử và bệnh đồng mắc",
-    "type": "unavailable",
+    "type": "boolean",
     "unit": null,
     "choices": [],
-    "help": "Cần làm rõ cấu trúc/thang đo/đơn vị/nguồn dẫn xuất; giữ NULL, không tự tính.",
+    "help": "Ghi nhận tình trạng đã biết: Có/Không/Chưa có dữ liệu. Không tính hoặc suy ra từ HbA1c/eGFR; thành phần xét nghiệm còn chờ đặc tả.",
     "order": 47,
     "active": true,
     "source": {
@@ -1269,7 +1269,7 @@
       "stt": 48.0
     },
     "data_role": "recorded_input",
-    "implementation_status": "unresolved",
+    "implementation_status": "supported_condition_only",
     "definition_version": 1
   },
   {

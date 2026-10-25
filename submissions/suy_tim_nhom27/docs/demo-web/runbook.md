@@ -1,13 +1,15 @@
 # Chạy demo biểu mẫu và nhập Excel
 
+> Bản cập nhật 26/10 theo yêu cầu v1.0: dùng hướng dẫn tại `revision-data-contract.md`, `revision-ui-spec.md` và `qa/revision-integration.md`. Admin quản lý hồ sơ dùng chung, chỉ đọc dữ liệu khám; bác sĩ nhập khám. Các lượt giữ mẫu riêng. Các bước minh họa M1/M2 bên dưới là lịch sử trước thay đổi này nếu có mâu thuẫn.
+
 Phạm vi hiện hành: M1 nhập tay/trường động và M2 Excel. Kế thừa HTML/CSS/JavaScript, FastAPI, xác thực phiên và PostgreSQL của repo. Không có chức năng dán/tải file JSON, kết nối HIS trực tiếp hoặc AI hoạt động. Không sửa SRS/report/RTM cũ.
 
 ## Mở bản đang chạy
 
-- Trang chọn cổng: http://127.0.0.1:8001/
-- Admin: http://127.0.0.1:8001/admin/login
-- Bác sĩ: http://127.0.0.1:8001/bac-si/login
-- Tài khoản thử được tạo ngẫu nhiên, nằm riêng trong `D:\1.TNHH\project\suytim_clone_demo\local-data\form-demo-live-credentials.json`. Không đưa nội dung file này vào Git, ảnh hoặc log công khai.
+- Đăng nhập chung cho Admin và Bác sĩ: http://127.0.0.1:8001/login (hoặc trang chủ http://127.0.0.1:8001/).
+- Nhập tài khoản và mật khẩu; máy chủ trả về vai trò đã xác thực để ứng dụng tự mở cổng tương ứng. Không cần chọn vai trò trước khi đăng nhập. Đăng xuất trở về `/login`.
+- Các liên kết cũ `/admin/login` và `/bac-si/login` chuyển hướng về `/login`.
+- Tài khoản thử nằm riêng trong `D:\1.TNHH\project\suytim_clone_demo\local-data\form-demo-live-credentials.json`. Không đưa nội dung file này vào Git, ảnh hoặc log công khai.
 - Bản chạy dùng schema riêng `d3_form_live_20261024` trong PostgreSQL `hf_demo`; các ca giả lập không trộn với bảng nghiệp vụ có sẵn trong `public`.
 
 Kiểm tra `/health` phải trả HTTP 200, `persistence=postgres`. `/` HTTP 200 chỉ xác nhận trang tải được; đăng nhập và đọc hồ sơ còn cần database.
@@ -24,7 +26,7 @@ $env:DATABASE_URL = '<DSN PostgreSQL riêng của môi trường>'
 & '.\.venv\Scripts\python.exe' scripts/run_form_demo.py --schema d3_form_live_20261024 --port 8001
 ```
 
-`seed_form_demo.py` chỉ chấp nhận schema tên bắt đầu `d3_form_`; tạo thêm auth sandbox, chạy migration 002/003 additive và nạp catalog. Không reset schema hoặc sửa public data. Script tạo hai tài khoản, hai hồ sơ, mỗi hồ sơ hai lượt; seed thêm trường ghi chú và hai phiên bản dữ liệu giả lập lần đầu. Chạy lại giữ các lượt/giá trị đã có; password của hai tài khoản thử được đồng bộ với file riêng hiện hành. Không chạy seed trên một schema dùng dữ liệu thật.
+`seed_form_demo.py` chỉ chấp nhận schema tên bắt đầu `d3_form_`; tạo auth sandbox, chạy migration 002/003, nạp catalog rồi migration 004 để chuyển mã BN và ghim mẫu cũ. Không reset schema hoặc sửa public data. Dừng ứng dụng và lưu bản sao trước khi chuyển schema đang có dữ liệu; xem `revision-data-contract.md`. Seed tìm hồ sơ cũ qua mã nguồn/alias để giữ liên kết. Không chạy seed trên dữ liệu thật. File credential riêng là nguồn mật khẩu khi cần seed lại; không đưa lên Git.
 
 Chạy nền Windows có thể dùng `Start-Process ... -WindowStyle Hidden` và chuyển stdout/stderr vào `local-data/`. Khi dừng, kiểm tra PID đang nghe cổng 8001 vì `.venv` launcher có thể khác PID Python thật. Không dừng tiến trình không xác minh. Sau khởi động lại, kiểm `/health` và đăng nhập/đọc hồ sơ; xem trước import cũ hết hiệu lực và cần tạo lại.
 
@@ -34,7 +36,7 @@ Các API lâm sàng cũ vẫn được giữ trong mã nguồn. Sandbox này ph�
 
 ## Demo M1
 
-1. Đăng nhập cổng đúng vai trò. Tài khoản Bác sĩ tại cổng Admin hoặc ngược lại bị backend từ chối.
+1. Mở `/login`, nhập tài khoản và mật khẩu. Tài khoản Admin vào cổng Admin; tài khoản Bác sĩ vào cổng Bác sĩ theo vai trò do máy chủ xác nhận. Quyền API vẫn được kiểm tra tại máy chủ.
 2. Chọn `SYN-FORM-001`, lượt `VISIT-001-1`: seed có cân nặng 0, khó thở khi nằm Không, chiều cao trống và ghi chú trường bổ sung. Các số là dữ liệu giả lập kiểm phần mềm, không phải đánh giá y khoa.
 3. Nhập một số trường và Lưu. Trường không sửa không được gửi trong PATCH; ô được xóa chủ ý gửi null. Mở lại/reload vẫn đọc PostgreSQL. Trong lúc chờ lưu, ô nhập và điều hướng được khóa để tránh mất thay đổi mới.
 4. Xem Lịch sử: nhãn/định nghĩa lúc lưu, phiên bản, người/thời điểm và nguồn được giữ. Hai tab cùng phiên bản: tab lưu sau nhận xung đột và giữ bản nháp để đối chiếu.
@@ -59,7 +61,7 @@ Quyền hồ sơ demo: owner hoặc `form_access` được cấp rõ ràng. Admi
 
 Excel danh sách thuốc/kết quả/multiselect chưa có hợp đồng nguồn phù hợp nên bị chặn rõ ràng; bổ sung trên biểu mẫu có cấu trúc. Không nhập chuỗi JSON trong ô để lách giới hạn. Biểu mẫu lưu NULL khác danh sách rỗng; không suy liều hoặc thời điểm từ tên thuốc.
 
-Catalog nguồn có 70/206 dòng được hỗ trợ; 136 dòng chưa đủ đặc tả/không là đầu vào nhập tay được hiển thị cùng giới hạn, không dựng đầu ra AI. Chi tiết ở `field-catalog-and-mapping.md`. Workbook được cấp riêng chưa xác nhận là xuất HIS và thiếu mã lượt; chưa tuyên bố tương thích viện. Chưa đánh giá tải, bảo mật triển khai hoặc kiểm định lâm sàng.
+Catalog nguồn hiện có 72/206 dòng hỗ trợ: đã tách ghi nhận Có/Không của đái tháo đường và bệnh thận mạn khỏi thành phần xét nghiệm chưa rõ; 134 dòng còn thiếu đặc tả/không là đầu vào nhập tay. Lượt cũ tiếp tục dùng snapshot đã ghim. Không dựng đầu ra AI. Workbook riêng thiếu mã lượt; chưa xác nhận tương thích HIS. Danh sách thuốc/kết quả Excel, BMI/NYHA và luồng AI tiếp tục theo giai đoạn trong `revision-scope.md`.
 
 ## Kiểm thử lại
 

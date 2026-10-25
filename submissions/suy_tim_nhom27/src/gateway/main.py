@@ -9,7 +9,7 @@ import psycopg
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from psycopg_pool import ConnectionPool, PoolTimeout
 
@@ -106,11 +106,15 @@ def create_app(
     web_root = Path(__file__).resolve().parents[2] / "web"
     if web_root.is_dir():
         @app.get("/", include_in_schema=False)
-        @app.get("/admin/login", include_in_schema=False)
-        @app.get("/bac-si/login", include_in_schema=False)
+        @app.get("/login", include_in_schema=False)
         @app.get("/forms", include_in_schema=False)
         def forms_page():
             return FileResponse(web_root / "forms.html")
+
+        @app.get("/admin/login", include_in_schema=False)
+        @app.get("/bac-si/login", include_in_schema=False)
+        def legacy_login_page():
+            return RedirectResponse(url="/login", status_code=307)
 
         app.mount("/", StaticFiles(directory=web_root, html=True), name="web")
 

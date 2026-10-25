@@ -14,7 +14,8 @@ def test_app_serves_demo_assets_and_fails_closed_without_database():
     with TestClient(create_app()) as client:
         page = client.get("/")
         assert page.status_code == 200
-        assert "dữ liệu giả lập, không dùng cho quyết định y khoa" in page.text
+        assert "Hệ thống quản lý bệnh nhân suy tim" in page.text
+        assert 'role="status"' in page.text
         assert client.get("/health").status_code == 503
         response = client.post(
             "/api/v1/auth/token",

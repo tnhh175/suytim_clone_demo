@@ -6,6 +6,7 @@ import hashlib
 import hmac
 from io import BytesIO
 import json
+import math
 import re
 import secrets
 import time
@@ -22,7 +23,8 @@ from pydantic import Field
 from psycopg.types.json import Jsonb
 
 from ..database import staff_connection
-from .router import catalog, fingerprint, form_actor, persist, visit_access
+from .router import catalog, fingerprint, form_actor, persist, visit_access, pinned_catalog
+from ..authorization import require_role
 from .validation import Input, value_for
 
 router = APIRouter(prefix='/api/forms/imports', tags=['Nhập biểu mẫu'])
@@ -58,8 +60,16 @@ def workbook(body: ExcelFile):
             for member in members:
                 if member.filename.startswith('xl/worksheets/') and member.filename.endswith('.xml'):
                     with archive.open(member) as source:
-                        for _, element in iterparse(source, events=('end',)):
+                        numeric_cell = False
+                        for event, element in iterparse(source, events=('start', 'end')):
                             tag = element.tag.rsplit('}', 1)[-1]
+                            if event == 'start':
+                                if tag == 'c':
+                                    numeric_cell = element.get('t', 'n') == 'n'
+                                continue
+                            if tag == 'v' and numeric_cell and element.text is not None:
+                                if not math.isfinite(float(element.text)):
+                                    problem('/sheet', 'Ô số Excel không hữu hạn hoặc vượt khả năng biểu diễn; kiểm tra dữ liệu nguồn')
                             if tag == 'row' and int(element.get('r', '0')) > 1100:
                                 problem('/sheet', 'Sheet vượt 1100 hàng gồm tiêu đề')
                             if tag == 'c':
@@ -71,6 +81,7 @@ def workbook(body: ExcelFile):
                                         column = column * 26 + ord(char) - 64
                                     if column > 500 or int(match[2]) > 1100:
                                         problem('/sheet', 'Sheet vượt 500 cột hoặc 1100 hàng gồm tiêu đề')
+                                numeric_cell = False
                             element.clear()
         return load_workbook(BytesIO(raw), read_only=True, data_only=False)
     except HTTPException:
@@ -114,6 +125,7 @@ def limits(actor=Depends(form_actor)):
 
 @router.post('/excel/inspect')
 def excel_inspect(body: ExcelInspect, actor=Depends(form_actor)):
+    require_role(actor, {'doctor'})
     book = workbook(body)
     try:
         result = {'sheets': book.sheetnames, 'limits': LIMITS, 'business_writes': False}
@@ -204,6 +216,60 @@ def read_plan(request, token, actor):
         raise HTTPException(409, 'Bản xem trước hết hạn/không hợp lệ hoặc máy chủ đã khởi động lại; xem trước lại') from None
 
 
+def resolve_target(conn, actor, patient_code, visit_code):
+    if not patient_code or not visit_code:
+        return []
+    # Resolve identity BEFORE scope filtering: conflicting aliases must never
+    # select a different patient merely because only one is visible to this user.
+    patients = conn.execute('''SELECT DISTINCT p.id FROM form_patient p WHERE p.code=%s OR p.external_id=%s
+      OR EXISTS(SELECT 1 FROM form_patient_alias a WHERE a.patient_id=p.id AND a.alias=%s)''',
+      (patient_code, patient_code, patient_code)).fetchall()
+    if len(patients) != 1:
+        return []
+    return conn.execute('''SELECT v.*,p.code AS target_patient_code,p.display_name AS target_patient_name FROM form_visit v JOIN form_patient p ON p.id=v.patient_id
+      WHERE p.id=%s AND v.external_id=%s AND (p.owner_id=%s OR EXISTS
+      (SELECT 1 FROM form_access a WHERE a.patient_id=p.id AND a.user_id=%s))''',
+      (patients[0]['id'], visit_code, actor.user_id, actor.user_id)).fetchall()
+
+
+class PresetMapping(Input):
+    sheet: str = Field(min_length=1, max_length=200)
+    header_row: int = Field(ge=1, le=100)
+    patient_column: int = Field(ge=1, le=500)
+    visit_column: int = Field(ge=1, le=500)
+    columns: list[ColumnMap] = Field(min_length=1, max_length=500)
+
+
+class PresetCreate(Input):
+    id: UUID
+    name: str = Field(min_length=1, max_length=200)
+    source_name: str = Field(min_length=1, max_length=200)
+    mapping: PresetMapping
+
+
+@router.get('/presets')
+def presets(request: Request, actor=Depends(form_actor)):
+    require_role(actor, {'doctor'})
+    with staff_connection(request, actor) as conn:
+        return conn.execute('SELECT * FROM form_import_preset WHERE actor_id=%s ORDER BY source_name,name', (actor.user_id,)).fetchall()
+
+
+@router.post('/presets', status_code=201)
+def create_preset(body: PresetCreate, request: Request, actor=Depends(form_actor)):
+    require_role(actor, {'doctor'})
+    mapping = body.mapping.model_dump(mode='json')
+    if len({m.column for m in body.mapping.columns}) != len(body.mapping.columns) or len({m.target for m in body.mapping.columns}) != len(body.mapping.columns):
+        problem('/mapping', 'Mỗi cột và trường đích chỉ ánh xạ một lần')
+    with staff_connection(request, actor) as conn:
+        row = conn.execute('''INSERT INTO form_import_preset(id,actor_id,name,source_name,mapping) VALUES(%s,%s,%s,%s,%s)
+          ON CONFLICT DO NOTHING RETURNING *''', (body.id,actor.user_id,body.name,body.source_name,Jsonb(mapping))).fetchone()
+        if row is None:
+            row = conn.execute('SELECT * FROM form_import_preset WHERE id=%s AND actor_id=%s', (body.id,actor.user_id)).fetchone()
+            if not row or row['name'] != body.name or row['source_name'] != body.source_name or row['mapping'] != mapping:
+                raise HTTPException(409, 'Cấu hình đã tồn tại; dùng tên mới để lưu phiên bản khác')
+        return row
+
+
 def preview_plan(conn, actor, records, revision, definitions, kind, mapping, source_name):
     rows = []
     identities = [('visit_uuid', r['_explicit_visit_id']) if r.get('_explicit_visit_id') else (r.get('patient_code'), r.get('visit_external_id')) for r in records]
@@ -212,19 +278,16 @@ def preview_plan(conn, actor, records, revision, definitions, kind, mapping, sou
         path = f'/records/{index}'
         identity = (record.get('patient_code'), record.get('visit_external_id'))
         row = {'index': index, 'patient_code': identity[0], 'visit_external_id': identity[1], 'errors': errors, 'fields': [], 'values': {}, 'sources': {}}
-        target = conn.execute('''SELECT v.* FROM form_visit v JOIN form_patient p ON p.id=v.patient_id
-            WHERE p.code=%s AND v.external_id=%s AND (p.owner_id=%s OR EXISTS
-            (SELECT 1 FROM form_access a WHERE a.patient_id=p.id AND a.user_id=%s))''',
-            (*identity, actor.user_id, actor.user_id)).fetchall() if all(identity) else []
-        if record.get('_explicit_visit_id'):
-            current = visit_access(conn, actor, UUID(record['_explicit_visit_id']))
-            target = [current]
+        target = resolve_target(conn, actor, *identity)
         if identities.count(identities[index]) > 1:
             errors.append({'path': path, 'reason': 'Nhiều bản ghi cùng hồ sơ/lượt; chọn rõ một bản ghi, không lấy dòng cuối'})
         if len(target) != 1:
             errors.append({'path': path, 'reason': 'Không khớp chính xác hồ sơ/lượt trong phạm vi tài khoản; cần đối chiếu'})
         else:
-            row.update(visit_id=str(target[0]['id']), expected_revision=target[0]['revision'])
+            row.update(visit_id=str(target[0]['id']), expected_revision=target[0]['revision'], catalog_revision=target[0]['catalog_revision'],
+                       target_patient_code=target[0]['target_patient_code'], target_patient_name=target[0]['target_patient_name'],
+                       target_occurred_at=target[0]['occurred_at'].isoformat() if target[0]['occurred_at'] else None)
+        row_definitions = pinned_catalog(target[0])[1] if len(target) == 1 else definitions
         mapped_targets = set()
         for source_code, raw in record['values'].items():
             target_code = source_code
@@ -233,7 +296,7 @@ def preview_plan(conn, actor, records, revision, definitions, kind, mapping, sou
                 row['fields'].append({'source': source_code, 'path': location, 'status': 'unmapped', 'raw': raw})
                 continue
             item = {'source': source_code, 'code': target_code, 'path': location, 'raw': record.get('_raw', {}).get(source_code, raw)}
-            field = definitions.get(target_code)
+            field = row_definitions.get(target_code)
             try:
                 if not field or not field['active'] or field['type'] == 'unavailable':
                     raise ValueError('Mã trường lạ, chưa đặc tả hoặc đã ngừng dùng')
@@ -267,13 +330,14 @@ def response_for(request, plan):
 
 @router.post('/excel/preview')
 def excel_preview(body: ExcelPreview, request: Request, actor=Depends(form_actor)):
+    require_role(actor, {'doctor'})
     book = workbook(body)
     try:
         sheet = sheet_for(book, body.sheet)
         if len({m.column for m in body.mapping}) != len(body.mapping) or len({m.target for m in body.mapping}) != len(body.mapping):
             problem('/mapping', 'Mỗi cột và trường đích chỉ ánh xạ một lần')
-        if body.explicit_target is None and (body.patient_column is None or body.visit_column is None):
-            problem('/identity', 'Chọn cột mã hồ sơ và mã lượt hoặc đối chiếu một dòng với lượt đích rõ ràng')
+        if body.explicit_target is not None or body.patient_column is None or body.visit_column is None:
+            problem('/identity', 'Cần cột mã hồ sơ và mã lượt trong file; không dùng hồ sơ đang mở thay định danh thiếu')
         records = []
         with staff_connection(request, actor) as conn:
             revision, definitions = catalog(conn)
@@ -311,14 +375,19 @@ def excel_preview(body: ExcelPreview, request: Request, actor=Depends(form_actor
                         except ValueError as exc:
                             record[prop] = None
                             record['_errors'].append({'path': f'{body.sheet}!row{row_number}/column{column}', 'reason': str(exc)})
+                targets = resolve_target(conn, actor, record.get('patient_code'), record.get('visit_external_id'))
+                row_definitions = pinned_catalog(targets[0])[1] if len(targets) == 1 else definitions
                 for mapping in body.mapping:
                     try:
                         cell = cell_at(mapping.column)
                         record['_locations'][mapping.target] = f'{body.sheet}!{get_column_letter(mapping.column)}{row_number}'
                         record['_raw'][mapping.target] = cell_display(cell)
-                        if definitions[mapping.target]['type'] in {'medications', 'results', 'multiselect'}:
+                        field = row_definitions.get(mapping.target)
+                        if not field:
+                            raise ValueError('Trường không thuộc phiên bản của lượt đích')
+                        if field['type'] in {'medications', 'results', 'multiselect'}:
                             raise ValueError('Cấu trúc danh sách Excel chưa được xác minh; bổ sung bằng biểu mẫu có cấu trúc, không gộp hoặc lấy dòng cuối')
-                        record['values'][mapping.target] = excel_value(cell, definitions[mapping.target], mapping)
+                        record['values'][mapping.target] = excel_value(cell, field, mapping)
                     except (ValueError, HTTPException) as exc:
                         record['_errors'].append({'path': f'{body.sheet}!row{row_number}/column{mapping.column}', 'field': mapping.target,
                                                   'raw': record['_raw'].get(mapping.target),
@@ -347,6 +416,7 @@ class Commit(Input):
 
 @router.post('/commit')
 def commit(body: Commit, request: Request, actor=Depends(form_actor)):
+    require_role(actor, {'doctor'})
     plan = read_plan(request, body.preview_token, actor)
     if len({d.index for d in body.records}) != len(body.records):
         problem('/records', 'Không chọn lặp bản ghi')
@@ -372,19 +442,17 @@ def commit(body: Commit, request: Request, actor=Depends(form_actor)):
             for row, _ in selected:
                 visit_access(conn, actor, UUID(row['visit_id']))
             return {**previous['result'], 'replayed': True}
-        revision, definitions = catalog(conn)
-        if revision != plan['catalog_revision']:
-            raise HTTPException(409, 'Danh mục đã thay đổi; xem trước lại')
         locked = {}
         for row, _ in sorted(selected, key=lambda pair: pair[0]['visit_id']):
             current = visit_access(conn, actor, UUID(row['visit_id']), lock=True)
-            if current['revision'] != row['expected_revision']:
+            if current['revision'] != row['expected_revision'] or current['catalog_revision'] != row['catalog_revision']:
                 raise HTTPException(409, 'Dữ liệu lượt đã thay đổi; xem trước và đối chiếu lại')
             locked[row['visit_id']] = current
         batch_id = uuid4()
         outcomes = []
         for row, overrides in selected:
             current = locked[row['visit_id']]
+            revision, definitions = pinned_catalog(current)
             changes, sources = {}, {}
             skipped = []
             for item in row['fields']:
@@ -400,6 +468,8 @@ def commit(body: Commit, request: Request, actor=Depends(form_actor)):
                 saved = persist(conn, actor, current, revision, definitions, changes, sources, uuid4(), content_hash)
                 new_revision = saved['revision']
             outcomes.append({'index': row['index'], 'patient_code': row['patient_code'], 'visit_external_id': row['visit_external_id'],
+                             'target_patient_code': row.get('target_patient_code'), 'target_patient_name': row.get('target_patient_name'),
+                             'target_occurred_at': row.get('target_occurred_at'),
                              'visit_id': row['visit_id'], 'written_fields': len(changes), 'skipped': skipped, 'revision': new_revision})
         result = {'batch_id': str(batch_id), 'written_records': sum(o['written_fields'] > 0 for o in outcomes),
                   'written_fields': sum(o['written_fields'] for o in outcomes), 'skipped_fields': sum(len(o['skipped']) for o in outcomes),

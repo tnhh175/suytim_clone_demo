@@ -104,9 +104,9 @@ def test_multi_identity_leading_zero_and_missing_identity_pending(live):
     assert snapshot(live, v1)['values_json']['can_nang'] == 5
     assert snapshot(live, v2)['values_json']['can_nang'] == 6
     unique = uuid4().hex[:8]
-    p = checked(c.post('/api/forms/patients', headers=h['doctor'], json={'id': str(uuid4()), 'code': '000' + unique}), 201)
+    p = checked(c.post('/api/forms/patients', headers=h['doctor'], json={'id': str(uuid4()), 'external_id': '000' + unique}), 201)
     v = checked(c.post('/api/forms/patients/' + p['id'] + '/visits', headers=h['doctor'], json={'id': str(uuid4()), 'external_id': '0001'}), 201)
-    body.update(xlsx([['patient', 'visit', 'weight'], [p['code'], '0001', 0]]))
+    body.update(xlsx([['patient', 'visit', 'weight'], [p['external_id'], '0001', 0]]))
     assert preview(live, body)['eligible'] == 1
     body.update(xlsx([['patient', 'visit', 'weight'], [123, '0001', 0]]))
     assert preview(live, body)['errors'] == 1
@@ -147,10 +147,8 @@ def test_explicit_single_row_no_visit_id_and_duplicate_identity(live):
     body.update(xlsx([['name', 'age'], ['Other unrelated source row', 20], ['Selected source row', 0]]))
     body.update(mapping=[{'column': 2, 'target': 'tuoi', 'unit_confirmed': True}], patient_column=None, visit_column=None,
                 explicit_target={'row': 3, 'visit_id': v['id'], 'confirmed': True})
-    plan = preview(live, body)
-    assert len(plan['records']) == 1 and plan['eligible'] == 1
-    checked(commit(live, plan))
-    assert snapshot(live, v)['values_json']['tuoi'] == 0
+    checked(live[0].post('/api/forms/imports/excel/preview',headers=live[1]['doctor'],json=body),422)
+    assert snapshot(live, v)['values_json']['tuoi'] is None
     duplicate, p2, v2 = body_for(live)
     duplicate.update(xlsx([['patient','visit','weight','boolean'], [p2['code'],v2['external_id'],1,False], [p2['code'],v2['external_id'],2,True]]))
     assert preview(live, duplicate)['errors'] == 2
@@ -163,14 +161,11 @@ def test_explicit_known_uuid_with_two_visits_missing_external_codes(live):
     body = {**xlsx([['weight'], [12]]), 'sheet': 'GIA_LAP', 'header_row': 1,
             'mapping': [{'column': 1, 'target': 'can_nang', 'unit_confirmed': True}],
             'explicit_target': {'row': 2, 'visit_id': visits[0]['id'], 'confirmed': True}}
-    plan = preview(live, body)
-    assert plan['eligible'] == 1 and plan['records'][0]['visit_id'] == visits[0]['id']
-    checked(commit(live, plan))
-    assert snapshot(live, visits[0])['values_json']['can_nang'] == 12
+    checked(c.post('/api/forms/imports/excel/preview',headers=h['doctor'],json=body),422)
+    assert snapshot(live, visits[0])['values_json']['can_nang'] is None
     assert snapshot(live, visits[1])['values_json']['can_nang'] is None
     body['explicit_target']['visit_id'] = visits[1]['id']
-    result = checked(commit(live, preview(live, body)))
-    assert result['replayed'] is False and result['written_fields'] == 1
+    checked(c.post('/api/forms/imports/excel/preview',headers=h['doctor'],json=body),422)
 
 
 def test_dynamic_mapping_stale_revision_and_concurrent_retry(live):
@@ -178,6 +173,10 @@ def test_dynamic_mapping_stale_revision_and_concurrent_retry(live):
     body, p, v = body_for(live)
     code = 'qa_import_' + uuid4().hex
     checked(c.post('/api/forms/fields', headers=h['admin'], json={'code': code, 'label': 'Excel QA', 'type': 'text', 'group': 'QA'}), 201)
+    # New global fields belong only to visits created after publication.
+    old_body = {**body, **xlsx([['patient','visit','new'],[p['code'],v['external_id'],'GIA LAP']]),'mapping':[{'column':3,'target':code}]}
+    assert preview(live,old_body)['errors']==1
+    p,v=case(live)
     body.update(xlsx([['patient','visit','new'], [p['code'],v['external_id'],'GIA LAP']]))
     body['mapping'] = [{'column': 3, 'target': code}]
     plan = preview(live, body)
@@ -215,9 +214,11 @@ def test_transaction_rollback_if_late_write_fails(live, monkeypatch):
 
 def test_replay_current_scope_and_token_tamper(live):
     c, h, cred = live
-    p, v = case(live, 'admin')
+    p, v = case(live)
     with psycopg.connect(DSN) as conn:
         conn.execute('SET LOCAL ROLE hf_demo_owner')
+        # Simulate a different owner and explicit doctor grant; Admin cannot create.
+        conn.execute('UPDATE form_patient SET owner_id=%s WHERE id=%s',(cred['accounts']['admin']['id'],p['id']))
         conn.execute('INSERT INTO form_access(patient_id,user_id) VALUES(%s,%s)', (p['id'], cred['accounts']['doctor']['id']))
     body = {**xlsx([['patient','visit','weight'],[p['code'],v['external_id'],12]]), 'sheet':'GIA_LAP','header_row':1,'patient_column':1,'visit_column':2,
             'mapping':[{'column':3,'target':'can_nang','unit_confirmed':True}]}
@@ -236,3 +237,25 @@ def test_no_json_import_routes_and_fixture_download(live):
     assert '/api/forms/imports/json/preview' not in paths and '/api/forms/imports/template.json' not in paths
     response = c.get('/api/forms/imports/template.xlsx', headers=h['doctor'])
     assert response.status_code == 200 and response.content[:2] == b'PK'
+
+
+@pytest.mark.parametrize('endpoint', ['inspect', 'preview'])
+def test_nonfinite_excel_numeric_cell_rejected_without_writes(live, endpoint):
+    body, _, visit = body_for(live)
+    source = base64.b64decode(body['content_base64'])
+    output = BytesIO()
+    with ZipFile(BytesIO(source)) as old, ZipFile(output, 'w') as new:
+        for member in old.infolist():
+            content = old.read(member.filename)
+            if member.filename == 'xl/worksheets/sheet1.xml':
+                content, replaced = re.subn(rb'(<c r="C2"[^>]*><v>)[^<]*(</v></c>)', rb'\g<1>1E309\2', content)
+                assert replaced == 1
+            new.writestr(member, content)
+    body['content_base64'] = base64.b64encode(output.getvalue()).decode()
+    if endpoint == 'inspect':
+        body = {key: body[key] for key in ('filename', 'content_base64', 'sheet', 'header_row')}
+    before = db_counts()
+    response = live[0].post('/api/forms/imports/excel/' + endpoint, headers=live[1]['doctor'], json=body)
+    checked(response, 422)
+    assert db_counts() == before
+    assert snapshot(live, visit)['revision'] == 0

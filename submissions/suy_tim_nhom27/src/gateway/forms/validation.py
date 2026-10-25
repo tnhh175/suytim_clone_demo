@@ -46,6 +46,13 @@ def fail(code, message):
     raise HTTPException(422, detail={'fields': {code: message}})
 
 
+def with_constraints(field):
+    """Source bound (TL06 row 2) and non-negative physical measurements, not normal ranges."""
+    bounds = {'tuoi': {'minimum': 0, 'maximum': 120},
+              'can_nang': {'minimum': 0}, 'chieu_cao': {'minimum': 0}}
+    return {**field, **({'constraints': bounds[field['code']]} if field['code'] in bounds else {})}
+
+
 def value_for(field: dict, value: Any):
     code, kind = field['code'], field['type']
     if isinstance(value, str):
@@ -55,10 +62,19 @@ def value_for(field: dict, value: Any):
     if kind == 'unavailable' or not field['active']:
         fail(code, 'Trường chưa được đặc tả hoặc đã ngừng dùng')
     if kind in {'integer', 'number'}:
-        if type(value) not in (int, float) or not math.isfinite(value):
+        try:
+            finite = type(value) in (int, float) and math.isfinite(value)
+        except OverflowError:
+            finite = False
+        if not finite:
             fail(code, 'Cần giá trị số hữu hạn, không dùng chuỗi hoặc Có/Không')
         if kind == 'integer' and type(value) is not int:
             fail(code, 'Cần số nguyên')
+        bounds = with_constraints(field).get('constraints', {})
+        if 'minimum' in bounds and value < bounds['minimum']:
+            fail(code, f"Giá trị không được nhỏ hơn {bounds['minimum']}")
+        if 'maximum' in bounds and value > bounds['maximum']:
+            fail(code, f"Giá trị không được lớn hơn {bounds['maximum']} theo đặc tả nguồn TL06")
     elif kind == 'boolean':
         if type(value) is not bool:
             fail(code, 'Cần Có/Không hoặc để trống')

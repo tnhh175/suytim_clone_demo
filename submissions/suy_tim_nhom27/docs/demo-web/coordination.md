@@ -1,5 +1,7 @@
 # Điều phối demo web — phạm vi hiện hành
 
+> Đợt sửa 26/10 theo `revision-scope.md` và `revision-ui-spec.md` có ưu tiên cao hơn checkpoint bên dưới. Bản nền đã commit/push `36cac2c`; các sửa đăng nhập chung và đợt v1.0 đang để review. Kết quả checkpoint không thay thế nghiệm thu đợt mới.
+
 Ngày cập nhật: 24/10/2026. Repo `tnhh175/suytim_clone_demo`, checkout `D:/1.TNHH/project/suytim_clone_demo`, nhánh `codex/demo-web`, nền `bc90dbd`. Tên “demo web” được chuyển thành tên Git hợp lệ.
 
 ## Chỉ dẫn và phạm vi

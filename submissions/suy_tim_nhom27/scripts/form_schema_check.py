@@ -33,7 +33,7 @@ def offline():
     invalid.close()
     for value in (None, [], [{"name": "SYNTHETIC_ANALYTE", "value": 0, "unit": None, "observed_at": None}]):
         assert value_for(catalog["dien_giai"], value) == value
-    assert len(catalog) == 206 and sum(d["type"] != "unavailable" for d in catalog.values()) == 70
+    assert len(catalog) == 206 and sum(d["type"] != "unavailable" for d in catalog.values()) == 72
     print(json.dumps({"offline": "passed", "catalog_rows": len(catalog), "valid_excel_rows": 2, "invalid_type_rejected": 1, "missing_identity_fixture_rows": 1}))
 
 

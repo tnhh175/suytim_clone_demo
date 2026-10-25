@@ -1,10 +1,12 @@
 # UI spec — demo web M1/M2
 
-Ngày: 23/10/2026. Chủ sở hữu U1 / UX/UI. Đây là thiết kế đề xuất bám nguồn, không phải kết quả triển khai backend hay xác nhận lâm sàng.
+Ngày thiết kế ban đầu: 23/10/2026. Chủ sở hữu U1 / UX/UI. Đặc tả đăng nhập hiện hành được cập nhật theo điều chỉnh mới nhất của người dùng. Bằng chứng render mockup bên dưới ghi nhận bản thiết kế ban đầu, không phải kết quả triển khai backend hay xác nhận lâm sàng.
 
 ## Phạm vi và cách mở
 
-Mở `../../design/demo-web/index.html` bằng Chrome/Edge. Có thể chỉnh trực tiếp index.html, styles.css và mockup.js. Hash bắt đầu `#login-doctor` hoặc `#login-admin`. Đăng nhập mẫu chỉ mở màn hình thiết kế; không xác thực. Mockup không gọi API, không lưu localStorage/CSDL. Tất cả tên, mã và số trong mockup là giả lập.
+Live web dùng một màn hình `/login` (trang chủ `/` cũng mở cùng ứng dụng). Người dùng nhập tên tài khoản/mật khẩu, không chọn cổng. Ứng dụng tự mở cổng Admin hoặc Bác sĩ dựa trên vai trò do máy chủ xác thực; đăng xuất trở về `/login`. Các URL cũ `/admin/login` và `/bac-si/login` chuyển hướng về `/login`.
+
+Để xem mockup ban đầu, mở `../../design/demo-web/index.html` bằng Chrome/Edge. Có thể chỉnh trực tiếp index.html, styles.css và mockup.js. Các hash `#login-doctor` hoặc `#login-admin` trong mockup thuộc thiết kế trước điều chỉnh đăng nhập chung. Đăng nhập mẫu chỉ mở màn hình thiết kế; không xác thực. Mockup không gọi API, không lưu localStorage/CSDL. Tất cả tên, mã và số trong mockup là giả lập.
 
 Nguồn ưu tiên: prompt-v3.txt mục C/D/F/G/I; gói v0.2 PHAM_VI_HIEN_HANH, PROMPT_DEV §§6–13, BIEU_DIEN_TRUONG. Yêu cầu mới nhất của người dùng bỏ chức năng nhập JSON; phạm vi UI hiện hành chỉ M1/M2 Excel. Không sửa SRS/report/RTM cũ. Không thêm dark mode/animation theo ví dụ skill.
 
@@ -40,7 +42,7 @@ Các nút trong details “Điều khiển trạng thái bản thiết kế” d
 
 ## Backend/component contract bàn giao
 
-Kế thừa HTML/JS + FastAPI. `/api/forms/auth/admin|doctor` phải cố định cổng trên server; `/fields` GET POST PATCH; `/patients` GET POST; `/patients/{id}/visits` GET POST; `/visits/{id}` GET PATCH; `/visits/{id}/history` GET. Đây là hợp đồng phối hợp, cần đối chiếu implementation cuối.
+Kế thừa HTML/JS + FastAPI. Đăng nhập chung dùng `POST /api/v1/auth/token`; vai trò trong phiên đã xác thực quyết định cổng hiển thị. Không suy vai trò từ URL hoặc tên tài khoản. Các endpoint `/api/forms/auth/admin|doctor` được giữ tương thích cho client cũ và vẫn kiểm vai trò cố định, nhưng màn hình đăng nhập chung không dùng chúng. Các API `/fields` GET POST PATCH; `/patients` GET POST; `/patients/{id}/visits` GET POST; `/visits/{id}` GET PATCH; `/visits/{id}/history` GET giữ nguyên dưới `/api/forms`. Quyền được kiểm tra tại máy chủ cho từng request.
 
 FieldDefinition: code, label, group, type, unit, choices[{code,label}], help, order, active, version. Patient: code/external_id/display_name; Visit: external_id/occurred_at/revision. Mã immutable; đổi nhãn giữ giá trị; đổi kiểu/đơn vị đã có dữ liệu chặn khi chưa có chuyển đổi. Trường mới không tự trở thành AI input đã duyệt.
 

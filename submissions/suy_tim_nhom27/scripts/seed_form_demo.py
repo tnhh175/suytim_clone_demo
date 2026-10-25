@@ -17,7 +17,7 @@ from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 from src.gateway.routers.auth import hash_password
 from src.gateway.authorization import Actor
-from src.gateway.forms.router import persist, fingerprint
+from src.gateway.forms.router import persist, fingerprint, demographics
 
 
 def prepare(dsn, schema, credentials_path):
@@ -66,23 +66,32 @@ def prepare(dsn, schema, credentials_path):
             if added:
                 conn.execute('INSERT INTO form_field_history(code,version,definition,actor_id) VALUES(%s,1,%s,%s)', (dynamic['code'], Jsonb(dynamic), credentials['accounts']['admin']['id']))
                 conn.execute('UPDATE form_catalog SET revision=revision+1 WHERE id=1')
+        # Freeze all pre-existing drafts only after source catalog is available.
+        for migration in sorted((ROOT / 'database/migrations').glob('004_*.sql')):
+            conn.execute(migration.read_text(encoding='utf-8'))
+        with conn.transaction():
+            definitions = {r['code']: {**r['definition'], 'version': r['version']} for r in conn.execute('SELECT code,definition,version FROM form_field').fetchall()}
+            catalog_revision = conn.execute('SELECT revision FROM form_catalog WHERE id=1').fetchone()['revision']
             for number in (1, 2):
-                code = f'SYN-FORM-{number:03}'
-                row = conn.execute('INSERT INTO form_patient(id,code,display_name,owner_id) VALUES(%s,%s,%s,%s) ON CONFLICT(code) DO UPDATE SET code=EXCLUDED.code RETURNING id',
-                    (uuid4(), code, f'Người bệnh giả lập {number}', credentials['accounts']['doctor']['id'])).fetchone()
+                source_code = f'SYN-FORM-{number:03}'
+                row = conn.execute('''SELECT p.* FROM form_patient p WHERE p.code=%s OR p.external_id=%s OR EXISTS
+                  (SELECT 1 FROM form_patient_alias a WHERE a.patient_id=p.id AND a.alias=%s)''', (source_code,source_code,source_code)).fetchone()
+                if row is None:
+                    allocated = conn.execute("SELECT nextval('form_patient_code_seq') AS n").fetchone()['n']
+                    row = conn.execute('INSERT INTO form_patient(id,code,external_id,display_name,owner_id) VALUES(%s,%s,%s,%s,%s) RETURNING *',
+                        (uuid4(), f'BN-{allocated:05}', source_code, f'Người bệnh giả lập {allocated:05}', credentials['accounts']['doctor']['id'])).fetchone()
                 for account in credentials['accounts'].values():
                     conn.execute('INSERT INTO form_access(patient_id,user_id) VALUES(%s,%s) ON CONFLICT DO NOTHING', (row['id'], account['id']))
                 for visit in (1, 2):
-                    conn.execute('INSERT INTO form_visit(id,patient_id,external_id,created_by) VALUES(%s,%s,%s,%s) ON CONFLICT(patient_id,external_id) DO NOTHING',
-                        (uuid4(), row['id'], f'VISIT-{number:03}-{visit}', credentials['accounts']['doctor']['id']))
-            definitions = {r['code']: {**r['definition'], 'version': r['version']} for r in conn.execute('SELECT code,definition,version FROM form_field').fetchall()}
-            catalog_revision = conn.execute('SELECT revision FROM form_catalog WHERE id=1').fetchone()['revision']
+                    conn.execute('''INSERT INTO form_visit(id,patient_id,external_id,created_by,catalog_revision,definitions_json,demographics_snapshot,snapshot_origin)
+                      VALUES(%s,%s,%s,%s,%s,%s,%s,'creation') ON CONFLICT(patient_id,external_id) DO NOTHING''',
+                        (uuid4(),row['id'],f'VISIT-{number:03}-{visit}',credentials['accounts']['doctor']['id'],catalog_revision,Jsonb(definitions),Jsonb(demographics(row))))
             actor = Actor(credentials['accounts']['doctor']['id'], credentials['accounts']['doctor']['username'], 'doctor', frozenset())
-            visit = conn.execute("SELECT v.* FROM form_visit v JOIN form_patient p ON p.id=v.patient_id WHERE p.code='SYN-FORM-001' AND v.external_id='VISIT-001-1'").fetchone()
+            visit = conn.execute("SELECT v.* FROM form_visit v JOIN form_patient p ON p.id=v.patient_id WHERE (p.external_id='SYN-FORM-001' OR EXISTS(SELECT 1 FROM form_patient_alias a WHERE a.patient_id=p.id AND a.alias='SYN-FORM-001')) AND v.external_id='VISIT-001-1'").fetchone()
             if visit['revision'] == 0:
                 for changes in ({'can_nang': 0, 'kho_tho_khi_nam': False, 'chieu_cao': None, dynamic['code']: 'Ghi chú giả lập lần đầu.'},
                                 {dynamic['code']: 'Ghi chú giả lập đã chỉnh sửa để xem lịch sử.'}):
-                    persist(conn, actor, visit, catalog_revision, definitions, changes,
+                    persist(conn, actor, visit, visit['catalog_revision'], visit['definitions_json'], changes,
                             {k: {'kind': 'synthetic_seed', 'actor_id': str(actor.user_id)} for k in changes}, uuid4(), fingerprint(changes))
                     visit = conn.execute('SELECT * FROM form_visit WHERE id=%s', (visit['id'],)).fetchone()
             conn.execute(sql.SQL('GRANT USAGE ON SCHEMA {} TO hf_demo_runtime').format(sql.Identifier(schema)))

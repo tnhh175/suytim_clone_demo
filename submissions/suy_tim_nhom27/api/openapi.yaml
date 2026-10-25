@@ -298,6 +298,68 @@ paths:
                 $ref: '#/components/schemas/Error'
       security:
       - HTTPBearer: []
+  /api/forms/patients/{patient_id}:
+    patch:
+      tags:
+      - Biểu mẫu suy tim
+      summary: Edit Patient
+      operationId: edit_patient_api_forms_patients__patient_id__patch
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: patient_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Patient Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatientEdit'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/forms/patients/{patient_id}/history:
+    get:
+      tags:
+      - Biểu mẫu suy tim
+      summary: Patient History
+      operationId: patient_history_api_forms_patients__patient_id__history_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: patient_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Patient Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /api/forms/patients/{patient_id}/visits:
     get:
       tags:
@@ -420,6 +482,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /api/forms/patients/{patient_id}/overview:
+    get:
+      tags:
+      - Biểu mẫu suy tim
+      summary: Overview
+      operationId: overview_api_forms_patients__patient_id__overview_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: patient_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Patient Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /api/forms/visits/{visit_id}/history:
     get:
       tags:
@@ -482,6 +572,51 @@ paths:
         required: true
       responses:
         '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+      - HTTPBearer: []
+  /api/forms/imports/presets:
+    get:
+      tags:
+      - Nhập biểu mẫu
+      summary: Presets
+      operationId: presets_api_forms_imports_presets_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+      - HTTPBearer: []
+    post:
+      tags:
+      - Nhập biểu mẫu
+      summary: Create Preset
+      operationId: create_preset_api_forms_imports_presets_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PresetCreate'
+        required: true
+      responses:
+        '201':
           description: Successful Response
           content:
             application/json:
@@ -2981,16 +3116,6 @@ components:
       title: ObservationWrite
     PatientCreate:
       properties:
-        id:
-          type: string
-          format: uuid
-          title: Id
-        code:
-          type: string
-          maxLength: 60
-          minLength: 1
-          pattern: ^[A-Za-z0-9_-]+$
-          title: Code
         external_id:
           title: External Id
           nullable: true
@@ -3002,12 +3127,80 @@ components:
           nullable: true
           type: string
           maxLength: 200
+          pattern: ^Người bệnh giả lập [0-9]+$
+        date_of_birth:
+          title: Date Of Birth
+          nullable: true
+          type: string
+          format: date
+        sex:
+          title: Sex
+          nullable: true
+          type: string
+          enum:
+          - male
+          - female
+          - other
+        insurance_number:
+          title: Insurance Number
+          nullable: true
+          type: string
+          maxLength: 100
+        id:
+          type: string
+          format: uuid
+          title: Id
       additionalProperties: false
       type: object
       required:
       - id
-      - code
       title: PatientCreate
+    PatientEdit:
+      properties:
+        external_id:
+          title: External Id
+          nullable: true
+          type: string
+          maxLength: 100
+          minLength: 1
+        display_name:
+          title: Display Name
+          nullable: true
+          type: string
+          maxLength: 200
+          pattern: ^Người bệnh giả lập [0-9]+$
+        date_of_birth:
+          title: Date Of Birth
+          nullable: true
+          type: string
+          format: date
+        sex:
+          title: Sex
+          nullable: true
+          type: string
+          enum:
+          - male
+          - female
+          - other
+        insurance_number:
+          title: Insurance Number
+          nullable: true
+          type: string
+          maxLength: 100
+        expected_revision:
+          type: integer
+          minimum: 0.0
+          title: Expected Revision
+        mutation_id:
+          type: string
+          format: uuid
+          title: Mutation Id
+      additionalProperties: false
+      type: object
+      required:
+      - expected_revision
+      - mutation_id
+      title: PatientEdit
     PrescriptionOut:
       properties:
         prescription_id:
@@ -3102,6 +3295,70 @@ components:
       - instructions
       - dose_times
       title: PrescriptionOut
+    PresetCreate:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        name:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Name
+        source_name:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Source Name
+        mapping:
+          $ref: '#/components/schemas/PresetMapping'
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - name
+      - source_name
+      - mapping
+      title: PresetCreate
+    PresetMapping:
+      properties:
+        sheet:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Sheet
+        header_row:
+          type: integer
+          maximum: 100.0
+          minimum: 1.0
+          title: Header Row
+        patient_column:
+          type: integer
+          maximum: 500.0
+          minimum: 1.0
+          title: Patient Column
+        visit_column:
+          type: integer
+          maximum: 500.0
+          minimum: 1.0
+          title: Visit Column
+        columns:
+          items:
+            $ref: '#/components/schemas/ColumnMap'
+          type: array
+          maxItems: 500
+          minItems: 1
+          title: Columns
+      additionalProperties: false
+      type: object
+      required:
+      - sheet
+      - header_row
+      - patient_column
+      - visit_column
+      - columns
+      title: PresetMapping
     RegistrationPayload:
       properties:
         username:
@@ -3436,13 +3693,21 @@ components:
           type: object
           maxProperties: 500
           title: Values
+        metadata:
+          nullable: true
+          allOf:
+          - $ref: '#/components/schemas/VisitMetadata'
+        occurred_at:
+          title: Occurred At
+          nullable: true
+          type: string
+          format: date-time
       additionalProperties: false
       type: object
       required:
       - expected_revision
       - catalog_revision
       - mutation_id
-      - values
       title: Save
     TokenResponse:
       properties:
@@ -3506,11 +3771,80 @@ components:
           nullable: true
           type: string
           format: date-time
+        metadata:
+          $ref: '#/components/schemas/VisitMetadata'
       additionalProperties: false
       type: object
       required:
       - id
       title: VisitCreate
+    VisitMetadata:
+      properties:
+        primary_diagnosis_code:
+          title: Primary Diagnosis Code
+          nullable: true
+          type: string
+          maxLength: 30
+        secondary_diagnosis_codes:
+          title: Secondary Diagnosis Codes
+          nullable: true
+          items:
+            type: string
+          type: array
+          maxItems: 100
+        reason:
+          title: Reason
+          nullable: true
+          type: string
+          maxLength: 5000
+        hpi:
+          title: Hpi
+          nullable: true
+          type: string
+          maxLength: 5000
+        visit_type:
+          title: Visit Type
+          nullable: true
+          type: string
+          enum:
+          - new
+          - followup
+        examining_doctor:
+          title: Examining Doctor
+          nullable: true
+          type: string
+          maxLength: 200
+        department:
+          title: Department
+          nullable: true
+          type: string
+          maxLength: 200
+        admitted_at:
+          title: Admitted At
+          nullable: true
+          type: string
+          format: date-time
+        ended_at:
+          title: Ended At
+          nullable: true
+          type: string
+          format: date-time
+        allergy_status:
+          title: Allergy Status
+          nullable: true
+          type: string
+          enum:
+          - unknown
+          - none
+          - known
+        allergy_details:
+          title: Allergy Details
+          nullable: true
+          type: string
+          maxLength: 5000
+      additionalProperties: false
+      type: object
+      title: VisitMetadata
     Error:
       title: Error
       type: object
