@@ -31,10 +31,17 @@ def offline():
         pass
     assert invalid_rows[2][0] is None and invalid_rows[2][1] is None
     invalid.close()
-    for value in (None, [], [{"name": "SYNTHETIC_ANALYTE", "value": 0, "unit": None, "observed_at": None}]):
+    for value in (None, []):
         assert value_for(catalog["dien_giai"], value) == value
-    assert len(catalog) == 206 and sum(d["type"] != "unavailable" for d in catalog.values()) == 72
-    print(json.dumps({"offline": "passed", "catalog_rows": len(catalog), "valid_excel_rows": 2, "invalid_type_rejected": 1, "missing_identity_fixture_rows": 1}))
+    measured = {"test_code": "K", "name": "Kali giả lập", "value": 0, "unit": "mmol/L",
+                "observed_at": None, "source": "Phiếu giả lập"}
+    assert value_for(catalog["dien_giai"], [measured]) == [measured]
+    source_rows = [d for d in catalog.values() if 'stt' in d.get('source', {})]
+    assert len(source_rows) == 206
+    assert all(child in catalog for d in source_rows for child in d.get('supported_by', []))
+    print(json.dumps({"offline": "passed", "catalog_rows": len(catalog), "source_rows": len(source_rows),
+                      "supported_definitions": sum(d['type'] != 'unavailable' for d in catalog.values()),
+                      "valid_excel_rows": 2, "invalid_type_rejected": 1, "missing_identity_fixture_rows": 1}))
 
 
 def database(url):

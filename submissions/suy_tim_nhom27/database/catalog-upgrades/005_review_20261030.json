@@ -1,0 +1,1302 @@
+{
+  "id": "005_review_20261030",
+  "source": "22222.md review; P1 recording contracts only; no encounter backfill",
+  "changes": [
+    {
+      "code": "ha_t_the_nam_ngoi",
+      "before": {
+        "code": "ha_t_the_nam_ngoi",
+        "label": "Huyết áp khi nằm/ngồi",
+        "group": "Triệu chứng và dấu hiệu",
+        "type": "unavailable",
+        "unit": null,
+        "choices": [],
+        "help": "Cần làm rõ cấu trúc/thang đo/đơn vị/nguồn dẫn xuất; giữ NULL, không tự tính.",
+        "order": 24,
+        "active": true,
+        "source": {
+          "file": "docs/sources/TL06_DataDictionary.xlsx",
+          "sheet": "Trường dữ liệu",
+          "row": 24,
+          "sha256": "b7c5fe2d8f276cc7d94d3161a219edd7f4c29383bd8af1acde84042460122e19",
+          "variable": "ha_t_the_nam_ngoi",
+          "module": "Model 1 – AI Diagnosis",
+          "direction": "Đầu vào",
+          "source_type": "Số đo / nhị phân",
+          "structure": "mmHg; tâm thu/tâm trương",
+          "origin": "Bác sĩ/điều dưỡng nhập",
+          "stt": 23.0
+        },
+        "data_role": "measured_input",
+        "implementation_status": "unresolved",
+        "definition_version": 1
+      },
+      "after": {
+        "code": "ha_t_the_nam_ngoi",
+        "label": "Huyết áp khi nằm/ngồi",
+        "group": "Triệu chứng và dấu hiệu",
+        "type": "unavailable",
+        "unit": null,
+        "choices": [],
+        "help": "Cần làm rõ cấu trúc/thang đo/đơn vị/nguồn dẫn xuất; giữ NULL, không tự tính.",
+        "order": 24,
+        "active": true,
+        "source": {
+          "file": "docs/sources/TL06_DataDictionary.xlsx",
+          "sheet": "Trường dữ liệu",
+          "row": 24,
+          "sha256": "b7c5fe2d8f276cc7d94d3161a219edd7f4c29383bd8af1acde84042460122e19",
+          "variable": "ha_t_the_nam_ngoi",
+          "module": "Model 1 – AI Diagnosis",
+          "direction": "Đầu vào",
+          "source_type": "Số đo / nhị phân",
+          "structure": "mmHg; tâm thu/tâm trương",
+          "origin": "Bác sĩ/điều dưỡng nhập",
+          "stt": 23.0
+        },
+        "data_role": "measured_input",
+        "implementation_status": "unresolved",
+        "definition_version": 1,
+        "supported_by": [
+          "ha_nam_ngoi_tam_thu",
+          "ha_nam_ngoi_tam_truong",
+          "ha_nam_ngoi_tu_the",
+          "ha_nam_ngoi_thoi_diem",
+          "ha_nam_ngoi_nguon"
+        ]
+      }
+    },
+    {
+      "code": "ha_t_the_dung",
+      "before": {
+        "code": "ha_t_the_dung",
+        "label": "Huyết áp khi đứng",
+        "group": "Triệu chứng và dấu hiệu",
+        "type": "unavailable",
+        "unit": null,
+        "choices": [],
+        "help": "Cần làm rõ cấu trúc/thang đo/đơn vị/nguồn dẫn xuất; giữ NULL, không tự tính.",
+        "order": 25,
+        "active": true,
+        "source": {
+          "file": "docs/sources/TL06_DataDictionary.xlsx",
+          "sheet": "Trường dữ liệu",
+          "row": 25,
+          "sha256": "b7c5fe2d8f276cc7d94d3161a219edd7f4c29383bd8af1acde84042460122e19",
+          "variable": "ha_t_the_dung",
+          "module": "Model 1 – AI Diagnosis",
+          "direction": "Đầu vào",
+          "source_type": "Số đo / nhị phân",
+          "structure": "mmHg; tâm thu/tâm trương",
+          "origin": "Bác sĩ/điều dưỡng nhập",
+          "stt": 24.0
+        },
+        "data_role": "measured_input",
+        "implementation_status": "unresolved",
+        "definition_version": 1
+      },
+      "after": {
+        "code": "ha_t_the_dung",
+        "label": "Huyết áp khi đứng",
+        "group": "Triệu chứng và dấu hiệu",
+        "type": "unavailable",
+        "unit": null,
+        "choices": [],
+        "help": "Cần làm rõ cấu trúc/thang đo/đơn vị/nguồn dẫn xuất; giữ NULL, không tự tính.",
+        "order": 25,
+        "active": true,
+        "source": {
+          "file": "docs/sources/TL06_DataDictionary.xlsx",
+          "sheet": "Trường dữ liệu",
+          "row": 25,
+          "sha256": "b7c5fe2d8f276cc7d94d3161a219edd7f4c29383bd8af1acde84042460122e19",
+          "variable": "ha_t_the_dung",
+          "module": "Model 1 – AI Diagnosis",
+          "direction": "Đầu vào",
+          "source_type": "Số đo / nhị phân",
+          "structure": "mmHg; tâm thu/tâm trương",
+          "origin": "Bác sĩ/điều dưỡng nhập",
+          "stt": 24.0
+        },
+        "data_role": "measured_input",
+        "implementation_status": "unresolved",
+        "definition_version": 1,
+        "supported_by": [
+          "ha_dung_tam_thu",
+          "ha_dung_tam_truong",
+          "ha_dung_thoi_diem",
+          "ha_dung_nguon"
+        ]
+      }
+    },
+    {
+      "code": "mach",
+      "before": {
+        "code": "mach",
+        "label": "Mạch",
+        "group": "Triệu chứng và dấu hiệu",
+        "type": "number",
+        "unit": "lần/phút",
+        "choices": [],
+        "help": "",
+        "order": 26,
+        "active": true,
+        "source": {
+          "file": "docs/sources/TL06_DataDictionary.xlsx",
+          "sheet": "Trường dữ liệu",
+          "row": 26,
+          "sha256": "b7c5fe2d8f276cc7d94d3161a219edd7f4c29383bd8af1acde84042460122e19",
+          "variable": "mach",
+          "module": "Model 1 – AI Diagnosis",
+          "direction": "Đầu vào",
+          "source_type": "Số đo / nhị phân",
+          "structure": "lần/phút",
+          "origin": "Bác sĩ/điều dưỡng nhập",
+          "stt": 25.0
+        },
+        "data_role": "measured_input",
+        "implementation_status": "supported",
+        "definition_version": 1
+      },
+      "after": {
+        "code": "mach",
+        "label": "Mạch",
+        "group": "Triệu chứng và dấu hiệu",
+        "type": "number",
+        "unit": "lần/phút",
+        "choices": [],
+        "help": "",
+        "order": 26,
+        "active": true,
+        "source": {
+          "file": "docs/sources/TL06_DataDictionary.xlsx",
+          "sheet": "Trường dữ liệu",
+          "row": 26,
+          "sha256": "b7c5fe2d8f276cc7d94d3161a219edd7f4c29383bd8af1acde84042460122e19",
+          "variable": "mach",
+          "module": "Model 1 – AI Diagnosis",
+          "direction": "Đầu vào",
+          "source_type": "Số đo / nhị phân",
+          "structure": "lần/phút",
+          "origin": "Bác sĩ/điều dưỡng nhập",
+          "stt": 25.0
+        },
+        "data_role": "measured_input",
+        "implementation_status": "supported",
+        "definition_version": 2,
+        "constraints": {
+          "minimum": 0
+        }
+      }
+    },
+    {
+      "code": "nhip_tho",
+      "before": {
+        "code": "nhip_tho",
+        "label": "Nhịp thở",
+        "group": "Triệu chứng và dấu hiệu",
+        "type": "number",
+        "unit": "lần/phút",
+        "choices": [],
+        "help": "",
+        "order": 27,
+        "active": true,
+        "source": {
+          "file": "docs/sources/TL06_DataDictionary.xlsx",
+          "sheet": "Trường dữ liệu",
+          "row": 27,
+          "sha256": "b7c5fe2d8f276cc7d94d3161a219edd7f4c29383bd8af1acde84042460122e19",
+          "variable": "nhip_tho",
+          "module": "Model 1 – AI Diagnosis",
+          "direction": "Đầu vào",
+          "source_type": "Số đo / nhị phân",
+          "structure": "lần/phút",
+          "origin": "Bác sĩ/điều dưỡng nhập",
+          "stt": 26.0
+        },
+        "data_role": "measured_input",
+        "implementation_status": "supported",
+        "definition_version": 1
+      },
+      "after": {
+        "code": "nhip_tho",
+        "label": "Nhịp thở",
+        "group": "Triệu chứng và dấu hiệu",
+        "type": "number",
+        "unit": "lần/phút",
+        "choices": [],
+        "help": "",
+        "order": 27,
+        "active": true,
+        "source": {
+          "file": "docs/sources/TL06_DataDictionary.xlsx",
+          "sheet": "Trường dữ liệu",
+          "row": 27,
+          "sha256": "b7c5fe2d8f276cc7d94d3161a219edd7f4c29383bd8af1acde84042460122e19",
+          "variable": "nhip_tho",
+          "module": "Model 1 – AI Diagnosis",
+          "direction": "Đầu vào",
+          "source_type": "Số đo / nhị phân",
+          "structure": "lần/phút",
+          "origin": "Bác sĩ/điều dưỡng nhập",
+          "stt": 26.0
+        },
+        "data_role": "measured_input",
+        "implementation_status": "supported",
+        "definition_version": 2,
+        "constraints": {
+          "minimum": 0
+        }
+      }
+    },
+    {
+      "code": "spo2",
+      "before": {
+        "code": "spo2",
+        "label": "SpO₂",
+        "group": "Triệu chứng và dấu hiệu",
+        "type": "number",
+        "unit": "%",
+        "choices": [],
+        "help": "",
+        "order": 28,
+        "active": true,
+        "source": {
+          "file": "docs/sources/TL06_DataDictionary.xlsx",
+          "sheet": "Trường dữ liệu",
+          "row": 28,
+          "sha256": "b7c5fe2d8f276cc7d94d3161a219edd7f4c29383bd8af1acde84042460122e19",
+          "variable": "spo2",
+          "module": "Model 1 – AI Diagnosis",
+          "direction": "Đầu vào",
+          "source_type": "Số đo / nhị phân",
+          "structure": "%",
+          "origin": "Bác sĩ/điều dưỡng nhập",
+          "stt": 27.0
+        },
+        "data_role": "measured_input",
+        "implementation_status": "supported",
+        "definition_version": 1
+      },
+      "after": {
+        "code": "spo2",
+        "label": "SpO₂",
+        "group": "Triệu chứng và dấu hiệu",
+        "type": "number",
+        "unit": "%",
+        "choices": [],
+        "help": "",
+        "order": 28,
+        "active": true,
+        "source": {
+          "file": "docs/sources/TL06_DataDictionary.xlsx",
+          "sheet": "Trường dữ liệu",
+          "row": 28,
+          "sha256": "b7c5fe2d8f276cc7d94d3161a219edd7f4c29383bd8af1acde84042460122e19",
+          "variable": "spo2",
+          "module": "Model 1 – AI Diagnosis",
+          "direction": "Đầu vào",
+          "source_type": "Số đo / nhị phân",
+          "structure": "%",
+          "origin": "Bác sĩ/điều dưỡng nhập",
+          "stt": 27.0
+        },
+        "data_role": "measured_input",
+        "implementation_status": "supported",
+        "definition_version": 2,
+        "constraints": {
+          "minimum": 0,
+          "maximum": 100
+        }
+      }
+    },
+    {
+      "code": "benh_mach_vanh_nhoi_mau_co_tim",
+      "before": {
+        "code": "benh_mach_vanh_nhoi_mau_co_tim",
+        "label": "Bệnh mạch vành/nhồi máu cơ tim",
+        "group": "Tiền sử và bệnh đồng mắc",
+        "type": "unavailable",
+        "unit": null,
+        "choices": [],
+        "help": "Cần làm rõ cấu trúc/thang đo/đơn vị/nguồn dẫn xuất; giữ NULL, không tự tính.",
+        "order": 44,
+        "active": true,
+        "source": {
+          "file": "docs/sources/TL06_DataDictionary.xlsx",
+          "sheet": "Trường dữ liệu",
+          "row": 44,
+          "sha256": "b7c5fe2d8f276cc7d94d3161a219edd7f4c29383bd8af1acde84042460122e19",
+          "variable": "benh_mach_vanh_nhoi_mau_co_tim",
+          "module": "Model 1 – AI Diagnosis",
+          "direction": "Đầu vào",
+          "source_type": "Nhị phân",
+          "structure": "Có; Không, HẸP NHƯ THẾ NÀO, CÓ CAN THIỆP GÌ?? (VĂN BẢN)",
+          "origin": "HIS/EMR + bác sĩ xác nhận",
+          "stt": 45.0
+        },
+        "data_role": "recorded_input",
+        "implementation_status": "unresolved",
+        "definition_version": 1
+      },
+      "after": {
+        "code": "benh_mach_vanh_nhoi_mau_co_tim",
+        "label": "Bệnh mạch vành/nhồi máu cơ tim",
+        "group": "Tiền sử và bệnh đồng mắc",
+        "type": "unavailable",
+        "unit": null,
+        "choices": [],
+        "help": "Cần làm rõ cấu trúc/thang đo/đơn vị/nguồn dẫn xuất; giữ NULL, không tự tính.",
+        "order": 44,
+        "active": true,
+        "source": {
+          "file": "docs/sources/TL06_DataDictionary.xlsx",
+          "sheet": "Trường dữ liệu",
+          "row": 44,
+          "sha256": "b7c5fe2d8f276cc7d94d3161a219edd7f4c29383bd8af1acde84042460122e19",
+          "variable": "benh_mach_vanh_nhoi_mau_co_tim",
+          "module": "Model 1 – AI Diagnosis",
+          "direction": "Đầu vào",
+          "source_type": "Nhị phân",
+          "structure": "Có; Không, HẸP NHƯ THẾ NÀO, CÓ CAN THIỆP GÌ?? (VĂN BẢN)",
+          "origin": "HIS/EMR + bác sĩ xác nhận",
+          "stt": 45.0
+        },
+        "data_role": "recorded_input",
+        "implementation_status": "unresolved",
+        "definition_version": 1,
+        "supported_by": [
+          "benh_mach_vanh_da_biet",
+          "benh_mach_vanh_chi_tiet"
+        ]
+      }
+    },
+    {
+      "code": "danh_sach_thuoc",
+      "before": {
+        "code": "danh_sach_thuoc",
+        "label": "Danh sách thuốc hiện tại",
+        "group": "Thuốc đang sử dụng",
+        "type": "medications",
+        "unit": null,
+        "choices": [],
+        "help": "",
+        "order": 68,
+        "active": true,
+        "source": {
+          "file": "docs/sources/TL06_DataDictionary.xlsx",
+          "sheet": "Trường dữ liệu",
+          "row": 68,
+          "sha256": "b7c5fe2d8f276cc7d94d3161a219edd7f4c29383bd8af1acde84042460122e19",
+          "variable": "danh_sach_thuoc",
+          "module": "Model 1 – AI Diagnosis",
+          "direction": "Đầu vào",
+          "source_type": "Danh sách có cấu trúc",
+          "structure": "Tên thuốc; hoạt chất; liều; đường dùng; tần suất; thời điểm",
+          "origin": "HIS/EMR + bác sĩ",
+          "stt": 72.0
+        },
+        "data_role": "recorded_input",
+        "implementation_status": "supported",
+        "definition_version": 1
+      },
+      "after": {
+        "code": "danh_sach_thuoc",
+        "label": "Danh sách thuốc ghi nhận",
+        "group": "Thuốc đang sử dụng",
+        "type": "medications",
+        "unit": null,
+        "choices": [],
+        "help": "Ghi rõ thuốc đang dùng, dự kiến hoặc đã ngừng theo nguồn; không tự suy trạng thái khi chưa có dữ liệu.",
+        "order": 68,
+        "active": true,
+        "source": {
+          "file": "docs/sources/TL06_DataDictionary.xlsx",
+          "sheet": "Trường dữ liệu",
+          "row": 68,
+          "sha256": "b7c5fe2d8f276cc7d94d3161a219edd7f4c29383bd8af1acde84042460122e19",
+          "variable": "danh_sach_thuoc",
+          "module": "Model 1 – AI Diagnosis",
+          "direction": "Đầu vào",
+          "source_type": "Danh sách có cấu trúc",
+          "structure": "Tên thuốc; hoạt chất; liều; đường dùng; tần suất; thời điểm",
+          "origin": "HIS/EMR + bác sĩ",
+          "stt": 72.0
+        },
+        "data_role": "recorded_input",
+        "implementation_status": "supported",
+        "definition_version": 2,
+        "contract_version": 2
+      }
+    },
+    {
+      "code": "bnp_ntprobnp",
+      "before": {
+        "code": "bnp_ntprobnp",
+        "label": "BNP/NT-proBNP",
+        "group": "Cận lâm sàng và theo dõi",
+        "type": "results",
+        "unit": null,
+        "choices": [],
+        "help": "",
+        "order": 71,
+        "active": true,
+        "source": {
+          "file": "docs/sources/TL06_DataDictionary.xlsx",
+          "sheet": "Trường dữ liệu",
+          "row": 71,
+          "sha256": "b7c5fe2d8f276cc7d94d3161a219edd7f4c29383bd8af1acde84042460122e19",
+          "variable": "bnp_ntprobnp",
+          "module": "Model 1 – AI Diagnosis",
+          "direction": "Đầu vào",
+          "source_type": "Số thực",
+          "structure": "Giá trị + đơn vị + thời điểm",
+          "origin": "LIS/PACS/EMR",
+          "stt": 75.0
+        },
+        "data_role": "measured_input",
+        "implementation_status": "supported",
+        "definition_version": 1
+      },
+      "after": {
+        "code": "bnp_ntprobnp",
+        "label": "BNP/NT-proBNP",
+        "group": "Cận lâm sàng và theo dõi",
+        "type": "results",
+        "unit": null,
+        "choices": [],
+        "help": "",
+        "order": 71,
+        "active": true,
+        "source": {
+          "file": "docs/sources/TL06_DataDictionary.xlsx",
+          "sheet": "Trường dữ liệu",
+          "row": 71,
+          "sha256": "b7c5fe2d8f276cc7d94d3161a219edd7f4c29383bd8af1acde84042460122e19",
+          "variable": "bnp_ntprobnp",
+          "module": "Model 1 – AI Diagnosis",
+          "direction": "Đầu vào",
+          "source_type": "Số thực",
+          "structure": "Giá trị + đơn vị + thời điểm",
+          "origin": "LIS/PACS/EMR",
+          "stt": 75.0
+        },
+        "data_role": "measured_input",
+        "implementation_status": "supported",
+        "definition_version": 2,
+        "result_tests": [
+          {
+            "code": "BNP",
+            "label": "BNP",
+            "units": [
+              "pg/mL"
+            ]
+          },
+          {
+            "code": "NT_PROBNP",
+            "label": "NT-proBNP",
+            "units": [
+              "pg/mL"
+            ]
+          }
+        ],
+        "contract_version": 2
+      }
+    },
+    {
+      "code": "troponin",
+      "before": {
+        "code": "troponin",
+        "label": "Troponin",
+        "group": "Cận lâm sàng và theo dõi",
+        "type": "results",
+        "unit": null,
+        "choices": [],
+        "help": "",
+        "order": 72,
+        "active": true,
+        "source": {
+          "file": "docs/sources/TL06_DataDictionary.xlsx",
+          "sheet": "Trường dữ liệu",
+          "row": 72,
+          "sha256": "b7c5fe2d8f276cc7d94d3161a219edd7f4c29383bd8af1acde84042460122e19",
+          "variable": "troponin",
+          "module": "Model 1 – AI Diagnosis",
+          "direction": "Đầu vào",
+          "source_type": "Số thực",
+          "structure": "Giá trị + đơn vị + thời điểm",
+          "origin": "LIS/PACS/EMR",
+          "stt": 76.0
+        },
+        "data_role": "measured_input",
+        "implementation_status": "supported",
+        "definition_version": 1
+      },
+      "after": {
+        "code": "troponin",
+        "label": "Troponin",
+        "group": "Cận lâm sàng và theo dõi",
+        "type": "results",
+        "unit": null,
+        "choices": [],
+        "help": "",
+        "order": 72,
+        "active": true,
+        "source": {
+          "file": "docs/sources/TL06_DataDictionary.xlsx",
+          "sheet": "Trường dữ liệu",
+          "row": 72,
+          "sha256": "b7c5fe2d8f276cc7d94d3161a219edd7f4c29383bd8af1acde84042460122e19",
+          "variable": "troponin",
+          "module": "Model 1 – AI Diagnosis",
+          "direction": "Đầu vào",
+          "source_type": "Số thực",
+          "structure": "Giá trị + đơn vị + thời điểm",
+          "origin": "LIS/PACS/EMR",
+          "stt": 76.0
+        },
+        "data_role": "measured_input",
+        "implementation_status": "supported",
+        "definition_version": 2,
+        "result_tests": [
+          {
+            "code": "TROPONIN",
+            "label": "Troponin",
+            "units": []
+          }
+        ],
+        "contract_version": 2
+      }
+    },
+    {
+      "code": "sieu_am_tim_ef",
+      "before": {
+        "code": "sieu_am_tim_ef",
+        "label": "Siêu âm tim và EF",
+        "group": "Cận lâm sàng và theo dõi",
+        "type": "unavailable",
+        "unit": null,
+        "choices": [],
+        "help": "Cần làm rõ cấu trúc/thang đo/đơn vị/nguồn dẫn xuất; giữ NULL, không tự tính.",
+        "order": 73,
+        "active": true,
+        "source": {
+          "file": "docs/sources/TL06_DataDictionary.xlsx",
+          "sheet": "Trường dữ liệu",
+          "row": 73,
+          "sha256": "b7c5fe2d8f276cc7d94d3161a219edd7f4c29383bd8af1acde84042460122e19",
+          "variable": "sieu_am_tim_ef",
+          "module": "Model 1 – AI Diagnosis",
+          "direction": "Đầu vào",
+          "source_type": "Số thực/tệp",
+          "structure": "EF (%) + kết quả siêu âm + thời điểm",
+          "origin": "LIS/PACS/EMR",
+          "stt": 77.0
+        },
+        "data_role": "measured_input",
+        "implementation_status": "unresolved",
+        "definition_version": 1
+      },
+      "after": {
+        "code": "sieu_am_tim_ef",
+        "label": "Siêu âm tim và EF",
+        "group": "Cận lâm sàng và theo dõi",
+        "type": "unavailable",
+        "unit": null,
+        "choices": [],
+        "help": "Cần làm rõ cấu trúc/thang đo/đơn vị/nguồn dẫn xuất; giữ NULL, không tự tính.",
+        "order": 73,
+        "active": true,
+        "source": {
+          "file": "docs/sources/TL06_DataDictionary.xlsx",
+          "sheet": "Trường dữ liệu",
+          "row": 73,
+          "sha256": "b7c5fe2d8f276cc7d94d3161a219edd7f4c29383bd8af1acde84042460122e19",
+          "variable": "sieu_am_tim_ef",
+          "module": "Model 1 – AI Diagnosis",
+          "direction": "Đầu vào",
+          "source_type": "Số thực/tệp",
+          "structure": "EF (%) + kết quả siêu âm + thời điểm",
+          "origin": "LIS/PACS/EMR",
+          "stt": 77.0
+        },
+        "data_role": "measured_input",
+        "implementation_status": "unresolved",
+        "definition_version": 1,
+        "supported_by": [
+          "lvef",
+          "sieu_am_tim_bao_cao",
+          "sieu_am_tim_thoi_diem",
+          "sieu_am_tim_nguon"
+        ]
+      }
+    },
+    {
+      "code": "creatinin_egfr",
+      "before": {
+        "code": "creatinin_egfr",
+        "label": "Creatinin/eGFR",
+        "group": "Cận lâm sàng và theo dõi",
+        "type": "results",
+        "unit": null,
+        "choices": [],
+        "help": "",
+        "order": 75,
+        "active": true,
+        "source": {
+          "file": "docs/sources/TL06_DataDictionary.xlsx",
+          "sheet": "Trường dữ liệu",
+          "row": 75,
+          "sha256": "b7c5fe2d8f276cc7d94d3161a219edd7f4c29383bd8af1acde84042460122e19",
+          "variable": "creatinin_egfr",
+          "module": "Model 1 – AI Diagnosis",
+          "direction": "Đầu vào",
+          "source_type": "Số thực",
+          "structure": "Giá trị + đơn vị + thời điểm",
+          "origin": "LIS/PACS/EMR",
+          "stt": 79.0
+        },
+        "data_role": "measured_input",
+        "implementation_status": "supported",
+        "definition_version": 1
+      },
+      "after": {
+        "code": "creatinin_egfr",
+        "label": "Creatinin/eGFR",
+        "group": "Cận lâm sàng và theo dõi",
+        "type": "results",
+        "unit": null,
+        "choices": [],
+        "help": "",
+        "order": 75,
+        "active": true,
+        "source": {
+          "file": "docs/sources/TL06_DataDictionary.xlsx",
+          "sheet": "Trường dữ liệu",
+          "row": 75,
+          "sha256": "b7c5fe2d8f276cc7d94d3161a219edd7f4c29383bd8af1acde84042460122e19",
+          "variable": "creatinin_egfr",
+          "module": "Model 1 – AI Diagnosis",
+          "direction": "Đầu vào",
+          "source_type": "Số thực",
+          "structure": "Giá trị + đơn vị + thời điểm",
+          "origin": "LIS/PACS/EMR",
+          "stt": 79.0
+        },
+        "data_role": "measured_input",
+        "implementation_status": "supported",
+        "definition_version": 2,
+        "result_tests": [
+          {
+            "code": "CREATININE",
+            "label": "Creatinin",
+            "units": [
+              "umol/L"
+            ]
+          },
+          {
+            "code": "EGFR",
+            "label": "eGFR đã được cung cấp",
+            "units": [
+              "mL/min/1.73m2"
+            ]
+          }
+        ],
+        "contract_version": 2
+      }
+    },
+    {
+      "code": "dien_giai",
+      "before": {
+        "code": "dien_giai",
+        "label": "Điện giải đồ",
+        "group": "Cận lâm sàng và theo dõi",
+        "type": "results",
+        "unit": null,
+        "choices": [],
+        "help": "",
+        "order": 76,
+        "active": true,
+        "source": {
+          "file": "docs/sources/TL06_DataDictionary.xlsx",
+          "sheet": "Trường dữ liệu",
+          "row": 76,
+          "sha256": "b7c5fe2d8f276cc7d94d3161a219edd7f4c29383bd8af1acde84042460122e19",
+          "variable": "dien_giai",
+          "module": "Model 1 – AI Diagnosis",
+          "direction": "Đầu vào",
+          "source_type": "Số thực/cấu trúc",
+          "structure": "Na; K; các điện giải khác + đơn vị + thời điểm",
+          "origin": "LIS/PACS/EMR",
+          "stt": 80.0
+        },
+        "data_role": "measured_input",
+        "implementation_status": "supported",
+        "definition_version": 1
+      },
+      "after": {
+        "code": "dien_giai",
+        "label": "Điện giải đồ",
+        "group": "Cận lâm sàng và theo dõi",
+        "type": "results",
+        "unit": null,
+        "choices": [],
+        "help": "",
+        "order": 76,
+        "active": true,
+        "source": {
+          "file": "docs/sources/TL06_DataDictionary.xlsx",
+          "sheet": "Trường dữ liệu",
+          "row": 76,
+          "sha256": "b7c5fe2d8f276cc7d94d3161a219edd7f4c29383bd8af1acde84042460122e19",
+          "variable": "dien_giai",
+          "module": "Model 1 – AI Diagnosis",
+          "direction": "Đầu vào",
+          "source_type": "Số thực/cấu trúc",
+          "structure": "Na; K; các điện giải khác + đơn vị + thời điểm",
+          "origin": "LIS/PACS/EMR",
+          "stt": 80.0
+        },
+        "data_role": "measured_input",
+        "implementation_status": "supported",
+        "definition_version": 2,
+        "result_tests": [
+          {
+            "code": "NA",
+            "label": "Natri",
+            "units": []
+          },
+          {
+            "code": "K",
+            "label": "Kali",
+            "units": [
+              "mmol/L"
+            ]
+          },
+          {
+            "code": "OTHER",
+            "label": "Xét nghiệm khác (ghi tên và đơn vị gốc)",
+            "units": []
+          }
+        ],
+        "contract_version": 2
+      }
+    },
+    {
+      "code": "thay_doi_nyha",
+      "before": {
+        "code": "thay_doi_nyha",
+        "label": "Thay đổi NYHA",
+        "group": "Cận lâm sàng và theo dõi",
+        "type": "select",
+        "unit": null,
+        "choices": [
+          {
+            "code": "v1",
+            "label": "I"
+          },
+          {
+            "code": "v2",
+            "label": "II"
+          },
+          {
+            "code": "v3",
+            "label": "III"
+          },
+          {
+            "code": "v4",
+            "label": "IV"
+          }
+        ],
+        "help": "",
+        "order": 79,
+        "active": true,
+        "source": {
+          "file": "docs/sources/TL06_DataDictionary.xlsx",
+          "sheet": "Trường dữ liệu",
+          "row": 79,
+          "sha256": "b7c5fe2d8f276cc7d94d3161a219edd7f4c29383bd8af1acde84042460122e19",
+          "variable": "thay_doi_nyha",
+          "module": "Model 1 – AI Diagnosis",
+          "direction": "Đầu vào",
+          "source_type": "Định tính",
+          "structure": "I; II; III; IV",
+          "origin": "HIS/EMR + bác sĩ",
+          "stt": 83.0
+        },
+        "data_role": "recorded_input",
+        "implementation_status": "supported",
+        "definition_version": 1
+      },
+      "after": {
+        "code": "thay_doi_nyha",
+        "label": "NYHA tại lần khám này",
+        "group": "Cận lâm sàng và theo dõi",
+        "type": "select",
+        "unit": null,
+        "choices": [
+          {
+            "code": "v1",
+            "label": "I"
+          },
+          {
+            "code": "v2",
+            "label": "II"
+          },
+          {
+            "code": "v3",
+            "label": "III"
+          },
+          {
+            "code": "v4",
+            "label": "IV"
+          }
+        ],
+        "help": "I–IV là phân độ tại lần khám này, không phải mức thay đổi. So sánh cần giá trị và thời điểm trước; không tự tính.",
+        "order": 79,
+        "active": true,
+        "source": {
+          "file": "docs/sources/TL06_DataDictionary.xlsx",
+          "sheet": "Trường dữ liệu",
+          "row": 79,
+          "sha256": "b7c5fe2d8f276cc7d94d3161a219edd7f4c29383bd8af1acde84042460122e19",
+          "variable": "thay_doi_nyha",
+          "module": "Model 1 – AI Diagnosis",
+          "direction": "Đầu vào",
+          "source_type": "Định tính",
+          "structure": "I; II; III; IV",
+          "origin": "HIS/EMR + bác sĩ",
+          "stt": 83.0
+        },
+        "data_role": "recorded_input",
+        "implementation_status": "supported",
+        "definition_version": 2
+      }
+    },
+    {
+      "code": "ha_nam_ngoi_tam_thu",
+      "before": null,
+      "after": {
+        "code": "ha_nam_ngoi_tam_thu",
+        "label": "Huyết áp nằm/ngồi — tâm thu",
+        "group": "Triệu chứng và dấu hiệu",
+        "type": "number",
+        "unit": "mmHg",
+        "choices": [],
+        "active": true,
+        "order": 24.206,
+        "help": "Ghi đúng dữ liệu được cung cấp; chưa biết để trống. Không tự suy từ thời điểm nhập.",
+        "source": {
+          "review": "22222.md",
+          "parent_code": "ha_t_the_nam_ngoi"
+        },
+        "data_role": "recorded_input",
+        "implementation_status": "supported",
+        "definition_version": 1,
+        "constraints": {
+          "minimum": 0
+        }
+      }
+    },
+    {
+      "code": "ha_nam_ngoi_tam_truong",
+      "before": null,
+      "after": {
+        "code": "ha_nam_ngoi_tam_truong",
+        "label": "Huyết áp nằm/ngồi — tâm trương",
+        "group": "Triệu chứng và dấu hiệu",
+        "type": "number",
+        "unit": "mmHg",
+        "choices": [],
+        "active": true,
+        "order": 24.207,
+        "help": "Ghi đúng dữ liệu được cung cấp; chưa biết để trống. Không tự suy từ thời điểm nhập.",
+        "source": {
+          "review": "22222.md",
+          "parent_code": "ha_t_the_nam_ngoi"
+        },
+        "data_role": "recorded_input",
+        "implementation_status": "supported",
+        "definition_version": 1,
+        "constraints": {
+          "minimum": 0
+        }
+      }
+    },
+    {
+      "code": "ha_nam_ngoi_tu_the",
+      "before": null,
+      "after": {
+        "code": "ha_nam_ngoi_tu_the",
+        "label": "Tư thế đo huyết áp",
+        "group": "Triệu chứng và dấu hiệu",
+        "type": "select",
+        "unit": null,
+        "choices": [
+          {
+            "code": "lying",
+            "label": "Nằm"
+          },
+          {
+            "code": "sitting",
+            "label": "Ngồi"
+          }
+        ],
+        "active": true,
+        "order": 24.208,
+        "help": "Ghi đúng dữ liệu được cung cấp; chưa biết để trống. Không tự suy từ thời điểm nhập.",
+        "source": {
+          "review": "22222.md",
+          "parent_code": "ha_t_the_nam_ngoi"
+        },
+        "data_role": "recorded_input",
+        "implementation_status": "supported",
+        "definition_version": 1
+      }
+    },
+    {
+      "code": "ha_nam_ngoi_thoi_diem",
+      "before": null,
+      "after": {
+        "code": "ha_nam_ngoi_thoi_diem",
+        "label": "Thời điểm đo huyết áp nằm/ngồi",
+        "group": "Triệu chứng và dấu hiệu",
+        "type": "datetime",
+        "unit": null,
+        "choices": [],
+        "active": true,
+        "order": 24.209,
+        "help": "Ghi đúng dữ liệu được cung cấp; chưa biết để trống. Không tự suy từ thời điểm nhập.",
+        "source": {
+          "review": "22222.md",
+          "parent_code": "ha_t_the_nam_ngoi"
+        },
+        "data_role": "recorded_input",
+        "implementation_status": "supported",
+        "definition_version": 1
+      }
+    },
+    {
+      "code": "ha_nam_ngoi_nguon",
+      "before": null,
+      "after": {
+        "code": "ha_nam_ngoi_nguon",
+        "label": "Nguồn số đo huyết áp nằm/ngồi",
+        "group": "Triệu chứng và dấu hiệu",
+        "type": "text",
+        "unit": null,
+        "choices": [],
+        "active": true,
+        "order": 24.21,
+        "help": "Ghi đúng dữ liệu được cung cấp; chưa biết để trống. Không tự suy từ thời điểm nhập.",
+        "source": {
+          "review": "22222.md",
+          "parent_code": "ha_t_the_nam_ngoi"
+        },
+        "data_role": "recorded_input",
+        "implementation_status": "supported",
+        "definition_version": 1
+      }
+    },
+    {
+      "code": "ha_dung_tam_thu",
+      "before": null,
+      "after": {
+        "code": "ha_dung_tam_thu",
+        "label": "Huyết áp đứng — tâm thu",
+        "group": "Triệu chứng và dấu hiệu",
+        "type": "number",
+        "unit": "mmHg",
+        "choices": [],
+        "active": true,
+        "order": 25.211,
+        "help": "Ghi đúng dữ liệu được cung cấp; chưa biết để trống. Không tự suy từ thời điểm nhập.",
+        "source": {
+          "review": "22222.md",
+          "parent_code": "ha_t_the_dung"
+        },
+        "data_role": "recorded_input",
+        "implementation_status": "supported",
+        "definition_version": 1,
+        "constraints": {
+          "minimum": 0
+        }
+      }
+    },
+    {
+      "code": "ha_dung_tam_truong",
+      "before": null,
+      "after": {
+        "code": "ha_dung_tam_truong",
+        "label": "Huyết áp đứng — tâm trương",
+        "group": "Triệu chứng và dấu hiệu",
+        "type": "number",
+        "unit": "mmHg",
+        "choices": [],
+        "active": true,
+        "order": 25.212,
+        "help": "Ghi đúng dữ liệu được cung cấp; chưa biết để trống. Không tự suy từ thời điểm nhập.",
+        "source": {
+          "review": "22222.md",
+          "parent_code": "ha_t_the_dung"
+        },
+        "data_role": "recorded_input",
+        "implementation_status": "supported",
+        "definition_version": 1,
+        "constraints": {
+          "minimum": 0
+        }
+      }
+    },
+    {
+      "code": "ha_dung_thoi_diem",
+      "before": null,
+      "after": {
+        "code": "ha_dung_thoi_diem",
+        "label": "Thời điểm đo huyết áp đứng",
+        "group": "Triệu chứng và dấu hiệu",
+        "type": "datetime",
+        "unit": null,
+        "choices": [],
+        "active": true,
+        "order": 25.213,
+        "help": "Ghi đúng dữ liệu được cung cấp; chưa biết để trống. Không tự suy từ thời điểm nhập.",
+        "source": {
+          "review": "22222.md",
+          "parent_code": "ha_t_the_dung"
+        },
+        "data_role": "recorded_input",
+        "implementation_status": "supported",
+        "definition_version": 1
+      }
+    },
+    {
+      "code": "ha_dung_nguon",
+      "before": null,
+      "after": {
+        "code": "ha_dung_nguon",
+        "label": "Nguồn số đo huyết áp đứng",
+        "group": "Triệu chứng và dấu hiệu",
+        "type": "text",
+        "unit": null,
+        "choices": [],
+        "active": true,
+        "order": 25.214,
+        "help": "Ghi đúng dữ liệu được cung cấp; chưa biết để trống. Không tự suy từ thời điểm nhập.",
+        "source": {
+          "review": "22222.md",
+          "parent_code": "ha_t_the_dung"
+        },
+        "data_role": "recorded_input",
+        "implementation_status": "supported",
+        "definition_version": 1
+      }
+    },
+    {
+      "code": "lvef",
+      "before": null,
+      "after": {
+        "code": "lvef",
+        "label": "Phân suất tống máu thất trái (LVEF)",
+        "group": "Cận lâm sàng và theo dõi",
+        "type": "number",
+        "unit": "%",
+        "choices": [],
+        "active": true,
+        "order": 73.215,
+        "help": "Ghi đúng dữ liệu được cung cấp; chưa biết để trống. Không tự suy từ thời điểm nhập.",
+        "source": {
+          "review": "22222.md",
+          "parent_code": "sieu_am_tim_ef"
+        },
+        "data_role": "recorded_input",
+        "implementation_status": "supported",
+        "definition_version": 1,
+        "constraints": {
+          "minimum": 0,
+          "maximum": 100
+        }
+      }
+    },
+    {
+      "code": "sieu_am_tim_bao_cao",
+      "before": null,
+      "after": {
+        "code": "sieu_am_tim_bao_cao",
+        "label": "Kết luận / báo cáo siêu âm tim",
+        "group": "Cận lâm sàng và theo dõi",
+        "type": "textarea",
+        "unit": null,
+        "choices": [],
+        "active": true,
+        "order": 73.216,
+        "help": "Ghi đúng dữ liệu được cung cấp; chưa biết để trống. Không tự suy từ thời điểm nhập.",
+        "source": {
+          "review": "22222.md",
+          "parent_code": "sieu_am_tim_ef"
+        },
+        "data_role": "recorded_input",
+        "implementation_status": "supported",
+        "definition_version": 1
+      }
+    },
+    {
+      "code": "sieu_am_tim_thoi_diem",
+      "before": null,
+      "after": {
+        "code": "sieu_am_tim_thoi_diem",
+        "label": "Thời điểm siêu âm tim",
+        "group": "Cận lâm sàng và theo dõi",
+        "type": "datetime",
+        "unit": null,
+        "choices": [],
+        "active": true,
+        "order": 73.217,
+        "help": "Ghi đúng dữ liệu được cung cấp; chưa biết để trống. Không tự suy từ thời điểm nhập.",
+        "source": {
+          "review": "22222.md",
+          "parent_code": "sieu_am_tim_ef"
+        },
+        "data_role": "recorded_input",
+        "implementation_status": "supported",
+        "definition_version": 1
+      }
+    },
+    {
+      "code": "sieu_am_tim_nguon",
+      "before": null,
+      "after": {
+        "code": "sieu_am_tim_nguon",
+        "label": "Nguồn báo cáo siêu âm tim",
+        "group": "Cận lâm sàng và theo dõi",
+        "type": "text",
+        "unit": null,
+        "choices": [],
+        "active": true,
+        "order": 73.218,
+        "help": "Ghi đúng dữ liệu được cung cấp; chưa biết để trống. Không tự suy từ thời điểm nhập.",
+        "source": {
+          "review": "22222.md",
+          "parent_code": "sieu_am_tim_ef"
+        },
+        "data_role": "recorded_input",
+        "implementation_status": "supported",
+        "definition_version": 1
+      }
+    },
+    {
+      "code": "benh_mach_vanh_da_biet",
+      "before": null,
+      "after": {
+        "code": "benh_mach_vanh_da_biet",
+        "label": "Đã biết bệnh mạch vành / nhồi máu cơ tim",
+        "group": "Tiền sử và bệnh đồng mắc",
+        "type": "boolean",
+        "unit": null,
+        "choices": [],
+        "active": true,
+        "order": 44.219,
+        "help": "Ghi đúng dữ liệu được cung cấp; chưa biết để trống. Không tự suy từ thời điểm nhập.",
+        "source": {
+          "review": "22222.md",
+          "parent_code": "benh_mach_vanh_nhoi_mau_co_tim"
+        },
+        "data_role": "recorded_input",
+        "implementation_status": "supported",
+        "definition_version": 1
+      }
+    },
+    {
+      "code": "benh_mach_vanh_chi_tiet",
+      "before": null,
+      "after": {
+        "code": "benh_mach_vanh_chi_tiet",
+        "label": "Mô tả bệnh mạch vành / can thiệp đã ghi nhận",
+        "group": "Tiền sử và bệnh đồng mắc",
+        "type": "textarea",
+        "unit": null,
+        "choices": [],
+        "active": true,
+        "order": 44.22,
+        "help": "Ghi đúng dữ liệu được cung cấp; chưa biết để trống. Không tự suy từ thời điểm nhập.",
+        "source": {
+          "review": "22222.md",
+          "parent_code": "benh_mach_vanh_nhoi_mau_co_tim"
+        },
+        "data_role": "recorded_input",
+        "implementation_status": "supported",
+        "definition_version": 1
+      }
+    },
+    {
+      "code": "xet_nghiem_bo_sung",
+      "before": null,
+      "after": {
+        "code": "xet_nghiem_bo_sung",
+        "label": "Các xét nghiệm khác đã có",
+        "group": "Cận lâm sàng và theo dõi",
+        "type": "results",
+        "unit": null,
+        "choices": [],
+        "active": true,
+        "order": 770.221,
+        "help": "Chỉ ghi kết quả đã có. Những danh mục chưa xác nhận đơn vị giữ nguyên đơn vị trên báo cáo; không tự quy đổi hay chỉ định.",
+        "source": {
+          "review": "22222.md",
+          "parent_code": null
+        },
+        "data_role": "recorded_input",
+        "implementation_status": "supported",
+        "definition_version": 2,
+        "result_tests": [
+          {
+            "code": "CBC",
+            "label": "Công thức máu — ghi tên chỉ số",
+            "units": []
+          },
+          {
+            "code": "LIVER",
+            "label": "Gan — ghi tên chỉ số",
+            "units": []
+          },
+          {
+            "code": "GLUCOSE",
+            "label": "Glucose",
+            "units": []
+          },
+          {
+            "code": "HBA1C",
+            "label": "HbA1c",
+            "units": []
+          },
+          {
+            "code": "TSH",
+            "label": "TSH",
+            "units": []
+          },
+          {
+            "code": "FERRITIN",
+            "label": "Ferritin",
+            "units": []
+          },
+          {
+            "code": "TSAT",
+            "label": "TSAT",
+            "units": []
+          },
+          {
+            "code": "UREA",
+            "label": "Urê",
+            "units": []
+          },
+          {
+            "code": "OTHER",
+            "label": "Xét nghiệm khác (ghi tên và đơn vị gốc)",
+            "units": []
+          }
+        ],
+        "contract_version": 2
+      }
+    }
+  ]
+}

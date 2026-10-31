@@ -168,7 +168,12 @@ def identity_available(conn, code, patient_id):
 @router.get('/patients')
 def patients(request: Request, actor=Depends(form_actor)):
     with staff_connection(request, actor) as conn:
-        return conn.execute('''SELECT p.* FROM form_patient p WHERE %s OR p.owner_id=%s OR EXISTS
+        return conn.execute('''SELECT p.*, latest.occurred_at AS latest_visit_at,
+            latest.external_id AS latest_visit_external_id FROM form_patient p
+            LEFT JOIN LATERAL (SELECT v.occurred_at,v.external_id FROM form_visit v
+              WHERE v.patient_id=p.id AND v.occurred_at IS NOT NULL
+              ORDER BY v.occurred_at DESC,v.created_at DESC,v.id LIMIT 1) latest ON true
+            WHERE %s OR p.owner_id=%s OR EXISTS
             (SELECT 1 FROM form_access a WHERE a.patient_id=p.id AND a.user_id=%s) ORDER BY p.created_at DESC''',
             (actor.role == 'admin', actor.user_id, actor.user_id)).fetchall()
 

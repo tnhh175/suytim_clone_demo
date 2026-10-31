@@ -627,7 +627,14 @@
     },
     "data_role": "measured_input",
     "implementation_status": "unresolved",
-    "definition_version": 1
+    "definition_version": 1,
+    "supported_by": [
+      "ha_nam_ngoi_tam_thu",
+      "ha_nam_ngoi_tam_truong",
+      "ha_nam_ngoi_tu_the",
+      "ha_nam_ngoi_thoi_diem",
+      "ha_nam_ngoi_nguon"
+    ]
   },
   {
     "code": "ha_t_the_dung",
@@ -654,7 +661,13 @@
     },
     "data_role": "measured_input",
     "implementation_status": "unresolved",
-    "definition_version": 1
+    "definition_version": 1,
+    "supported_by": [
+      "ha_dung_tam_thu",
+      "ha_dung_tam_truong",
+      "ha_dung_thoi_diem",
+      "ha_dung_nguon"
+    ]
   },
   {
     "code": "mach",
@@ -681,7 +694,10 @@
     },
     "data_role": "measured_input",
     "implementation_status": "supported",
-    "definition_version": 1
+    "definition_version": 2,
+    "constraints": {
+      "minimum": 0
+    }
   },
   {
     "code": "nhip_tho",
@@ -708,7 +724,10 @@
     },
     "data_role": "measured_input",
     "implementation_status": "supported",
-    "definition_version": 1
+    "definition_version": 2,
+    "constraints": {
+      "minimum": 0
+    }
   },
   {
     "code": "spo2",
@@ -735,7 +754,11 @@
     },
     "data_role": "measured_input",
     "implementation_status": "supported",
-    "definition_version": 1
+    "definition_version": 2,
+    "constraints": {
+      "minimum": 0,
+      "maximum": 100
+    }
   },
   {
     "code": "tinh_mach_co_noi",
@@ -1189,7 +1212,11 @@
     },
     "data_role": "recorded_input",
     "implementation_status": "unresolved",
-    "definition_version": 1
+    "definition_version": 1,
+    "supported_by": [
+      "benh_mach_vanh_da_biet",
+      "benh_mach_vanh_chi_tiet"
+    ]
   },
   {
     "code": "dai_thao_duong",
@@ -1814,12 +1841,12 @@
   },
   {
     "code": "danh_sach_thuoc",
-    "label": "Danh sách thuốc hiện tại",
+    "label": "Danh sách thuốc ghi nhận",
     "group": "Thuốc đang sử dụng",
     "type": "medications",
     "unit": null,
     "choices": [],
-    "help": "",
+    "help": "Ghi rõ thuốc đang dùng, dự kiến hoặc đã ngừng theo nguồn; không tự suy trạng thái khi chưa có dữ liệu.",
     "order": 68,
     "active": true,
     "source": {
@@ -1837,7 +1864,8 @@
     },
     "data_role": "recorded_input",
     "implementation_status": "supported",
-    "definition_version": 1
+    "definition_version": 2,
+    "contract_version": 2
   },
   {
     "code": "da_thuoc",
@@ -1918,7 +1946,24 @@
     },
     "data_role": "measured_input",
     "implementation_status": "supported",
-    "definition_version": 1
+    "definition_version": 2,
+    "result_tests": [
+      {
+        "code": "BNP",
+        "label": "BNP",
+        "units": [
+          "pg/mL"
+        ]
+      },
+      {
+        "code": "NT_PROBNP",
+        "label": "NT-proBNP",
+        "units": [
+          "pg/mL"
+        ]
+      }
+    ],
+    "contract_version": 2
   },
   {
     "code": "troponin",
@@ -1945,7 +1990,15 @@
     },
     "data_role": "measured_input",
     "implementation_status": "supported",
-    "definition_version": 1
+    "definition_version": 2,
+    "result_tests": [
+      {
+        "code": "TROPONIN",
+        "label": "Troponin",
+        "units": []
+      }
+    ],
+    "contract_version": 2
   },
   {
     "code": "sieu_am_tim_ef",
@@ -1972,7 +2025,13 @@
     },
     "data_role": "measured_input",
     "implementation_status": "unresolved",
-    "definition_version": 1
+    "definition_version": 1,
+    "supported_by": [
+      "lvef",
+      "sieu_am_tim_bao_cao",
+      "sieu_am_tim_thoi_diem",
+      "sieu_am_tim_nguon"
+    ]
   },
   {
     "code": "xquang_tim_phoi",
@@ -2026,7 +2085,24 @@
     },
     "data_role": "measured_input",
     "implementation_status": "supported",
-    "definition_version": 1
+    "definition_version": 2,
+    "result_tests": [
+      {
+        "code": "CREATININE",
+        "label": "Creatinin",
+        "units": [
+          "umol/L"
+        ]
+      },
+      {
+        "code": "EGFR",
+        "label": "eGFR đã được cung cấp",
+        "units": [
+          "mL/min/1.73m2"
+        ]
+      }
+    ],
+    "contract_version": 2
   },
   {
     "code": "dien_giai",
@@ -2053,7 +2129,27 @@
     },
     "data_role": "measured_input",
     "implementation_status": "supported",
-    "definition_version": 1
+    "definition_version": 2,
+    "result_tests": [
+      {
+        "code": "NA",
+        "label": "Natri",
+        "units": []
+      },
+      {
+        "code": "K",
+        "label": "Kali",
+        "units": [
+          "mmol/L"
+        ]
+      },
+      {
+        "code": "OTHER",
+        "label": "Xét nghiệm khác (ghi tên và đơn vị gốc)",
+        "units": []
+      }
+    ],
+    "contract_version": 2
   },
   {
     "code": "thay_doi_trieu_chung",
@@ -2124,7 +2220,7 @@
   },
   {
     "code": "thay_doi_nyha",
-    "label": "Thay đổi NYHA",
+    "label": "NYHA tại lần khám này",
     "group": "Cận lâm sàng và theo dõi",
     "type": "select",
     "unit": null,
@@ -2146,7 +2242,7 @@
         "label": "IV"
       }
     ],
-    "help": "",
+    "help": "I–IV là phân độ tại lần khám này, không phải mức thay đổi. So sánh cần giá trị và thời điểm trước; không tự tính.",
     "order": 79,
     "active": true,
     "source": {
@@ -2164,7 +2260,7 @@
     },
     "data_role": "recorded_input",
     "implementation_status": "supported",
-    "definition_version": 1
+    "definition_version": 2
   },
   {
     "code": "thay_doi_bnp_ntprobnp",
@@ -2995,7 +3091,7 @@
       "source_type": "Thông tin lâm sàng/định tính",
       "structure": "Theo hồ sơ và đánh giá thực tế",
       "origin": "HIS/EMR + bác sĩ",
-      "stt": 112.0
+      "stt": 112
     },
     "data_role": "recorded_input",
     "implementation_status": "unresolved",
@@ -3022,7 +3118,7 @@
       "source_type": "Thông tin lâm sàng/định tính",
       "structure": "Theo hồ sơ và đánh giá thực tế",
       "origin": "HIS/EMR + bác sĩ",
-      "stt": 113.0
+      "stt": 113
     },
     "data_role": "recorded_input",
     "implementation_status": "unresolved",
@@ -3049,7 +3145,7 @@
       "source_type": "Thông tin lâm sàng/định tính",
       "structure": "Theo hồ sơ và đánh giá thực tế",
       "origin": "HIS/EMR + bác sĩ",
-      "stt": 114.0
+      "stt": 114
     },
     "data_role": "recorded_input",
     "implementation_status": "unresolved",
@@ -3076,7 +3172,7 @@
       "source_type": "Thông tin lâm sàng/định tính",
       "structure": "Theo hồ sơ và đánh giá thực tế",
       "origin": "HIS/EMR + bác sĩ",
-      "stt": 115.0
+      "stt": 115
     },
     "data_role": "recorded_input",
     "implementation_status": "unresolved",
@@ -3103,7 +3199,7 @@
       "source_type": "Thông tin lâm sàng/định tính",
       "structure": "Theo hồ sơ và đánh giá thực tế",
       "origin": "HIS/EMR + bác sĩ",
-      "stt": 116.0
+      "stt": 116
     },
     "data_role": "recorded_input",
     "implementation_status": "unresolved",
@@ -3130,7 +3226,7 @@
       "source_type": "Thông tin lâm sàng/định tính",
       "structure": "Theo hồ sơ và đánh giá thực tế",
       "origin": "HIS/EMR + bác sĩ",
-      "stt": 117.0
+      "stt": 117
     },
     "data_role": "recorded_input",
     "implementation_status": "unresolved",
@@ -3157,7 +3253,7 @@
       "source_type": "Thông tin lâm sàng/định tính",
       "structure": "Theo hồ sơ và đánh giá thực tế",
       "origin": "HIS/EMR + bác sĩ",
-      "stt": 118.0
+      "stt": 118
     },
     "data_role": "recorded_input",
     "implementation_status": "unresolved",
@@ -3184,7 +3280,7 @@
       "source_type": "Thông tin lâm sàng/định tính",
       "structure": "Theo hồ sơ và đánh giá thực tế",
       "origin": "HIS/EMR + bác sĩ",
-      "stt": 119.0
+      "stt": 119
     },
     "data_role": "recorded_input",
     "implementation_status": "unresolved",
@@ -3211,7 +3307,7 @@
       "source_type": "Thông tin lâm sàng/định tính",
       "structure": "Theo hồ sơ và đánh giá thực tế",
       "origin": "HIS/EMR + bác sĩ",
-      "stt": 120.0
+      "stt": 120
     },
     "data_role": "recorded_input",
     "implementation_status": "unresolved",
@@ -3238,7 +3334,7 @@
       "source_type": "Khuyến nghị xét nghiệm",
       "structure": "Đề xuất/Không đề xuất ????",
       "origin": "AI Lab/Test",
-      "stt": 121.0
+      "stt": 121
     },
     "data_role": "ai_output",
     "implementation_status": "unresolved",
@@ -3265,7 +3361,7 @@
       "source_type": "Khuyến nghị xét nghiệm",
       "structure": "Đề xuất/Không đề xuất",
       "origin": "AI Lab/Test",
-      "stt": 122.0
+      "stt": 122
     },
     "data_role": "ai_output",
     "implementation_status": "unresolved",
@@ -5673,5 +5769,366 @@
     "data_role": "ai_output",
     "implementation_status": "unresolved",
     "definition_version": 1
+  },
+  {
+    "code": "ha_nam_ngoi_tam_thu",
+    "label": "Huyết áp nằm/ngồi — tâm thu",
+    "group": "Triệu chứng và dấu hiệu",
+    "type": "number",
+    "unit": "mmHg",
+    "choices": [],
+    "active": true,
+    "order": 24.206,
+    "help": "Ghi đúng dữ liệu được cung cấp; chưa biết để trống. Không tự suy từ thời điểm nhập.",
+    "source": {
+      "review": "22222.md",
+      "parent_code": "ha_t_the_nam_ngoi"
+    },
+    "data_role": "recorded_input",
+    "implementation_status": "supported",
+    "definition_version": 1,
+    "constraints": {
+      "minimum": 0
+    }
+  },
+  {
+    "code": "ha_nam_ngoi_tam_truong",
+    "label": "Huyết áp nằm/ngồi — tâm trương",
+    "group": "Triệu chứng và dấu hiệu",
+    "type": "number",
+    "unit": "mmHg",
+    "choices": [],
+    "active": true,
+    "order": 24.207,
+    "help": "Ghi đúng dữ liệu được cung cấp; chưa biết để trống. Không tự suy từ thời điểm nhập.",
+    "source": {
+      "review": "22222.md",
+      "parent_code": "ha_t_the_nam_ngoi"
+    },
+    "data_role": "recorded_input",
+    "implementation_status": "supported",
+    "definition_version": 1,
+    "constraints": {
+      "minimum": 0
+    }
+  },
+  {
+    "code": "ha_nam_ngoi_tu_the",
+    "label": "Tư thế đo huyết áp",
+    "group": "Triệu chứng và dấu hiệu",
+    "type": "select",
+    "unit": null,
+    "choices": [
+      {
+        "code": "lying",
+        "label": "Nằm"
+      },
+      {
+        "code": "sitting",
+        "label": "Ngồi"
+      }
+    ],
+    "active": true,
+    "order": 24.208,
+    "help": "Ghi đúng dữ liệu được cung cấp; chưa biết để trống. Không tự suy từ thời điểm nhập.",
+    "source": {
+      "review": "22222.md",
+      "parent_code": "ha_t_the_nam_ngoi"
+    },
+    "data_role": "recorded_input",
+    "implementation_status": "supported",
+    "definition_version": 1
+  },
+  {
+    "code": "ha_nam_ngoi_thoi_diem",
+    "label": "Thời điểm đo huyết áp nằm/ngồi",
+    "group": "Triệu chứng và dấu hiệu",
+    "type": "datetime",
+    "unit": null,
+    "choices": [],
+    "active": true,
+    "order": 24.209,
+    "help": "Ghi đúng dữ liệu được cung cấp; chưa biết để trống. Không tự suy từ thời điểm nhập.",
+    "source": {
+      "review": "22222.md",
+      "parent_code": "ha_t_the_nam_ngoi"
+    },
+    "data_role": "recorded_input",
+    "implementation_status": "supported",
+    "definition_version": 1
+  },
+  {
+    "code": "ha_nam_ngoi_nguon",
+    "label": "Nguồn số đo huyết áp nằm/ngồi",
+    "group": "Triệu chứng và dấu hiệu",
+    "type": "text",
+    "unit": null,
+    "choices": [],
+    "active": true,
+    "order": 24.21,
+    "help": "Ghi đúng dữ liệu được cung cấp; chưa biết để trống. Không tự suy từ thời điểm nhập.",
+    "source": {
+      "review": "22222.md",
+      "parent_code": "ha_t_the_nam_ngoi"
+    },
+    "data_role": "recorded_input",
+    "implementation_status": "supported",
+    "definition_version": 1
+  },
+  {
+    "code": "ha_dung_tam_thu",
+    "label": "Huyết áp đứng — tâm thu",
+    "group": "Triệu chứng và dấu hiệu",
+    "type": "number",
+    "unit": "mmHg",
+    "choices": [],
+    "active": true,
+    "order": 25.211,
+    "help": "Ghi đúng dữ liệu được cung cấp; chưa biết để trống. Không tự suy từ thời điểm nhập.",
+    "source": {
+      "review": "22222.md",
+      "parent_code": "ha_t_the_dung"
+    },
+    "data_role": "recorded_input",
+    "implementation_status": "supported",
+    "definition_version": 1,
+    "constraints": {
+      "minimum": 0
+    }
+  },
+  {
+    "code": "ha_dung_tam_truong",
+    "label": "Huyết áp đứng — tâm trương",
+    "group": "Triệu chứng và dấu hiệu",
+    "type": "number",
+    "unit": "mmHg",
+    "choices": [],
+    "active": true,
+    "order": 25.212,
+    "help": "Ghi đúng dữ liệu được cung cấp; chưa biết để trống. Không tự suy từ thời điểm nhập.",
+    "source": {
+      "review": "22222.md",
+      "parent_code": "ha_t_the_dung"
+    },
+    "data_role": "recorded_input",
+    "implementation_status": "supported",
+    "definition_version": 1,
+    "constraints": {
+      "minimum": 0
+    }
+  },
+  {
+    "code": "ha_dung_thoi_diem",
+    "label": "Thời điểm đo huyết áp đứng",
+    "group": "Triệu chứng và dấu hiệu",
+    "type": "datetime",
+    "unit": null,
+    "choices": [],
+    "active": true,
+    "order": 25.213,
+    "help": "Ghi đúng dữ liệu được cung cấp; chưa biết để trống. Không tự suy từ thời điểm nhập.",
+    "source": {
+      "review": "22222.md",
+      "parent_code": "ha_t_the_dung"
+    },
+    "data_role": "recorded_input",
+    "implementation_status": "supported",
+    "definition_version": 1
+  },
+  {
+    "code": "ha_dung_nguon",
+    "label": "Nguồn số đo huyết áp đứng",
+    "group": "Triệu chứng và dấu hiệu",
+    "type": "text",
+    "unit": null,
+    "choices": [],
+    "active": true,
+    "order": 25.214,
+    "help": "Ghi đúng dữ liệu được cung cấp; chưa biết để trống. Không tự suy từ thời điểm nhập.",
+    "source": {
+      "review": "22222.md",
+      "parent_code": "ha_t_the_dung"
+    },
+    "data_role": "recorded_input",
+    "implementation_status": "supported",
+    "definition_version": 1
+  },
+  {
+    "code": "lvef",
+    "label": "Phân suất tống máu thất trái (LVEF)",
+    "group": "Cận lâm sàng và theo dõi",
+    "type": "number",
+    "unit": "%",
+    "choices": [],
+    "active": true,
+    "order": 73.215,
+    "help": "Ghi đúng dữ liệu được cung cấp; chưa biết để trống. Không tự suy từ thời điểm nhập.",
+    "source": {
+      "review": "22222.md",
+      "parent_code": "sieu_am_tim_ef"
+    },
+    "data_role": "recorded_input",
+    "implementation_status": "supported",
+    "definition_version": 1,
+    "constraints": {
+      "minimum": 0,
+      "maximum": 100
+    }
+  },
+  {
+    "code": "sieu_am_tim_bao_cao",
+    "label": "Kết luận / báo cáo siêu âm tim",
+    "group": "Cận lâm sàng và theo dõi",
+    "type": "textarea",
+    "unit": null,
+    "choices": [],
+    "active": true,
+    "order": 73.216,
+    "help": "Ghi đúng dữ liệu được cung cấp; chưa biết để trống. Không tự suy từ thời điểm nhập.",
+    "source": {
+      "review": "22222.md",
+      "parent_code": "sieu_am_tim_ef"
+    },
+    "data_role": "recorded_input",
+    "implementation_status": "supported",
+    "definition_version": 1
+  },
+  {
+    "code": "sieu_am_tim_thoi_diem",
+    "label": "Thời điểm siêu âm tim",
+    "group": "Cận lâm sàng và theo dõi",
+    "type": "datetime",
+    "unit": null,
+    "choices": [],
+    "active": true,
+    "order": 73.217,
+    "help": "Ghi đúng dữ liệu được cung cấp; chưa biết để trống. Không tự suy từ thời điểm nhập.",
+    "source": {
+      "review": "22222.md",
+      "parent_code": "sieu_am_tim_ef"
+    },
+    "data_role": "recorded_input",
+    "implementation_status": "supported",
+    "definition_version": 1
+  },
+  {
+    "code": "sieu_am_tim_nguon",
+    "label": "Nguồn báo cáo siêu âm tim",
+    "group": "Cận lâm sàng và theo dõi",
+    "type": "text",
+    "unit": null,
+    "choices": [],
+    "active": true,
+    "order": 73.218,
+    "help": "Ghi đúng dữ liệu được cung cấp; chưa biết để trống. Không tự suy từ thời điểm nhập.",
+    "source": {
+      "review": "22222.md",
+      "parent_code": "sieu_am_tim_ef"
+    },
+    "data_role": "recorded_input",
+    "implementation_status": "supported",
+    "definition_version": 1
+  },
+  {
+    "code": "benh_mach_vanh_da_biet",
+    "label": "Đã biết bệnh mạch vành / nhồi máu cơ tim",
+    "group": "Tiền sử và bệnh đồng mắc",
+    "type": "boolean",
+    "unit": null,
+    "choices": [],
+    "active": true,
+    "order": 44.219,
+    "help": "Ghi đúng dữ liệu được cung cấp; chưa biết để trống. Không tự suy từ thời điểm nhập.",
+    "source": {
+      "review": "22222.md",
+      "parent_code": "benh_mach_vanh_nhoi_mau_co_tim"
+    },
+    "data_role": "recorded_input",
+    "implementation_status": "supported",
+    "definition_version": 1
+  },
+  {
+    "code": "benh_mach_vanh_chi_tiet",
+    "label": "Mô tả bệnh mạch vành / can thiệp đã ghi nhận",
+    "group": "Tiền sử và bệnh đồng mắc",
+    "type": "textarea",
+    "unit": null,
+    "choices": [],
+    "active": true,
+    "order": 44.22,
+    "help": "Ghi đúng dữ liệu được cung cấp; chưa biết để trống. Không tự suy từ thời điểm nhập.",
+    "source": {
+      "review": "22222.md",
+      "parent_code": "benh_mach_vanh_nhoi_mau_co_tim"
+    },
+    "data_role": "recorded_input",
+    "implementation_status": "supported",
+    "definition_version": 1
+  },
+  {
+    "code": "xet_nghiem_bo_sung",
+    "label": "Các xét nghiệm khác đã có",
+    "group": "Cận lâm sàng và theo dõi",
+    "type": "results",
+    "unit": null,
+    "choices": [],
+    "active": true,
+    "order": 770.221,
+    "help": "Chỉ ghi kết quả đã có. Những danh mục chưa xác nhận đơn vị giữ nguyên đơn vị trên báo cáo; không tự quy đổi hay chỉ định.",
+    "source": {
+      "review": "22222.md",
+      "parent_code": null
+    },
+    "data_role": "recorded_input",
+    "implementation_status": "supported",
+    "definition_version": 2,
+    "result_tests": [
+      {
+        "code": "CBC",
+        "label": "Công thức máu — ghi tên chỉ số",
+        "units": []
+      },
+      {
+        "code": "LIVER",
+        "label": "Gan — ghi tên chỉ số",
+        "units": []
+      },
+      {
+        "code": "GLUCOSE",
+        "label": "Glucose",
+        "units": []
+      },
+      {
+        "code": "HBA1C",
+        "label": "HbA1c",
+        "units": []
+      },
+      {
+        "code": "TSH",
+        "label": "TSH",
+        "units": []
+      },
+      {
+        "code": "FERRITIN",
+        "label": "Ferritin",
+        "units": []
+      },
+      {
+        "code": "TSAT",
+        "label": "TSAT",
+        "units": []
+      },
+      {
+        "code": "UREA",
+        "label": "Urê",
+        "units": []
+      },
+      {
+        "code": "OTHER",
+        "label": "Xét nghiệm khác (ghi tên và đơn vị gốc)",
+        "units": []
+      }
+    ],
+    "contract_version": 2
   }
 ]

@@ -1,5 +1,7 @@
 # Chạy demo biểu mẫu và nhập Excel
 
+> Cập nhật 30/10 theo `22222.md`: xem `review-20261030-integration.md`, `review-20261030-data.md` và `review-20261030-ui.md`. Mẫu mới có cấu trúc BP/EF/kết quả/thuốc; lượt cũ giữ mẫu riêng. Catalog hiện có 222 định nghĩa (206 nguồn +16 bổ sung), không coi số trường là độ hoàn thiện chuyên môn.
+
 > Bản cập nhật 26/10 theo yêu cầu v1.0: dùng hướng dẫn tại `revision-data-contract.md`, `revision-ui-spec.md` và `qa/revision-integration.md`. Admin quản lý hồ sơ dùng chung, chỉ đọc dữ liệu khám; bác sĩ nhập khám. Các lượt giữ mẫu riêng. Các bước minh họa M1/M2 bên dưới là lịch sử trước thay đổi này nếu có mâu thuẫn.
 
 Phạm vi hiện hành: M1 nhập tay/trường động và M2 Excel. Kế thừa HTML/CSS/JavaScript, FastAPI, xác thực phiên và PostgreSQL của repo. Không có chức năng dán/tải file JSON, kết nối HIS trực tiếp hoặc AI hoạt động. Không sửa SRS/report/RTM cũ.
@@ -64,6 +66,19 @@ Excel danh sách thuốc/kết quả/multiselect chưa có hợp đồng nguồn
 Catalog nguồn hiện có 72/206 dòng hỗ trợ: đã tách ghi nhận Có/Không của đái tháo đường và bệnh thận mạn khỏi thành phần xét nghiệm chưa rõ; 134 dòng còn thiếu đặc tả/không là đầu vào nhập tay. Lượt cũ tiếp tục dùng snapshot đã ghim. Không dựng đầu ra AI. Workbook riêng thiếu mã lượt; chưa xác nhận tương thích HIS. Danh sách thuốc/kết quả Excel, BMI/NYHA và luồng AI tiếp tục theo giai đoạn trong `revision-scope.md`.
 
 ## Kiểm thử lại
+
+### Nâng catalog cho schema giả lập đã có
+
+Từ thư mục app, xem kế hoạch trước; chỉ apply sau khi không có conflict và đã chọn file backup mới:
+
+```powershell
+& '.\.venv\Scripts\python.exe' scripts/upgrade_form_catalog.py --config-file 'D:\1.TNHH\project\suytim_clone_demo\local-data\forms-live-runtime.json'
+& '.\.venv\Scripts\python.exe' scripts/upgrade_form_catalog.py --config-file 'D:\1.TNHH\project\suytim_clone_demo\local-data\forms-live-runtime.json' --apply --backup-file 'D:\1.TNHH\project\suytim_clone_demo\local-data\catalog-backup-NEW.json'
+```
+
+Không dùng lại tên backup đã có. Nếu báo conflict, đối chiếu định nghĩa Admin đã sửa; script không tự ghi đè. Không dùng schema public hoặc dữ liệu thật. Các lượt đã ghim không đổi; tạo lượt mới để dùng mẫu mới. Seed trên schema đã có không tự nâng định nghĩa trùng mã. `build_form_catalog.py` tái dựng baseline v0.2 lịch sử và ghi file đầu ra, không dùng để thay catalog hiện hành.
+
+### Chạy kiểm thử
 
 ```powershell
 $env:PYTHONPATH = 'src'

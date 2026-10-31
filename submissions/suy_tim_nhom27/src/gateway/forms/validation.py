@@ -74,7 +74,7 @@ def value_for(field: dict, value: Any):
         if 'minimum' in bounds and value < bounds['minimum']:
             fail(code, f"Giá trị không được nhỏ hơn {bounds['minimum']}")
         if 'maximum' in bounds and value > bounds['maximum']:
-            fail(code, f"Giá trị không được lớn hơn {bounds['maximum']} theo đặc tả nguồn TL06")
+            fail(code, f"Giá trị không được lớn hơn {bounds['maximum']} theo giới hạn của trường")
     elif kind == 'boolean':
         if type(value) is not bool:
             fail(code, 'Cần Có/Không hoặc để trống')
@@ -106,6 +106,14 @@ def value_for(field: dict, value: Any):
             fail(code, 'Cần danh sách tối đa 200 mục')
         columns = ({'name': 'text', 'ingredient': 'text', 'dose': 'text', 'route': 'text', 'frequency': 'text', 'observed_at': 'datetime'}
                    if kind == 'medications' else {'name': 'text', 'value': 'number', 'unit': 'text', 'observed_at': 'datetime'})
+        modern = field.get('contract_version') == 2
+        if modern:
+            columns = {**columns, 'source': 'text'}
+            if kind == 'results':
+                columns['test_code'] = 'text'
+            else:
+                columns.update(strength='text', dose_value='number', dose_unit='text',
+                               start_date='date', end_date='date', status='text', category='text')
         cleaned = []
         for item in value:
             if not isinstance(item, dict) or set(item) - set(columns):
@@ -113,6 +121,26 @@ def value_for(field: dict, value: Any):
             row = {k: value_for(dict(code=code, type=t, active=True), item.get(k)) for k, t in columns.items()}
             if not row['name']:
                 fail(code, 'Mỗi mục cần tên để phân biệt kết quả/thuốc; chưa rõ để toàn bộ trường trống')
+            if modern and kind == 'results':
+                tests = {test['code']: test for test in field.get('result_tests', [])}
+                test = tests.get(row['test_code'])
+                if test is None:
+                    fail(code, 'Chọn mã xét nghiệm đúng danh mục; không tự thay thế BNP và NT-proBNP')
+                if row['unit'] is not None and test['units'] and row['unit'] not in test['units']:
+                    fail(code, 'Đơn vị không khớp mã xét nghiệm; giữ dữ liệu gốc, không tự quy đổi')
+                if row['value'] is not None and row['unit'] is None:
+                    fail(code, 'Kết quả có giá trị cần đơn vị từ báo cáo nguồn')
+            if modern and kind == 'medications':
+                if row['dose_value'] is not None and row['dose_value'] < 0:
+                    fail(code, 'Liều số không được âm')
+                if row['dose_value'] is not None and row['dose_unit'] is None:
+                    fail(code, 'Liều số cần đơn vị; có thể giữ nguyên mô tả liều gốc')
+                if row['status'] not in {None, 'current', 'planned', 'stopped'}:
+                    fail(code, 'Trạng thái thuốc không hợp lệ')
+                if row['category'] not in {None, 'prescription', 'otc', 'supplement', 'traditional'}:
+                    fail(code, 'Nhóm thuốc không hợp lệ')
+                if row['start_date'] and row['end_date'] and row['end_date'] < row['start_date']:
+                    fail(code, 'Ngày kết thúc không được trước ngày bắt đầu')
             cleaned.append(row)
         value = cleaned
     else:
