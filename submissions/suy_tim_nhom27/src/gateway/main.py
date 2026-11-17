@@ -16,7 +16,7 @@ from psycopg_pool import ConnectionPool, PoolTimeout
 from .clinical import build_clinical_router
 from .database import check_pool, create_pool
 from .patient_portal import build_patient_portal_router
-from .routers.auth import RegistrationLimiter, router as auth_router
+from .routers.auth import RegistrationLimiter, registration_router, router as auth_router
 from .routers.medications import build_medications_router
 from .routers.rules import build_rules_router
 from .forms.router import router as forms_router
@@ -26,6 +26,8 @@ from .forms.imports import router as imports_router
 def create_app(
     database_url: str | None = None,
     pool: ConnectionPool | None = None,
+    *,
+    forms_only: bool = False,
 ) -> FastAPI:
     owned_pool = pool if pool is not None else create_pool(database_url)
 
@@ -91,13 +93,16 @@ def create_app(
             raise HTTPException(status_code=503, detail="Cơ sở dữ liệu demo chưa sẵn sàng")
         return {"status": "ok", "mode": "stub", "persistence": "postgres"}
 
+    if not forms_only:
+        app.include_router(registration_router)
     app.include_router(auth_router)
     app.include_router(forms_router)
     app.include_router(imports_router)
-    app.include_router(build_clinical_router())
-    app.include_router(build_medications_router())
-    app.include_router(build_rules_router())
-    app.include_router(build_patient_portal_router())
+    if not forms_only:
+        app.include_router(build_clinical_router())
+        app.include_router(build_medications_router())
+        app.include_router(build_rules_router())
+        app.include_router(build_patient_portal_router())
 
     from .spec import contract
 

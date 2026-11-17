@@ -1,5 +1,7 @@
 # Chạy demo biểu mẫu và nhập Excel
 
+Để đưa bản demo lên Internet, xem [cách deploy lên Railway](deploy-railway.md).
+
 > Cập nhật 30/10 theo `22222.md`: xem `review-20261030-integration.md`, `review-20261030-data.md` và `review-20261030-ui.md`. Mẫu mới có cấu trúc BP/EF/kết quả/thuốc; lượt cũ giữ mẫu riêng. Catalog hiện có 222 định nghĩa (206 nguồn +16 bổ sung), không coi số trường là độ hoàn thiện chuyên môn.
 
 > Bản cập nhật 26/10 theo yêu cầu v1.0: dùng hướng dẫn tại `revision-data-contract.md`, `revision-ui-spec.md` và `qa/revision-integration.md`. Admin quản lý hồ sơ dùng chung, chỉ đọc dữ liệu khám; bác sĩ nhập khám. Các lượt giữ mẫu riêng. Các bước minh họa M1/M2 bên dưới là lịch sử trước thay đổi này nếu có mâu thuẫn.

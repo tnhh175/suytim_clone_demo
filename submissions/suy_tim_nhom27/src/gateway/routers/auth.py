@@ -89,6 +89,7 @@ class LogoutResponse(BaseModel):
 
 
 router = APIRouter(prefix="/api/v1/auth", tags=["Identity"])
+registration_router = APIRouter(prefix="/api/v1/auth", tags=["Identity"])
 _SESSION_TTL_SECONDS = 3600
 _DUMMY_SALT = b"hospital-demo-missing-account"
 
@@ -131,7 +132,7 @@ def hash_password(password: str) -> str:
     return "pbkdf2_sha256$600000$" + base64.b64encode(salt).decode("ascii") + "$" + base64.b64encode(digest).decode("ascii")
 
 
-@router.post(
+@registration_router.post(
     "/register", response_model=RegistrationResponse, status_code=201,
     responses={409: {"description": "Tên đăng nhập đã được sử dụng"}, 429: {"description": "Vượt giới hạn đăng ký demo"}, 503: {"description": "Cơ sở dữ liệu hoặc bác sĩ phụ trách chưa sẵn sàng"}},
 )
