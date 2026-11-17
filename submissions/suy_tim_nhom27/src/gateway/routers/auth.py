@@ -8,6 +8,7 @@ import secrets
 import threading
 import time
 from collections import deque
+from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from typing import Literal
 
@@ -16,7 +17,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from psycopg.errors import UniqueViolation
 
-from ..authorization import Actor, _bearer, _actor_from_session, get_current_actor
+from ..authorization import Actor, _VALID_ROLES, _bearer, get_current_actor
 
 
 class LoginPayload(BaseModel):
@@ -54,21 +55,54 @@ class RegistrationResponse(BaseModel):
     role: Literal["patient"] = "patient"
 
 
-class RegistrationLimiter:
-    """Bounded, process-local local-demo signup throttle; never trust forwarded IPs."""
+class AttemptWindow:
+    """Bounded rolling window shared by all clients of one app instance."""
 
-    def __init__(self):
+    def __init__(self, per_client: int, total: int, detail: str):
         self.lock = threading.Lock()
         self.attempts: deque[tuple[float, str]] = deque()
+        self.per_client = per_client
+        self.total = total
+        self.detail = detail
 
     def check(self, client: str) -> None:
-        now = time.monotonic()
         with self.lock:
+            now = time.monotonic()
             while self.attempts and self.attempts[0][0] <= now - 60:
                 self.attempts.popleft()
-            if len(self.attempts) >= 64 or sum(ip == client for _, ip in self.attempts) >= 8:
-                raise HTTPException(status_code=429, detail="Đã thử đăng ký nhiều lần. Thử lại sau một phút.", headers={"Retry-After": "60"})
+            if len(self.attempts) >= self.total or sum(ip == client for _, ip in self.attempts) >= self.per_client:
+                raise HTTPException(status_code=429, detail=self.detail, headers={"Retry-After": "60"})
             self.attempts.append((now, client))
+
+
+class RegistrationLimiter(AttemptWindow):
+    def __init__(self):
+        super().__init__(8, 64, "Đã thử đăng ký nhiều lần. Thử lại sau một phút.")
+
+
+class LoginLimiter(AttemptWindow):
+    def __init__(self):
+        super().__init__(12, 48, "Đã thử đăng nhập nhiều lần. Thử lại sau một phút.")
+        self.slots = threading.BoundedSemaphore(2)
+
+    @contextmanager
+    def attempt(self, client: str):
+        if not self.slots.acquire(blocking=False):
+            raise HTTPException(
+                status_code=429,
+                detail="Đang xử lý nhiều lượt đăng nhập. Thử lại sau.",
+                headers={"Retry-After": "1"},
+            )
+        try:
+            self.check(client)
+            yield
+        finally:
+            self.slots.release()
+
+
+def _client_host(request: Request) -> str:
+    # Use the ASGI server's client address after its trusted proxy handling.
+    return request.client.host if request.client else "unknown"
 
 
 class TokenResponse(BaseModel):
@@ -92,6 +126,13 @@ router = APIRouter(prefix="/api/v1/auth", tags=["Identity"])
 registration_router = APIRouter(prefix="/api/v1/auth", tags=["Identity"])
 _SESSION_TTL_SECONDS = 3600
 _DUMMY_SALT = b"hospital-demo-missing-account"
+LOGIN_RESPONSES = {
+    429: {
+        "description": "Vượt giới hạn số lượt đăng nhập hoặc số lượt xử lý đồng thời",
+        "headers": {"Retry-After": {"schema": {"type": "integer"}, "description": "Số giây trước khi thử lại"}},
+        "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}},
+    },
+}
 
 
 def verify_password(password: str, encoded_hash: str) -> bool:
@@ -142,7 +183,7 @@ def register(body: RegistrationPayload, request: Request) -> RegistrationRespons
     limiter = getattr(request.app.state, "registration_limiter", None)
     if limiter is None:
         raise HTTPException(status_code=503, detail="Đăng ký demo chưa được cấu hình")
-    limiter.check(request.client.host if request.client else "unknown")
+    limiter.check(_client_host(request))
     owner_username = os.getenv("HF_REGISTRATION_DOCTOR_USERNAME", "doctor_demo")
     encoded_hash = hash_password(body.password)
     try:
@@ -178,36 +219,49 @@ def register(body: RegistrationPayload, request: Request) -> RegistrationRespons
     return RegistrationResponse(username=body.username)
 
 
-@router.post("/token", response_model=TokenResponse)
+@router.post("/token", response_model=TokenResponse, responses=LOGIN_RESPONSES)
 def login(body: LoginPayload, request: Request) -> TokenResponse:
-    pool = _pool(request)
+    limiter = getattr(request.app.state, "login_limiter", None)
+    if limiter is None:
+        raise HTTPException(status_code=503, detail="Đăng nhập chưa được cấu hình")
+    with limiter.attempt(_client_host(request)):
+        return _login(body, _pool(request))
+
+
+def _login(body: LoginPayload, pool) -> TokenResponse:
     with pool.connection() as conn:
         row = conn.execute(
             "SELECT id AS user_id, password_hash, active FROM app_user WHERE username = %s",
             (body.username,),
         ).fetchone()
-        if row is None:
-            _burn_password_verification(body.password)
-            raise HTTPException(status_code=401, detail="Thông tin đăng nhập không hợp lệ")
 
-        user_id = row["user_id"]
-        password_hash = row["password_hash"]
-        active = row["active"]
-        password_matches = verify_password(body.password, password_hash)
-        if not password_matches or not active:
-            raise HTTPException(status_code=401, detail="Thông tin đăng nhập không hợp lệ")
+    # PBKDF2 uses CPU without holding a connection for either account path.
+    if row is None:
+        _burn_password_verification(body.password)
+        raise HTTPException(status_code=401, detail="Thông tin đăng nhập không hợp lệ")
+    if not verify_password(body.password, row["password_hash"]) or not row["active"]:
+        raise HTTPException(status_code=401, detail="Thông tin đăng nhập không hợp lệ")
 
-        # Verify role cardinality and load permission claims from the database.
-        actor = _actor_from_session(conn, user_id, body.username)
-        if body.selected_role is not None and body.selected_role != actor.role:
+    token = secrets.token_urlsafe(32)
+    token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
+    expires_at = datetime.now(timezone.utc) + timedelta(seconds=_SESSION_TTL_SECONDS)
+    allowed_roles = [body.selected_role] if body.selected_role else sorted(_VALID_ROLES)
+    # Check the verified account and its current single role at the insertion snapshot.
+    with pool.connection() as conn:
+        session = conn.execute(
+            """
+            INSERT INTO auth_session (user_id, token_hash, expires_at)
+            SELECT u.id, %s, %s
+            FROM app_user AS u
+            WHERE u.id = %s AND u.username = %s AND u.password_hash = %s AND u.active
+              AND (SELECT min(role_code) FROM user_role WHERE user_id = u.id
+                   HAVING count(*) = 1) = ANY(%s::text[])
+            RETURNING user_id
+            """,
+            (token_hash, expires_at, row["user_id"], body.username, row["password_hash"], allowed_roles),
+        ).fetchone()
+        if session is None:
             raise HTTPException(status_code=401, detail="Thông tin đăng nhập không hợp lệ")
-        token = secrets.token_urlsafe(32)
-        token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
-        expires_at = datetime.now(timezone.utc) + timedelta(seconds=_SESSION_TTL_SECONDS)
-        conn.execute(
-            "INSERT INTO auth_session (user_id, token_hash, expires_at) VALUES (%s, %s, %s)",
-            (actor.user_id, token_hash, expires_at),
-        )
     return TokenResponse(access_token=token)
 
 

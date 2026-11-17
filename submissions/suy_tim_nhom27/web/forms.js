@@ -4,7 +4,10 @@ const app=document.getElementById('app');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const missing='Chưa có dữ liệu';
 const fmt=v=>v==null?missing:typeof v==='boolean'?(v?'Có':'Không'):Array.isArray(v)?(v.length?v.map(item=>typeof item==='object'?Object.values(item).filter(x=>x!=null).join(' · '):String(item)).join('; '):'Không có mục'):typeof v==='object'?Object.values(v).filter(x=>x!=null).join(' · '):String(v);
-const state={token:sessionStorage.getItem('forms_token'),actor:null,page:'patients',fields:[],catalog:0,patients:[],patient:null,visit:null,group:null,dirty:{},metadataDirty:{},visitDirty:{},invalid:{},pending:null,viewMessage:'',import:null,busy:false,presets:[]};
+function newState(token){
+  return {token,actor:null,page:'patients',fields:[],catalog:0,patients:[],patient:null,visit:null,group:null,dirty:{},metadataDirty:{},visitDirty:{},invalid:{},pending:null,viewMessage:'',import:null,busy:false,presets:[]};
+}
+const state=newState(sessionStorage.getItem('forms_token'));
 const types={integer:'Số nguyên',number:'Số',boolean:'Có / Không',select:'Một lựa chọn',multiselect:'Nhiều lựa chọn',text:'Văn bản',textarea:'Văn bản dài',date:'Ngày',datetime:'Thời điểm',medications:'Danh sách thuốc',results:'Kết quả đã có',unavailable:'Chưa đủ đặc tả'};
 const groupsDefault=['Thông tin nền','Triệu chứng và dấu hiệu','Lão khoa và hỗ trợ','Tiền sử và bệnh đồng mắc','Thuốc đang sử dụng','Cận lâm sàng và theo dõi','Chờ đặc tả module','Trường bổ sung'];
 const sourceName=s=>({manual:'Nhập tay',excel:'Nhập file Excel',import:'Nhập file',system:'Hệ thống'}[s]||s||missing);
@@ -20,22 +23,209 @@ function ageOn(dob,on=new Date()){if(!dob)return null;const born=String(dob).spl
 function hasDraft(){return Object.keys(state.dirty).length+Object.keys(state.invalid).length+Object.keys(state.metadataDirty).length+Object.keys(state.visitDirty).length>0;}
 function resetDraft(){state.dirty={};state.metadataDirty={};state.visitDirty={};state.invalid={};state.pending=null;}
 function confirmLeave(message='Có thay đổi chưa lưu. Rời lượt và bỏ phần đang nhập?'){return !hasDraft()||confirm(message);}
-async function api(path,{method='GET',body}={}){let response;try{response=await fetch(path,{method,headers:{...(state.token?{Authorization:'Bearer '+state.token}:{}),...(body===undefined?{}:{'Content-Type':'application/json'})},body:body===undefined?undefined:JSON.stringify(body)});}catch(e){throw new Error('Không kết nối được máy chủ. Dữ liệu đang nhập được giữ để kiểm tra và thử lại.');}const data=await response.json().catch(()=>({detail:'Máy chủ chưa trả dữ liệu hợp lệ'}));if(!response.ok){const message=response.status===401&&state.token&&path!=='/api/v1/auth/token'?'Phiên đăng nhập không còn hiệu lực. Bản nháp vẫn được giữ trên màn hình.':typeof data.detail==='string'?data.detail:data.detail?.fields?Object.values(data.detail.fields).join('; '):'Yêu cầu chưa được máy chủ chấp nhận.';const e=new Error(message);e.status=response.status;e.detail=data.detail;throw e;}return data;}
+async function request(path,{method='GET',body,token=state.token}={}){
+  let response;
+  try{
+    response=await fetch(path,{
+      method,
+      headers:{...(token?{Authorization:'Bearer '+token}:{}),...(body===undefined?{}:{'Content-Type':'application/json'})},
+      body:body===undefined?undefined:JSON.stringify(body),
+    });
+  }catch{
+    throw new Error('Không kết nối được máy chủ. Vui lòng thử lại.');
+  }
+  if(!response.ok){
+    const detail=(await response.json().catch(()=>null))?.detail;
+    const message=typeof detail==='string'?detail:detail?.fields?Object.values(detail.fields).join('; '):'Yêu cầu chưa được máy chủ chấp nhận.';
+    const error=new Error(message);
+    error.status=response.status;
+    error.detail=detail;
+    throw error;
+  }
+  return response;
+}
+async function api(path,options){
+  return (await request(path,options)).json().catch(()=>{
+    throw new Error('Máy chủ chưa trả dữ liệu hợp lệ. Vui lòng thử lại.');
+  });
+}
 let busyControls=null;
 function lockBusyUI(){if(!state.busy||!busyControls)return;app.querySelectorAll('button,input,select,textarea').forEach(el=>{if(!busyControls.has(el))busyControls.set(el,el.disabled);el.disabled=true;});app.setAttribute('aria-busy','true');const status=document.getElementById('busy-status');if(status)status.hidden=false;}
 async function runAction(work){if(state.busy)return;state.busy=true;busyControls=new Map();lockBusyUI();try{return await work();}finally{state.busy=false;for(const [el,disabled]of busyControls||[])el.disabled=disabled;busyControls=null;app.removeAttribute('aria-busy');const status=document.getElementById('busy-status');if(status)status.hidden=true;}}
 
-function notice(message,kind='error'){const target=document.getElementById('notice');if(target){target.className='status '+kind;target.textContent=message;target.hidden=false;target.focus();}}
-function messageBox(){return '<div id="notice" class="status" role="alert" tabindex="-1" hidden></div>';}
+function notice(message,kind='error',id='notice'){const target=document.getElementById(id);if(target){target.className='status '+kind;target.textContent=message;target.hidden=false;target.focus();}}
+function messageBox(id='notice'){return '<div id="'+id+'" class="status" role="alert" tabindex="-1" hidden></div>';}
 function heartMark(extra=''){return `<svg class="heart-mark ${extra}" viewBox="0 0 48 48" fill="none" aria-hidden="true" focusable="false"><path d="M24 41S5 30 5 17a10 10 0 0 1 19-4 10 10 0 0 1 19 4c0 13-19 24-19 24Z" stroke="currentColor" stroke-width="2.8" stroke-linejoin="round"/><path d="M8 24h9l4-8 6 16 4-8h9" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;}
 function shell(content){const role=isAdmin()?'Quản trị viên':'Bác sĩ',name=state.actor.display_name||role;app.innerHTML=`<header><div class="brand">${heartMark()}<span>Hệ thống quản lý bệnh nhân suy tim</span></div><div class="actions"><details class="account"><summary><strong>${esc(name)}</strong>${state.actor.display_name?`<small>${role}</small>`:''}</summary><div class="account-details"><span>Vai trò: ${role}</span><span>Tên đăng nhập: ${esc(state.actor.username)}</span></div></details><button data-action="logout">Đăng xuất</button></div></header><div class="shell"><nav class="sidebar" aria-label="Điều hướng chính"><button data-page="patients" ${state.page==='patients'?'aria-current="page"':''}>Hồ sơ bệnh nhân</button>${!isAdmin()?`<button data-page="excel" ${state.page==='excel'?'aria-current="page"':''}>Nhập file</button>`:`<button data-page="fields" ${state.page==='fields'?'aria-current="page"':''}>Chỉnh biểu mẫu</button>`}</nav><main id="main" tabindex="-1">${messageBox()}<div id="busy-status" class="busy-status" role="status" hidden>Đang tải…</div>${content}</main></div>`;lockBusyUI();}
-function portal(){app.innerHTML=`<main id="main" class="login-page"><section class="login-intro" aria-labelledby="product-title"><div class="login-brand">${heartMark('login-mark')}<span>Hồ sơ bệnh nhân · Theo dõi suy tim</span></div><h1 id="product-title" aria-label="Hệ thống quản lý bệnh nhân suy tim">Hệ thống quản lý<br> bệnh nhân suy tim</h1><p class="login-description">Quản lý hồ sơ, thông tin khám và lịch sử theo dõi bệnh nhân suy tim.</p><ul class="login-benefits"><li><span>01</span><div><strong>Thông tin tập trung</strong><p>Tra cứu hồ sơ và dữ liệu từng lượt khám.</p></div></li><li><span>02</span><div><strong>Lịch sử rõ ràng</strong><p>Theo dõi nguồn dữ liệu và các lần chỉnh sửa.</p></div></li><li><span>03</span><div><strong>Thao tác thuận tiện</strong><p>Ghi nhận thông tin theo từng nhóm biểu mẫu.</p></div></li></ul></section><section class="login-panel" aria-labelledby="login-title"><div class="card login-card"><h2 id="login-title">Đăng nhập</h2><p class="muted">Sử dụng tài khoản đã được cấp để tiếp tục.</p>${messageBox()}<form id="login-form"><div class="field"><label for="username">Tên đăng nhập</label><input id="username" name="username" autocomplete="username" required maxlength="80"></div><div class="field"><label for="password">Mật khẩu</label><div class="password-control"><input id="password" name="password" type="password" autocomplete="current-password" required maxlength="200"><button type="button" data-action="toggle-password" aria-controls="password" aria-pressed="false" aria-label="Hiện mật khẩu">Hiện</button></div></div><button class="primary login-submit" type="submit">Đăng nhập</button></form><p class="login-note">Vai trò truy cập được xác định theo tài khoản.</p></div></section></main>`;
-document.getElementById('login-form').onsubmit=async e=>{e.preventDefault();const button=e.target.querySelector('[type="submit"]');button.disabled=true;try{const token=await api('/api/v1/auth/token',{method:'POST',body:{username:e.target.username.value,password:e.target.password.value}});state.token=token.access_token;sessionStorage.setItem('forms_token',state.token);await initialize();}catch(err){notice(err.message);}finally{button.disabled=false;}};}
+function credentialsForm(actor){
+  const prefix=actor?'reauth-':'',submit=actor?'Đăng nhập lại':'Đăng nhập';
+  return `<form id="${prefix}login-form">
+    <div class="field"><label for="${prefix}username">Tên đăng nhập</label><input id="${prefix}username" name="username" autocomplete="username" ${actor?`value="${esc(actor.username)}" readonly`:'required'} maxlength="80"></div>
+    <div class="field"><label for="${prefix}password">Mật khẩu</label><div class="password-control"><input id="${prefix}password" name="password" type="password" autocomplete="current-password" required maxlength="200"><button type="button" data-action="toggle-password" data-password-target="${prefix}password" aria-controls="${prefix}password" aria-pressed="false" aria-label="Hiện mật khẩu">Hiện</button></div></div>
+    <button class="primary login-submit" type="submit">${submit}</button>
+  </form>`;
+}
+async function signIn(username,password){
+  return (await api('/api/v1/auth/token',{method:'POST',body:{username,password},token:null})).access_token;
+}
+function storeToken(token){
+  state.token=token;
+  if(token)sessionStorage.setItem('forms_token',token);
+  else sessionStorage.removeItem('forms_token');
+}
+function portal(){
+  app.innerHTML=`<main id="main" class="login-page" tabindex="-1">
+    <section class="login-intro" aria-labelledby="product-title">
+      ${heartMark('login-mark')}
+      <h1 id="product-title">Hệ thống quản lý bệnh nhân suy tim</h1>
+      <p class="login-description">Tra cứu hồ sơ, ghi nhận lượt khám và xem lịch sử theo dõi.</p>
+    </section>
+    <section class="login-panel" aria-labelledby="login-title">
+      <div class="card login-card">
+        <h2 id="login-title">Đăng nhập</h2>
+        <p class="muted">Sử dụng tài khoản đã được cấp.</p>
+        ${messageBox()}
+        ${credentialsForm()}
+      </div>
+    </section>
+  </main>`;
+  document.getElementById('login-form').onsubmit=async e=>{
+    e.preventDefault();
+    const form=e.target,button=form.querySelector('[type="submit"]');
+    if(button.disabled)return;
+    button.disabled=true;
+    try{
+      storeToken(await signIn(form.username.value,form.password.value));
+      await initialize();
+    }catch(error){
+      notice(error.message);
+    }finally{
+      button.disabled=false;
+    }
+  };
+}
 
-async function initialize(){if(!state.token){history.replaceState(null,'','/login');portal();return false;}try{state.actor=await api('/api/v1/auth/me');if(!['admin','doctor'].includes(state.actor.role))throw new Error('Tài khoản chưa có quyền truy cập khu vực này.');await loadFields();await loadPatients();history.replaceState(null,'','/forms');return true;}catch(e){sessionStorage.removeItem('forms_token');state.token=null;state.actor=null;history.replaceState(null,'','/login');portal();notice(e.message);return false;}}
+let reauthDialog=null,suspendedDialog=null,suspendedFocus=null;
+function clearSession(){
+  storeToken(null);
+  Object.assign(state,newState(null),{busy:state.busy});
+  suspendedDialog?.remove();
+  suspendedDialog=null;
+  suspendedFocus=null;
+  reauthDialog?.remove();
+  reauthDialog=null;
+  app.hidden=false;
+  history.replaceState(null,'','/login');
+  portal();
+  document.getElementById('main')?.focus();
+}
+async function logout(){
+  if((hasDraft()||suspendedDialog)&&!confirm('Đăng xuất và bỏ thay đổi chưa lưu?'))return;
+  if(state.token){
+    try{
+      await api('/api/v1/auth/logout',{method:'POST'});
+    }catch(error){
+      if(error.status!==401)throw error;
+    }
+  }
+  clearSession();
+}
+function requireSignIn(error){
+  if(error.status!==401||!state.token||!state.actor)return false;
+  const previousActor=state.actor;
+  storeToken(null);
+  suspendedFocus=document.activeElement;
+  suspendedDialog=document.querySelector('dialog[open]');
+  if(suspendedDialog)suspendedDialog.hidden=true;
+  app.hidden=true;
+
+  const dialog=document.createElement('dialog');
+  reauthDialog=dialog;
+  dialog.id='reauth-dialog';
+  dialog.className='reauth-dialog';
+  dialog.setAttribute('aria-labelledby','reauth-title');
+  dialog.setAttribute('aria-describedby','reauth-description');
+  dialog.innerHTML=`<h2 id="reauth-title">Đăng nhập lại</h2>
+    <p id="reauth-description">Phiên đăng nhập đã hết hiệu lực. ${hasDraft()?'Bản nháp được giữ trong tab này. ':''}Nhập mật khẩu của tài khoản đang dùng để tiếp tục.</p>
+    ${messageBox('reauth-notice')}
+    ${credentialsForm(previousActor)}
+    <button type="button" class="reauth-logout" data-action="logout">Đăng xuất</button>`;
+  const form=dialog.querySelector('form'),submit=form.querySelector('[type="submit"]'),signOut=dialog.querySelector('[data-action="logout"]');
+  dialog.addEventListener('cancel',e=>e.preventDefault());
+  dialog.addEventListener('click',handleClick);
+  form.onsubmit=async e=>{
+    e.preventDefault();
+    if(submit.disabled)return;
+    submit.disabled=true;
+    signOut.disabled=true;
+    try{
+      const token=await signIn(previousActor.username,form.password.value);
+      const actor=await api('/api/v1/auth/me',{token});
+      if(!actor.user_id||actor.user_id!==previousActor.user_id||actor.role!==previousActor.role){
+        throw new Error('Tài khoản đã thay đổi. Đăng xuất để mở phiên mới.');
+      }
+      storeToken(token);
+      state.actor=actor;
+      dialog.close();
+      dialog.remove();
+      reauthDialog=null;
+      app.hidden=false;
+      const previousDialog=suspendedDialog;
+      if(previousDialog)previousDialog.hidden=false;
+      suspendedDialog=null;
+      if(suspendedFocus?.isConnected&&!suspendedFocus.disabled)suspendedFocus.focus();
+      else (previousDialog?.querySelector('input,select,textarea')||document.getElementById('main'))?.focus();
+      suspendedFocus=null;
+      if(!previousDialog)notice(hasDraft()?'Đã đăng nhập lại. Chọn Lưu để gửi bản nháp.':'Đã đăng nhập lại.','success');
+    }catch(error){
+      notice(error.message,'error','reauth-notice');
+    }finally{
+      submit.disabled=false;
+      signOut.disabled=false;
+    }
+  };
+  document.body.append(dialog);
+  dialog.showModal();
+  form.password.focus();
+  return true;
+}
+function startupScreen(error){
+  app.innerHTML=`<main id="main" class="startup-page" tabindex="-1"><section class="card startup-card" aria-labelledby="startup-title">
+    <h1 id="startup-title">${error?'Chưa tải được hồ sơ':'Đang tải hồ sơ…'}</h1>
+    ${error?`<p>Phiên đăng nhập vẫn được giữ. Thử tải lại hoặc đăng xuất.</p>
+      ${messageBox()}
+      <div class="actions"><button class="primary" data-action="retry-startup">Thử lại</button><button data-action="logout">Đăng xuất</button></div>`:'<p role="status">Đang kết nối với máy chủ.</p>'}
+  </section></main>`;
+  lockBusyUI();
+  if(error)notice(error.message);
+}
+async function initialize(){
+  if(!state.token){clearSession();return false;}
+  history.replaceState(null,'','/forms');
+  startupScreen();
+  try{
+    const actor=await api('/api/v1/auth/me');
+    if(!['admin','doctor'].includes(actor.role)){
+      clearSession();
+      notice('Tài khoản chưa có quyền truy cập khu vực này.');
+      return false;
+    }
+    state.actor=actor;
+    await loadFields();
+    await loadPatients();
+    return true;
+  }catch(error){
+    if(error.status===401||error.status===403){
+      clearSession();
+      notice(error.status===401?'Phiên đăng nhập đã hết hiệu lực. Vui lòng đăng nhập lại.':error.message);
+    }else startupScreen(error);
+    return false;
+  }
+}
+
 async function loadFields(){const c=await api('/api/forms/fields');state.fields=c.fields;state.catalog=c.revision;}
 async function loadPatients(){const patients=await api('/api/forms/patients');state.patients=patients;state.page='patients';showPatients();}
-function showPatients(){shell(`<div class="toolbar"><div><h1>Hồ sơ bệnh nhân</h1><p class="muted">${isAdmin()?'Quản lý hồ sơ do bác sĩ tạo.':'Chọn hồ sơ để xem và nhập lượt khám.'}</p></div>${!isAdmin()?'<button class="primary" data-action="new-patient">Tạo hồ sơ</button>':'<button data-page="fields">Chỉnh biểu mẫu</button>'}</div><div class="card"><div class="field"><label for="patient-search">Tìm mã hoặc tên hiển thị</label><input id="patient-search" type="search" placeholder="Nhập mã BN hoặc tên"></div><div id="patient-list" class="row-list">${patientItems(state.patients)}</div></div>`);document.getElementById('patient-search').oninput=e=>{const q=e.target.value.trim().toLowerCase();document.getElementById('patient-list').innerHTML=patientItems(state.patients.filter(p=>(p.code+' '+(p.display_name||'')).toLowerCase().includes(q)),Boolean(q));};}
+function showPatients(){shell(`<div class="toolbar patient-heading"><h1>Hồ sơ bệnh nhân</h1></div><div class="card"><div class="patient-controls"><div class="field"><label for="patient-search">Tìm theo mã hồ sơ hoặc tên</label><input id="patient-search" type="search" placeholder="Nhập mã hồ sơ hoặc tên"></div>${!isAdmin()?'<button class="primary" data-action="new-patient">Tạo hồ sơ</button>':'<button data-page="fields">Chỉnh biểu mẫu</button>'}</div><div id="patient-list" class="row-list">${patientItems(state.patients)}</div></div>`);document.getElementById('patient-search').oninput=e=>{const q=e.target.value.trim().toLowerCase();document.getElementById('patient-list').innerHTML=patientItems(state.patients.filter(p=>(p.code+' '+(p.display_name||'')).toLowerCase().includes(q)),Boolean(q));};}
 function patientItems(list,filtered=false){return list.length?list.map(p=>{const age=ageOn(p.date_of_birth),sex={male:'Nam',female:'Nữ',other:'Khác'}[p.sex],demographics=[age===null?null:age+' tuổi',sex].filter(Boolean).join(' · ');return `<div class="list-item"><div><strong>${esc(p.display_name||missing)}</strong><p class="patient-code">${esc(p.code)}${demographics?' · '+esc(demographics):''}</p><p class="visit-time">${p.latest_visit_at?'Lần khám gần nhất: '+esc(displayDate(p.latest_visit_at))+(p.latest_visit_external_id?' · '+esc(p.latest_visit_external_id):''):'Chưa có thời điểm khám gần nhất'}</p></div><button data-patient="${esc(p.id)}">Mở hồ sơ</button></div>`;}).join(''):filtered?'<div class="empty">Không tìm thấy hồ sơ phù hợp. <button data-action="clear-search">Xóa tìm kiếm</button></div>':'<div class="empty">Chưa có hồ sơ trong phạm vi tài khoản.</div>';}
 
 function demographicContent(p,at){const age=at===null?null:ageOn(p.date_of_birth,at||new Date());return `<dl class="facts"><div><dt>Ngày sinh</dt><dd>${esc(p.date_of_birth?new Date(p.date_of_birth+'T00:00:00').toLocaleDateString('vi-VN'):missing)}</dd></div><div><dt>Tuổi ${at!==undefined?'tại ngày khám':'hiện tại'}</dt><dd>${age===null?missing:age}</dd></div><div><dt>Giới tính</dt><dd>${esc({male:'Nam',female:'Nữ',other:'Khác'}[p.sex]||missing)}</dd></div><div><dt>Mã BHYT</dt><dd>${esc(p.insurance_number||missing)}</dd></div><div><dt>Mã nguồn bệnh viện</dt><dd>${esc(p.external_id||missing)}</dd></div></dl>`;}
@@ -75,8 +265,8 @@ function refreshDraftStatus(){const status=document.getElementById('save-status'
 function dirty(code,value){if(JSON.stringify(value)===JSON.stringify(state.visit.values_json?.[code]??null))delete state.dirty[code];else state.dirty[code]=value;state.pending=null;refreshDraftStatus();}
 function setInvalid(key,message){if(message)state.invalid[key]=message;else delete state.invalid[key];const [code,index,column]=key.split(':'),el=document.getElementById('error-'+code),control=document.getElementById('f-'+code)||(code.startsWith('meta-')?document.getElementById(code):code==='occurred_at'?document.getElementById('visit-occurred'):null);if(control)control.setAttribute('aria-invalid',Object.keys(state.invalid).some(k=>k.split(':')[0]===code)?'true':'false');if(el)el.textContent=Object.entries(state.invalid).filter(([k])=>k.split(':')[0]===code).map(([,v])=>v).join(' ');if(index!==undefined&&column){const id=`f-${code}-${index}-${column}`,input=document.getElementById(id),inline=document.getElementById('error-'+id);if(input)input.setAttribute('aria-invalid',message?'true':'false');if(inline)inline.textContent=message||'';}refreshDraftStatus();}
 function numericValue(el,field){if(el.validity?.badInput||el.value!==''&&!Number.isFinite(Number(el.value)))throw new Error('Cần nhập số hợp lệ. Giá trị lỗi không được lưu thành ô trống.');if(el.value==='')return null;const n=Number(el.value),c=field.constraints||{};if(field.type==='integer'&&!Number.isInteger(n))throw new Error('Cần số nguyên.');if(c.minimum!==undefined&&n<c.minimum)throw new Error('Giá trị phải từ '+c.minimum+(field.unit?' '+field.unit:'')+' trở lên.');if(c.maximum!==undefined&&n>c.maximum)throw new Error('Giá trị không được vượt '+c.maximum+(field.unit?' '+field.unit:'')+'.');return n;}
-async function save(){if(isAdmin())throw new Error('Admin chỉ đọc dữ liệu khám.');if(Object.keys(state.invalid).length){notice('Sửa giá trị không hợp lệ trước khi lưu.');return;}if(!hasDraft()){notice('Chưa có thay đổi cần lưu.','success');return;}const status=document.getElementById('save-status');if(status)status.textContent='Đang lưu…';state.pending=state.pending||{expected_revision:state.visit.revision,catalog_revision:state.visit.catalog_revision,mutation_id:crypto.randomUUID(),values:structuredClone(state.dirty),...(Object.keys(state.metadataDirty).length?{metadata:structuredClone(state.metadataDirty)}:{}),...state.visitDirty};try{const sent=state.pending,result=await api('/api/forms/visits/'+state.visit.id,{method:'PATCH',body:sent});state.visit.values_json={...state.visit.values_json,...sent.values};state.visit.metadata={...state.visit.metadata,...sent.metadata};if(Object.hasOwn(sent,'occurred_at'))state.visit.occurred_at=sent.occurred_at;state.visit.revision=result.revision;resetDraft();state.viewMessage='Đã lưu';try{state.visit=await api('/api/forms/visits/'+state.visit.id);showForm();notice('Đã lưu dữ liệu.','success');}catch(e){showForm();notice('Đã lưu nhưng chưa tải lại được. '+e.message,'warn');}}catch(e){const status=document.getElementById('save-status');if(status)status.textContent='Lưu không thành công — bản nháp được giữ';notice(e.status===409?e.message+' Bản nháp vẫn được giữ để đối chiếu.':e.message);if(e.detail?.fields)for(const [code,msg]of Object.entries(e.detail.fields))setInvalid(code,msg);}}
-function modal(title,content,onSubmit,submitLabel='Lưu'){document.querySelector('dialog')?.remove();const dialog=document.createElement('dialog');dialog.setAttribute('aria-labelledby','dialog-title');dialog.innerHTML=`<form><div class="toolbar"><h2 id="dialog-title">${esc(title)}</h2><button type="button" data-close aria-label="Đóng">×</button></div><div class="dialog-error" role="alert" tabindex="-1"></div>${content}<div class="actions dialog-actions"><button type="button" data-close>Hủy</button><button class="primary" type="submit">${submitLabel}</button></div></form>`;document.body.append(dialog);let submitting=false;dialog.addEventListener('cancel',e=>{if(submitting)e.preventDefault();});dialog.addEventListener('close',()=>dialog.remove());dialog.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>{if(!submitting)dialog.close();});dialog.querySelector('form').onsubmit=async e=>{e.preventDefault();if(submitting)return;const data=new FormData(e.target),controls=[...dialog.querySelectorAll('button,input,select,textarea')].map(el=>[el,el.disabled]);submitting=true;dialog.setAttribute('aria-busy','true');controls.forEach(([el])=>el.disabled=true);try{await onSubmit(data,dialog);}catch(err){const el=dialog.querySelector('.dialog-error');el.className='dialog-error status error';el.textContent=err.message;el.focus();}finally{submitting=false;dialog.removeAttribute('aria-busy');controls.forEach(([el,disabled])=>el.disabled=disabled);}};dialog.showModal();dialog.querySelector('input:not([disabled]),select:not([disabled]),textarea:not([disabled])')?.focus();return dialog;}
+async function save(){if(isAdmin())throw new Error('Admin chỉ đọc dữ liệu khám.');if(Object.keys(state.invalid).length){notice('Sửa giá trị không hợp lệ trước khi lưu.');return;}if(!hasDraft()){notice('Chưa có thay đổi cần lưu.','success');return;}const status=document.getElementById('save-status');if(status)status.textContent='Đang lưu…';state.pending=state.pending||{expected_revision:state.visit.revision,catalog_revision:state.visit.catalog_revision,mutation_id:crypto.randomUUID(),values:structuredClone(state.dirty),...(Object.keys(state.metadataDirty).length?{metadata:structuredClone(state.metadataDirty)}:{}),...state.visitDirty};try{const sent=state.pending,result=await api('/api/forms/visits/'+state.visit.id,{method:'PATCH',body:sent});state.visit.values_json={...state.visit.values_json,...sent.values};state.visit.metadata={...state.visit.metadata,...sent.metadata};if(Object.hasOwn(sent,'occurred_at'))state.visit.occurred_at=sent.occurred_at;state.visit.revision=result.revision;resetDraft();state.viewMessage='Đã lưu';try{state.visit=await api('/api/forms/visits/'+state.visit.id);showForm();notice('Đã lưu dữ liệu.','success');}catch(e){showForm();if(!requireSignIn(e))notice('Đã lưu nhưng chưa tải lại được. '+e.message,'warn');}}catch(e){const status=document.getElementById('save-status');if(status)status.textContent='Lưu không thành công — bản nháp được giữ';if(requireSignIn(e))return;notice(e.message+(e.status===409?' Bản nháp vẫn được giữ để đối chiếu.':''));if(e.detail?.fields)for(const [code,msg]of Object.entries(e.detail.fields))setInvalid(code,msg);}}
+function modal(title,content,onSubmit,submitLabel='Lưu'){document.querySelector('dialog')?.remove();const dialog=document.createElement('dialog');dialog.setAttribute('aria-labelledby','dialog-title');dialog.innerHTML=`<form><div class="toolbar"><h2 id="dialog-title">${esc(title)}</h2><button type="button" data-close aria-label="Đóng">×</button></div><div class="dialog-error" role="alert" tabindex="-1"></div>${content}<div class="actions dialog-actions"><button type="button" data-close>Hủy</button><button class="primary" type="submit">${submitLabel}</button></div></form>`;document.body.append(dialog);let submitting=false;dialog.addEventListener('cancel',e=>{if(submitting)e.preventDefault();});dialog.addEventListener('close',()=>dialog.remove());dialog.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>{if(!submitting)dialog.close();});dialog.querySelector('form').onsubmit=async e=>{e.preventDefault();if(submitting)return;const data=new FormData(e.target),controls=[...dialog.querySelectorAll('button,input,select,textarea')].map(el=>[el,el.disabled]);submitting=true;dialog.setAttribute('aria-busy','true');controls.forEach(([el])=>el.disabled=true);try{await onSubmit(data,dialog);}catch(err){if(requireSignIn(err))return;const el=dialog.querySelector('.dialog-error');el.className='dialog-error status error';el.textContent=err.message;el.focus();}finally{submitting=false;dialog.removeAttribute('aria-busy');controls.forEach(([el,disabled])=>el.disabled=disabled);}};dialog.showModal();dialog.querySelector('input:not([disabled]),select:not([disabled]),textarea:not([disabled])')?.focus();return dialog;}
 function patientInputs(p={}){return `<p class="muted">Mã BN do hệ thống cấp. Thông tin chưa biết có thể để trống.</p><div class="field"><label for="patient-name">Tên giả lập</label><input id="patient-name" name="display_name" ${p.id?'required':''} value="${esc(p.display_name)}" placeholder="Hệ thống tự tạo: Người bệnh giả lập xxxxx" pattern="Người bệnh giả lập [0-9]+" maxlength="200"><small>Giữ tên giả lập trong dữ liệu trình diễn.</small></div><div class="field"><label for="patient-dob">Ngày sinh</label><input id="patient-dob" name="date_of_birth" type="date" value="${esc(p.date_of_birth)}"><small id="patient-age">Tuổi hiện tại: ${ageOn(p.date_of_birth)??missing}</small></div><div class="field"><label for="patient-sex">Giới tính</label><select id="patient-sex" name="sex"><option value="">${missing}</option>${[['male','Nam'],['female','Nữ'],['other','Khác']].map(([v,l])=>`<option value="${v}" ${v===p.sex?'selected':''}>${l}</option>`).join('')}</select></div><div class="field"><label for="patient-insurance">Mã BHYT</label><input id="patient-insurance" name="insurance_number" value="${esc(p.insurance_number)}" maxlength="100"></div><div class="field"><label for="external-id">Mã nguồn bệnh viện (nếu có)</label><input id="external-id" name="external_id" value="${esc(p.external_id)}" maxlength="100"></div>`;}
 function bindPatientAge(){document.getElementById('patient-dob').oninput=e=>{document.getElementById('patient-age').textContent='Tuổi hiện tại: '+(ageOn(e.target.value)??missing);};}
 function patientBody(data){return Object.fromEntries(['display_name','date_of_birth','sex','insurance_number','external_id'].map(k=>[k,data.get(k)||null]));}
@@ -97,7 +287,7 @@ function importSteps(stage){return '<div class="steps" aria-label="Tiến trình
 function showImport(){state.page='excel';state.import=state.import||{stage:0,mapping:{},sheet:'',header_row:1,fileGeneration:0};renderImport();}
 function columnOptions(selected){return '<option value="">Chưa chọn cột</option>'+state.import.columns.map(c=>`<option value="${c.column}" ${Number(selected)===c.column?'selected':''}>${esc(c.letter+' · '+(c.header||'Không có nhãn'))}</option>`).join('');}
 function renderImport(){const im=state.import;let content='';
-if(im.stage===0)content=`<div class="card"><h2>Chọn workbook Excel</h2><p>Đọc file .xlsx từ HIS hoặc mẫu giả lập. Chưa có kết nối trực tiếp hay xác nhận tương thích HIS của viện.</p><p class="muted">Tối đa 4 MiB; sheet 500 cột và 1000 dòng dữ liệu; 100 bản ghi mỗi lần nhập. Không chạy công thức/macro.</p><div class="field"><label for="excel-file">File .xlsx</label><input id="excel-file" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></div>${im.filename?'<p>Đã chọn: '+esc(im.filename)+'</p>':''}<p id="file-read-status" class="muted" role="status">${im.reading?'Đang đọc file…':''}</p><div class="actions" style="margin-top:18px"><button id="excel-inspect" class="primary" data-import="inspect-file" ${!im.content_base64||im.reading?'disabled':''}>Đọc cấu trúc</button><button data-import="template">Tải mẫu Excel giả lập</button></div></div>`;
+if(im.stage===0)content=`<div class="card"><h2>Chọn file Excel</h2><p>Trong bản demo, chỉ dùng mẫu Excel giả lập bên dưới.</p><p class="muted">File .xlsx tối đa 4 MiB. Mỗi sheet có tối đa 500 cột và 1.000 dòng dữ liệu. Mỗi lần nhập tối đa 100 bản ghi.</p><div class="field"><label for="excel-file">File .xlsx</label><input id="excel-file" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></div>${im.filename?'<p>Đã chọn: '+esc(im.filename)+'</p>':''}<p id="file-read-status" class="muted" role="status">${im.reading?'Đang đọc file…':''}</p><div class="actions" style="margin-top:18px"><button id="excel-inspect" class="primary" data-import="inspect-file" ${!im.content_base64||im.reading?'disabled':''}>Đọc cấu trúc</button><button data-import="template">Tải mẫu Excel giả lập</button></div></div>`;
 if(im.stage===1)content=`<div class="card"><h2>Chọn sheet và dòng tiêu đề</h2><p class="muted">${esc(im.filename)} · Không tự chọn sheet/header thay người dùng.</p><div class="grid"><div class="field"><label for="excel-sheet">Sheet</label><select id="excel-sheet"><option value="">Chọn sheet</option>${im.sheets.map(s=>`<option ${s===im.sheet?'selected':''} value="${esc(s)}">${esc(s)}</option>`).join('')}</select></div><div class="field"><label for="excel-header">Dòng tiêu đề (1–100)</label><input id="excel-header" type="number" min="1" max="100" value="${im.header_row}"></div></div><div class="actions" style="margin-top:18px"><button data-import="source">← Chọn lại file</button><button class="primary" data-import="inspect-sheet">Xem cột và mẫu dòng</button></div></div>`;
 if(im.stage===2)content=`<div class="card"><h2>Đối chiếu định danh</h2><p>${esc(im.filename)} · Sheet ${esc(im.sheet)} · Tiêu đề hàng ${im.header_row}</p><div id="identity-fields" style="margin-top:15px">${identityFields()}</div><details style="margin-top:18px"><summary>Xem mẫu dòng nguồn</summary><div class="table-wrap"><table><thead><tr><th>Hàng</th>${im.columns.map(c=>'<th>'+esc(c.letter+' · '+(c.header||'Không có nhãn'))+'</th>').join('')}</tr></thead><tbody>${im.sample.map(r=>'<tr><th>'+r.row+'</th>'+r.values.map(v=>'<td>'+esc(fmt(v))+'</td>').join('')+'</tr>').join('')}</tbody></table></div></details></div><div class="card"><h2>Ánh xạ cột vào trường đã tồn tại</h2>${presetContent()}<p class="muted">Cột chưa chọn đích được bỏ qua rõ ràng. Không tự tạo trường hoặc đoán đơn vị/mã giá trị. Danh sách thuốc/kết quả từ Excel chưa có hợp đồng nguồn phù hợp; bổ sung bằng biểu mẫu có cấu trúc.</p>${im.columns.map(c=>mappingRow(c)).join('')}<div class="actions" style="margin-top:20px"><button data-import="structure">← Sheet/header</button><button class="primary" data-import="preview">Xem trước (chưa ghi dữ liệu)</button></div></div>`;
 if(im.stage===3)content=previewContent();
@@ -110,7 +300,7 @@ function mappingRow(c){const m=state.import.mapping[c.column]||{};const fields=s
 function captureMapping(){const im=state.import;if(!im||im.stage!==2)return;for(const c of im.columns||[]){const target=document.getElementById('map-'+c.column);if(target)im.mapping[c.column]={target:target.value,unit_confirmed:Boolean(document.getElementById('unit-'+c.column)?.checked),conversion:document.getElementById('convert-'+c.column)?.value||'native'};}const patient=document.getElementById('identity-patient'),visit=document.getElementById('identity-visit');if(patient)im.patient_column=Number(patient.value)||null;if(visit)im.visit_column=Number(visit.value)||null;}
 function previewContent(){const plan=state.import.preview;return `<div class="status success">Xem trước chỉ đọc: chưa ghi hồ sơ, lượt, lịch sử hoặc lần nhập. Có ${plan.eligible} dòng đủ điều kiện và ${plan.errors} dòng còn lỗi.</div>${plan.records.map(r=>`<div class="card"><div class="toolbar"><div class="import-target"><h2>Bản ghi ${r.index+1} · Đích: ${esc(r.target_patient_code||'Chưa xác định hồ sơ')}</h2><p><strong>${esc(r.target_patient_name||'Chưa xác định tên người bệnh')}</strong> · ${esc(r.visit_external_id||(r.visit_id?'Lượt được đối chiếu, chưa có mã nguồn':'Chưa xác định lượt'))}</p><p class="visit-time">Thời điểm khám đích: ${esc(displayDate(r.target_occurred_at))}</p><small>Mã trong file: ${esc(r.patient_code||'Thiếu mã hồ sơ')} / ${esc(r.visit_external_id||'Thiếu mã lượt')}</small></div><label class="check"><input type="checkbox" data-import-record="${r.index}" ${r.status==='eligible'?'checked':'disabled'}> Chọn nhập dòng này</label></div>${r.errors.length?'<div class="status error">'+r.errors.map(e=>'<p>'+esc(e.path)+' · '+esc(e.reason)+(Object.hasOwn(e,'raw')?' · Nguồn: '+esc(fmt(e.raw)):'')+'</p>').join('')+'</div>':''}<div class="table-wrap"><table><thead><tr><th>Vị trí / Trường</th><th>Giá trị gốc</th><th>Dữ liệu đích</th><th>Nguồn nhập sau kiểm tra</th><th>Quyết định</th></tr></thead><tbody>${r.fields.map(f=>`<tr><td>${esc(f.label||f.code||f.source)}<small style="display:block">${esc(f.path)}</small></td><td class="result-cell">${esc(fmt(f.raw))}</td><td class="result-cell">${esc(fmt(f.current))}${f.current_source?'<small style="display:block">Nguồn: '+esc(f.current_source.kind)+'</small>':''}</td><td class="result-cell">${esc(fmt(f.incoming))}</td><td>${f.status==='conflict'?`<select data-override="${r.index}" data-code="${esc(f.code)}" aria-label="Xử lý xung đột ${esc(f.label)}"><option value="keep">Giữ hiện có</option><option value="override">Thay bằng nguồn nhập</option></select>`:esc(importStatus[f.status]||f.status)}${f.reason?'<p class="field-error">'+esc(f.reason)+'</p>':''}</td></tr>`).join('')}</tbody></table></div></div>`).join('')}<div class="savebar"><div><strong>Kiểm tra hồ sơ/lượt và từng xung đột trước khi xác nhận.</strong><small>Chỉ các dòng đã chọn, hợp lệ được ghi trong một giao dịch.</small></div><div class="actions"><button data-import="mapping">← Sửa ánh xạ</button><button data-import="cancel">Hủy xem trước</button><button class="primary" data-import="commit" ${plan.eligible?'':'disabled'}>Xác nhận nhập các dòng đã chọn</button></div></div>`;}
 function resultContent(result){return `<div class="card"><h2>${result.replayed?'Đã nhận diện lần nhập lặp':'Máy chủ đã xác nhận kết quả nhập'}</h2><div class="status success">${result.replayed?'Không ghi thêm dữ liệu. Kết quả lần nhập trước: ' : ''}Đã ghi ${result.written_fields} trường trong ${result.written_records} lượt; bỏ qua ${result.skipped_fields} trường; ${result.unselected_records} dòng không được chọn ghi.</div><p class="muted">Nguồn: ${esc(result.source_name)} · Ánh xạ phiên bản ${esc(result.mapping_version)}</p><div class="table-wrap"><table><thead><tr><th>Hồ sơ / lượt đích</th><th>Số trường ghi</th><th>Phiên bản</th><th>Bỏ qua và lý do</th><th></th></tr></thead><tbody>${result.records.map(r=>`<tr><td><strong>${esc(r.target_patient_code||r.patient_code)}</strong>${r.target_patient_name?'<br>'+esc(r.target_patient_name):''}<br>${esc(r.visit_external_id||'Lượt đã đối chiếu')}<small>Thời điểm khám: ${esc(displayDate(r.target_occurred_at))}</small>${r.target_patient_code?'<small>Mã trong file: '+esc(r.patient_code)+'</small>':''}</td><td>${r.written_fields}</td><td>${r.revision}</td><td>${r.skipped.map(s=>esc(s.field)+': '+esc(importStatus[s.reason]||s.reason)).join('<br>')||'Không có'}</td><td><button data-visit="${r.visit_id}">Mở biểu mẫu / bổ sung tay</button></td></tr>`).join('')}</tbody></table></div><details style="margin-top:18px"><summary>Chi tiết dòng không được ghi</summary>${unselectedContent(result.unselected||[])}</details><div class="actions" style="margin-top:18px"><button data-import="new">Nhập file khác</button><button data-import="history">Lịch sử nhập</button></div></div>`;}
-async function downloadTemplate(){const response=await fetch('/api/forms/imports/template.xlsx',{headers:{Authorization:'Bearer '+state.token}});if(!response.ok)throw new Error('Không tải được mẫu Excel');const url=URL.createObjectURL(await response.blob());const anchor=document.createElement('a');anchor.href=url;anchor.download='synthetic-form-template.xlsx';anchor.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+async function downloadTemplate(){const response=await request('/api/forms/imports/template.xlsx');const url=URL.createObjectURL(await response.blob());const anchor=document.createElement('a');anchor.href=url;anchor.download='synthetic-form-template.xlsx';anchor.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 async function showImportHistory(){const rows=await api('/api/forms/imports/history');shell(`<div class="toolbar"><h1>Lịch sử nhập file của tài khoản</h1><button data-import="resume">← Nhập file</button></div><div class="card history">${rows.length?rows.map(r=>`<details><summary>${esc(new Date(r.created_at).toLocaleString('vi-VN'))} · ${esc(r.result.source_name)} · ${r.result.written_fields} trường đã ghi</summary>${resultContent(r.result)}<details><summary>Ánh xạ đã dùng</summary>${mappingSummary(r.mapping)}</details></details>`).join(''):'<div class="empty">Chưa có lần nhập đã xác nhận.</div>'}</div>`);}
 async function importAction(action){const im=state.import;if(action==='save-preset')return savePreset();if(action==='template')return downloadTemplate();if(action==='history'){captureMapping();return showImportHistory();}if(action==='resume')return renderImport();if(action==='new'||action==='cancel'){state.import={stage:0,mapping:{},sheet:'',header_row:1,fileGeneration:0};renderImport();return;}if(action==='source'){im.stage=0;renderImport();return;}if(action==='structure'){captureMapping();im.stage=1;renderImport();return;}if(action==='mapping'){im.stage=2;renderImport();return;}
 if(action==='inspect-file'){if(im.reading)throw new Error('File đang được đọc, vui lòng chờ.');if(!im.content_base64)throw new Error('Chọn file .xlsx hợp lệ trước.');const info=await api('/api/forms/imports/excel/inspect',{method:'POST',body:{filename:im.filename,content_base64:im.content_base64}});im.sheets=info.sheets;im.stage=1;renderImport();return;}
@@ -124,7 +314,7 @@ async function loadImportPresets(){state.presets=await api('/api/forms/imports/p
 function presetContent(){return `<div class="preset-box"><div class="field"><label for="preset-select">Cấu hình theo nguồn đã lưu</label><select id="preset-select"><option value="">Chọn cấu hình</option>${state.presets.map(p=>`<option value="${esc(p.id)}">${esc(p.name+' · '+p.source_name)}</option>`).join('')}</select></div><button type="button" data-import="save-preset">Lưu cấu hình theo nguồn</button></div>`;}
 function applyPreset(id){captureMapping();const p=state.presets.find(p=>p.id===id);if(!p)return;const im=state.import,m=p.mapping;if(m.sheet!==im.sheet||Number(m.header_row)!==Number(im.header_row)){notice('Cấu hình thuộc sheet/dòng tiêu đề khác. Chọn đúng cấu trúc nguồn trước.');return;}const columns=new Set(im.columns.map(c=>c.column));if((m.columns||[]).some(c=>!columns.has(c.column))||!columns.has(m.patient_column)||!columns.has(m.visit_column)){notice('Cấu hình không khớp các cột trong file này.');return;}im.mapping=Object.fromEntries((m.columns||[]).map(({column,...rest})=>[column,rest]));im.patient_column=m.patient_column;im.visit_column=m.visit_column;im.preview=null;renderImport();notice('Đã áp dụng cấu hình. Kiểm tra cột và đơn vị trước khi xem trước.','success');}
 function savePreset(){captureMapping();const im=state.import,columns=Object.entries(im.mapping).filter(([,m])=>m.target).map(([column,m])=>({column:Number(column),...m}));if(!columns.length||!im.patient_column||!im.visit_column)throw new Error('Chọn cặp cột định danh và ít nhất một trường trước khi lưu cấu hình.');const id=crypto.randomUUID();modal('Lưu cấu hình ánh xạ',`<div class="field"><label for="preset-name">Tên cấu hình / phiên bản</label><input id="preset-name" name="name" maxlength="120" required></div><div class="field"><label for="preset-source">Nguồn file</label><input id="preset-source" name="source_name" maxlength="200" required></div><p class="muted">Cấu hình lưu theo tài khoản. Cần kiểm tra lại khi cấu trúc nguồn thay đổi.</p>`,async(data,d)=>{await api('/api/forms/imports/presets',{method:'POST',body:{id,name:data.get('name'),source_name:data.get('source_name'),mapping:{sheet:im.sheet,header_row:im.header_row,patient_column:im.patient_column,visit_column:im.visit_column,columns}}});await loadImportPresets();d.close();renderImport();notice('Đã lưu cấu hình theo nguồn.','success');});}
-async function handleClick(e){const b=e.target.closest('button');if(!b||b.disabled||state.busy)return;if(b.dataset.action==='toggle-password'){const password=document.getElementById('password'),show=password.type==='password';password.type=show?'text':'password';b.textContent=show?'Ẩn':'Hiện';b.setAttribute('aria-pressed',String(show));b.setAttribute('aria-label',show?'Ẩn mật khẩu':'Hiện mật khẩu');return;}try{await runAction(async()=>{if(b.dataset.import){if(isAdmin())throw new Error('Admin chỉ đọc dữ liệu khám.');return importAction(b.dataset.import);}if(b.dataset.page)return navigate(b.dataset.page);if(b.dataset.patient){if(confirmLeave())return openPatient(b.dataset.patient);return;}if(b.dataset.visit){if(confirmLeave())return openVisit(b.dataset.visit);return;}if(b.dataset.group){state.group=b.dataset.group;showForm();document.querySelector('.clinical h2')?.focus();return;}if(b.dataset.editField)return fieldDialog(b.dataset.editField);for(const action of ['addItem','removeItem','emptyList','nullList'])if(Object.hasOwn(b.dataset,action)){if(isAdmin())return;const code=b.dataset[action],rows=structuredClone(currentValue(code))||[];if(action==='addItem')rows.push({name:null});if(action==='removeItem')rows.splice(Number(b.dataset.index),1);if(action==='emptyList')rows.length=0;if(action==='emptyList'||action==='nullList'){for(const key of Object.keys(state.invalid))if(key===code||key.startsWith(code+':'))delete state.invalid[key];}else if(action==='removeItem'){const removed=Number(b.dataset.index),next={};for(const [key,value]of Object.entries(state.invalid)){if(key.startsWith(code+':')){const parts=key.split(':'),index=Number(parts[1]);if(index===removed)continue;if(index>removed)parts[1]=String(index-1);next[parts.join(':')]=value;}else next[key]=value;}state.invalid=next;}dirty(code,action==='nullList'?null:rows);showForm();return;}switch(b.dataset.action){case'logout':if(confirmLeave()){await api('/api/v1/auth/logout',{method:'POST'});sessionStorage.removeItem('forms_token');location.href='/login';}break;case'new-patient':newPatient();break;case'edit-patient':if(confirmLeave())editPatient();break;case'patient-history':if(confirmLeave())await patientHistory();break;case'new-visit':newVisit();break;case'back-visits':if(confirmLeave())await openPatient(state.patient.id);break;case'save':await save();break;case'reload-visit':if(confirmLeave('Tải dữ liệu mới nhất và bỏ thay đổi chưa lưu?'))await openVisit(state.visit.id);break;case'history':await showHistory();break;case'back-form':showForm();break;case'new-field':fieldDialog();break;case'clear-search':document.getElementById('patient-search').value='';document.getElementById('patient-list').innerHTML=patientItems(state.patients);break;}});}catch(err){notice(err.message);}}
+async function handleClick(e){const b=e.target.closest('button');if(!b||b.disabled||state.busy)return;if(b.dataset.action==='toggle-password'){const password=document.getElementById(b.dataset.passwordTarget||'password'),show=password.type==='password';password.type=show?'text':'password';b.textContent=show?'Ẩn':'Hiện';b.setAttribute('aria-pressed',String(show));b.setAttribute('aria-label',show?'Ẩn mật khẩu':'Hiện mật khẩu');return;}try{await runAction(async()=>{if(b.dataset.import){if(isAdmin())throw new Error('Admin chỉ đọc dữ liệu khám.');return importAction(b.dataset.import);}if(b.dataset.page)return navigate(b.dataset.page);if(b.dataset.patient){if(confirmLeave())return openPatient(b.dataset.patient);return;}if(b.dataset.visit){if(confirmLeave())return openVisit(b.dataset.visit);return;}if(b.dataset.group){state.group=b.dataset.group;showForm();document.querySelector('.clinical h2')?.focus();return;}if(b.dataset.editField)return fieldDialog(b.dataset.editField);for(const action of ['addItem','removeItem','emptyList','nullList'])if(Object.hasOwn(b.dataset,action)){if(isAdmin())return;const code=b.dataset[action],rows=structuredClone(currentValue(code))||[];if(action==='addItem')rows.push({name:null});if(action==='removeItem')rows.splice(Number(b.dataset.index),1);if(action==='emptyList')rows.length=0;if(action==='emptyList'||action==='nullList'){for(const key of Object.keys(state.invalid))if(key===code||key.startsWith(code+':'))delete state.invalid[key];}else if(action==='removeItem'){const removed=Number(b.dataset.index),next={};for(const [key,value]of Object.entries(state.invalid)){if(key.startsWith(code+':')){const parts=key.split(':'),index=Number(parts[1]);if(index===removed)continue;if(index>removed)parts[1]=String(index-1);next[parts.join(':')]=value;}else next[key]=value;}state.invalid=next;}dirty(code,action==='nullList'?null:rows);showForm();return;}switch(b.dataset.action){case'logout':await logout();break;case'retry-startup':await initialize();break;case'new-patient':newPatient();break;case'edit-patient':if(confirmLeave())editPatient();break;case'patient-history':if(confirmLeave())await patientHistory();break;case'new-visit':newVisit();break;case'back-visits':if(confirmLeave())await openPatient(state.patient.id);break;case'save':await save();break;case'reload-visit':if(confirmLeave('Tải dữ liệu mới nhất và bỏ thay đổi chưa lưu?'))await openVisit(state.visit.id);break;case'history':await showHistory();break;case'back-form':showForm();break;case'new-field':fieldDialog();break;case'clear-search':document.getElementById('patient-search').value='';document.getElementById('patient-list').innerHTML=patientItems(state.patients);break;}});}catch(err){if(!requireSignIn(err))notice(err.message);}}
 function handleInput(e){const el=e.target;if(isAdmin())return;if(el.dataset.field){const f=visitFields().find(f=>f.code===el.dataset.field);if(!f)return;try{let v=el.value;if(['date','datetime'].includes(f.type)&&el.validity?.badInput)throw new Error('Ngày giờ không hợp lệ.');if(['number','integer'].includes(f.type))v=numericValue(el,f);else if(f.type==='multiselect')v=[...el.selectedOptions].map(o=>o.value);else if(v==='')v=null;else if(f.type==='datetime')v=toISO(v);else if(f.type==='boolean')v=v==='true';setInvalid(f.code,'');dirty(f.code,v);}catch(err){setInvalid(f.code,err.message);}}if(el.dataset.repeat){const code=el.dataset.repeat,rows=structuredClone(currentValue(code))||[],index=Number(el.dataset.index);if(!rows[index])return;try{const column=el.dataset.column;if(el.validity?.badInput)throw new Error(column==='observed_at'||column.endsWith('_date')?'Ngày giờ không hợp lệ.':'Cần nhập giá trị hợp lệ.');rows[index][column]=['value','dose_value'].includes(column)?numericValue(el,{type:'number',constraints:column==='dose_value'?{minimum:0}:{}}):column==='observed_at'?toISO(el.value):el.value||null;setInvalid(code,'');setInvalid(code+':'+index+':'+el.dataset.column,'');dirty(code,rows);if(el.dataset.column==='test_code'){const f=visitFields().find(f=>f.code===code),unit=document.getElementById(`f-${code}-${index}-unit`);if(f&&unit){const choices=repeatChoices(f,'unit',rows[index]);if(unit.tagName==='SELECT'&&choices)unit.innerHTML=repeatOptionsHTML(choices,rows[index].unit);else if((unit.tagName==='SELECT')!==Boolean(choices))showForm();}}}catch(err){setInvalid(code+':'+index+':'+el.dataset.column,err.message);}}if(el.dataset.metadata){const code=el.dataset.metadata;let v=el.value||null;try{if(code==='secondary_diagnosis_codes')v=v?v.split(/[,;\n]+/).map(s=>s.trim()).filter(Boolean):null;else if(code.endsWith('_at')){if(el.validity?.badInput)throw new Error('Ngày giờ không hợp lệ.');v=toISO(v);}if(JSON.stringify(v)===JSON.stringify(state.visit.metadata?.[code]??null))delete state.metadataDirty[code];else state.metadataDirty[code]=v;setInvalid('meta-'+code,'');state.pending=null;refreshDraftStatus();}catch(err){setInvalid('meta-'+code,err.message);}}if(el.dataset.visitField){try{if(el.validity?.badInput)throw new Error('Ngày giờ không hợp lệ.');const value=toISO(el.value);if(value===(state.visit.occurred_at||null))delete state.visitDirty.occurred_at;else state.visitDirty.occurred_at=value;setInvalid('occurred_at','');const header=document.getElementById('context-occurred');if(header)header.textContent='Thời điểm khám: '+displayDate(value);const contextAge=document.getElementById('context-age');if(contextAge){const n=value?ageOn(state.visit.demographics_snapshot?.date_of_birth,value):null;contextAge.textContent=n===null?'':' · '+n+' tuổi tại lần khám';}const age=document.getElementById('derived-tuoi');if(age){const computed=value?ageOn(state.visit.demographics_snapshot?.date_of_birth,value):null;age.textContent=computed===null?missing:computed+' tuổi';}state.pending=null;refreshDraftStatus();}catch(err){setInvalid('occurred_at',err.message);}}}
 app.addEventListener('click',handleClick);
 app.addEventListener('input',handleInput);

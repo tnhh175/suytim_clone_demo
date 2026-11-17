@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
+from threading import Barrier, Event, local
+from types import SimpleNamespace
 from uuid import UUID, uuid4
 
 import pytest
@@ -9,6 +12,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
 from src.gateway.authorization import Actor, require_case_access
+from src.gateway.main import create_app
+from src.gateway.routers import auth
 from src.gateway.routers.auth import router, verify_password
 
 
@@ -52,13 +57,19 @@ class FakeConnection:
         if normalized.startswith("select permission_code from user_permission"):
             return FakeCursor([{"permission_code": permission} for permission in self.pool.permissions.get(params[0], [])])
         if normalized.startswith("insert into auth_session"):
-            user_id, token_hash, expires_at = params
+            token_hash, expires_at, user_id, username, password_hash, allowed_roles = params
+            user = self.pool.users.get(username)
+            roles = self.pool.roles.get(user_id, [])
+            if (not user or user["id"] != user_id or not user["active"]
+                    or user["password_hash"] != password_hash
+                    or len(roles) != 1 or roles[0] not in allowed_roles):
+                return FakeCursor()
             self.pool.sessions[token_hash] = {
                 "user_id": user_id,
                 "expires_at": expires_at,
                 "revoked_at": None,
             }
-            return FakeCursor()
+            return FakeCursor([{"user_id": user_id}])
         if normalized.startswith("select u.id as user_id, u.username, u.active"):
             session = self.pool.sessions.get(params[0])
             if session is None:
@@ -92,6 +103,7 @@ class FakeConnection:
 
 class FakePool:
     def __init__(self):
+        self.thread = local()
         self.users = {
             "doctor_demo": {
                 "id": _DOCTOR_ID, "username": "doctor_demo",
@@ -126,12 +138,18 @@ class FakePool:
 
     @contextmanager
     def connection(self):
-        yield FakeConnection(self)
+        assert not getattr(self.thread, "checked_out", False)
+        self.thread.checked_out = True
+        try:
+            yield FakeConnection(self)
+        finally:
+            self.thread.checked_out = False
 
 
 def client_for(pool):
     app = FastAPI()
     app.state.pool = pool
+    app.state.login_limiter = auth.LoginLimiter()
     app.include_router(router)
     return TestClient(app)
 
@@ -208,6 +226,81 @@ def test_selected_role_is_checked_before_creating_a_session():
     assert not pool.sessions
     assert client.post("/api/v1/auth/token", json={**credentials, "selected_role": "doctor"}).status_code == 200
     assert len(pool.sessions) == 1
+
+
+@pytest.fixture
+def fast_bad_passwords(monkeypatch):
+    attempts = []
+    monkeypatch.setattr(auth, 'verify_password', lambda password, _: attempts.append(password) and True)
+    monkeypatch.setattr(auth, '_burn_password_verification', attempts.append)
+    return attempts
+
+
+def test_login_ip_limit_is_shared_by_forms_and_canonical_routes(fast_bad_passwords):
+    app = create_app(pool=FakePool(), forms_only=True)
+    client = TestClient(app, client=('192.0.2.20', 50000))
+    paths = ('/api/v1/auth/token', '/api/forms/auth/doctor', '/api/forms/auth/admin')
+    for index in range(12):
+        response = client.post(paths[index % len(paths)],
+                               json={'username': f'unknown-{index}', 'password': 'wrong'},
+                               headers={'X-Forwarded-For': f'198.51.100.{index + 1}'})
+        assert response.status_code == 401
+    for path in paths:
+        limited = client.post(path, json={'username': 'doctor_demo', 'password': 'wrong'},
+                              headers={'X-Forwarded-For': '198.51.100.250'})
+        assert limited.status_code == 429
+        assert limited.headers['retry-after'] == '60'
+    assert len(fast_bad_passwords) == 12
+    assert not app.state.pool.sessions
+
+
+def test_login_total_limit_across_clients_expires_and_is_app_local(monkeypatch, fast_bad_passwords):
+    clock = SimpleNamespace(value=1000.0)
+    monkeypatch.setattr(auth, 'time', SimpleNamespace(monotonic=lambda: clock.value))
+    app = create_app(pool=FakePool(), forms_only=True)
+    credentials = {'username': 'doctor_demo', 'password': 'wrong'}
+    clients = [TestClient(app, client=(f'192.0.2.{index}', 50000)) for index in range(1, 6)]
+    for client in clients[:4]:
+        for _ in range(12):
+            assert client.post('/api/v1/auth/token', json=credentials).status_code == 401
+    assert clients[-1].post('/api/v1/auth/token', json=credentials).status_code == 429
+    clock.value += 59
+    assert clients[-1].post('/api/forms/auth/doctor', json=credentials).status_code == 429
+    assert len(fast_bad_passwords) == 48
+    isolated = TestClient(create_app(pool=FakePool(), forms_only=True), client=('192.0.2.1', 50000))
+    assert isolated.post('/api/v1/auth/token', json=credentials).status_code == 401
+    clock.value += 1
+    assert clients[0].post('/api/forms/auth/doctor', json=credentials).status_code == 401
+    assert len(fast_bad_passwords) == 50
+
+
+def test_login_hashing_does_not_hold_db_connection_and_has_concurrency_backpressure(monkeypatch):
+    pool = FakePool()
+    app = create_app(pool=pool, forms_only=True)
+    entered = Barrier(3)
+    release = Event()
+
+    def slow_hash(*_):
+        assert not getattr(pool.thread, 'checked_out', False)
+        entered.wait(timeout=5)
+        assert release.wait(timeout=5)
+        return False
+
+    monkeypatch.setattr(auth, 'verify_password', slow_hash)
+    credentials = {'username': 'doctor_demo', 'password': 'wrong'}
+    client = TestClient(app)
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        pending = [executor.submit(client.post, '/api/v1/auth/token', json=credentials) for _ in range(2)]
+        try:
+            entered.wait(timeout=5)
+            limited = client.post('/api/forms/auth/doctor', json=credentials)
+            assert limited.status_code == 429
+            assert limited.headers['retry-after'] == '1'
+        finally:
+            release.set()
+        assert [result.result().status_code for result in pending] == [401, 401]
+    monkeypatch.setattr(auth, 'verify_password', lambda *_: True)
+    assert client.post('/api/forms/auth/doctor', json=credentials).status_code == 200
 
 
 def test_case_access_checks_existence_role_and_assigned_scope():

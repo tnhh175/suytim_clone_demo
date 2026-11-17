@@ -27,7 +27,11 @@ Nhánh `demo-web-3` có cấu hình để chạy biểu mẫu và nhập Excel v
    postgresql://hf_demo_runtime:<runtime-password>@${{Postgres.PGHOST}}:${{Postgres.PGPORT}}/${{Postgres.PGDATABASE}}
    ```
 
-   Web dùng role runtime. Biến chứa quyền bootstrap và mật khẩu tài khoản web chỉ cần ở bước 3 của phần trước.
+   Web dùng role runtime có quyền đọc và ghi trên các bảng cần thiết trong `d3_form_hosted`. Giữ thông tin kết nối bootstrap và mật khẩu tài khoản web ngoài cấu hình web service.
 3. Deploy rồi chọn **Settings → Networking → Generate Domain**. Mở `/health` trên domain mới và kiểm tra HTTP 200. Mở `/login`, đăng nhập bằng hai vai trò. Tài khoản Bác sĩ có thể thử lưu vào lượt giả lập và kiểm tra lại sau khi tải trang.
+
+## Chuyển sang quyền runtime giới hạn
+
+Nếu đã bootstrap từ bản cấp quyền `SET ROLE hf_demo_owner` cho web, dừng web service rồi chạy `python scripts/bootstrap_hosted_forms.py --restrict-runtime` bằng service tạm. Lần này chỉ cần cấu hình `BOOTSTRAP_DATABASE_URL`. Lệnh cấp quyền trực tiếp trên schema demo và thu hồi quyền chuyển sang role owner. Lệnh có thể chạy lại, giữ nguyên tài khoản và dữ liệu. Sau khi triển khai phiên bản mới, kiểm lại `/health`, đăng nhập và lưu lượt khám, rồi gỡ service tạm hoặc xóa biến bootstrap khỏi service đó.
 
 Railway tính chi phí theo gói và mức sử dụng cho web cùng PostgreSQL. Xem [giá](https://docs.railway.com/pricing/plans), [cách nối PostgreSQL](https://docs.railway.com/databases/postgresql) và [cấu hình thư mục repo](https://docs.railway.com/deployments/monorepo).

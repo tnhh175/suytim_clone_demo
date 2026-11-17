@@ -5,10 +5,12 @@ import os
 from pathlib import Path
 from uuid import uuid4
 
+import psycopg
 import pytest
 from fastapi.testclient import TestClient
 from psycopg.conninfo import conninfo_to_dict
 from src.gateway.main import create_app
+from src.gateway.routers import auth
 
 DSN = os.getenv('FORM_TEST_DSN')
 pytestmark = pytest.mark.skipif(not DSN, reason='FORM_TEST_DSN dedicated synthetic schema required')
@@ -180,3 +182,40 @@ def test_recreate_app_persists_and_logout_revokes(live):
     for path in ('/', '/login', '/forms'):
         response = c.get(path)
         assert response.status_code == 200 and 'forms.js' in response.text
+
+
+@pytest.mark.parametrize('change', ['inactive', 'password-hash', 'renamed', 'changed-role', 'multiple-roles'])
+def test_login_cannot_create_session_when_account_changes_during_password_verification(live, monkeypatch, change):
+    client, _, _ = live
+    # Each race case starts with its own attempt window, independent of prior logins.
+    monkeypatch.setattr(client.app.state, 'login_limiter', auth.LoginLimiter())
+    user_id = uuid4()
+    username = 'qa_race_' + user_id.hex
+    original_hash = 'qa-password-hash-snapshot'
+    with psycopg.connect(DSN) as conn:
+        conn.execute('SET LOCAL ROLE hf_demo_owner')
+        conn.execute('INSERT INTO app_user (id, username, password_hash) VALUES (%s, %s, %s)',
+                     (user_id, username, original_hash))
+        conn.execute("INSERT INTO user_role (user_id, role_code) VALUES (%s, 'doctor')", (user_id,))
+
+    def verify_then_change(password, encoded):
+        assert (password, encoded) == ('qa-password', original_hash)
+        with psycopg.connect(DSN) as conn:
+            conn.execute('SET LOCAL ROLE hf_demo_owner')
+            if change == 'inactive':
+                conn.execute('UPDATE app_user SET active = false WHERE id = %s', (user_id,))
+            elif change == 'password-hash':
+                conn.execute("UPDATE app_user SET password_hash = 'superseded' WHERE id = %s", (user_id,))
+            elif change == 'renamed':
+                conn.execute('UPDATE app_user SET username = %s WHERE id = %s', (username + '_new', user_id))
+            elif change == 'changed-role':
+                conn.execute("UPDATE user_role SET role_code = 'admin' WHERE user_id = %s", (user_id,))
+            else:
+                conn.execute("INSERT INTO user_role (user_id, role_code) VALUES (%s, 'admin')", (user_id,))
+        return True
+
+    monkeypatch.setattr(auth, 'verify_password', verify_then_change)
+    checked(client.post('/api/v1/auth/token', json={'username': username, 'password': 'qa-password', 'selected_role': 'doctor'}), 401)
+    with psycopg.connect(DSN) as conn:
+        conn.execute('SET LOCAL ROLE hf_demo_owner')
+        assert conn.execute('SELECT count(*) FROM auth_session WHERE user_id = %s', (user_id,)).fetchone() == (0,)

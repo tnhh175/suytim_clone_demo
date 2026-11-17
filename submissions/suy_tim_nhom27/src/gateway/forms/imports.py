@@ -16,18 +16,82 @@ from zipfile import ZipFile
 from xml.etree.ElementTree import iterparse
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import Response
+from fastapi.routing import APIRoute
+from fastapi.security import HTTPAuthorizationCredentials
 from openpyxl import Workbook, load_workbook
 from openpyxl.utils import get_column_letter
 from pydantic import Field
 from psycopg.types.json import Jsonb
+from starlette.types import Receive, Scope, Send
 
+from ..authorization import Actor, _bearer, get_current_actor, require_role
 from ..database import staff_connection
 from .router import catalog, fingerprint, form_actor, persist, visit_access, pinned_catalog
-from ..authorization import require_role
 from .validation import Input, value_for
 
-router = APIRouter(prefix='/api/forms/imports', tags=['Nhập biểu mẫu'])
+_IMPORT_PREFIX = '/api/forms/imports'
+_INSPECT_PATH = '/excel/inspect'
+_PREVIEW_PATH = '/excel/preview'
+_COMMIT_PATH = '/commit'
+_BODY_LIMITS = {
+    _IMPORT_PREFIX + _INSPECT_PATH: 6 * 1024 * 1024,
+    _IMPORT_PREFIX + _PREVIEW_PATH: 6 * 1024 * 1024,
+    _IMPORT_PREFIX + _COMMIT_PATH: 16 * 1024 * 1024,
+}
+_TOO_LARGE = 'Dữ liệu nhập vượt giới hạn kích thước yêu cầu'
+_SIZE_RESPONSE = {
+    413: {
+        'description': _TOO_LARGE,
+        'content': {'application/json': {'schema': {'$ref': '#/components/schemas/Error'}}},
+    },
+}
+
+
+class ExcelImportRoute(APIRoute):
+    async def handle(self, scope: Scope, receive: Receive, send: Send) -> None:
+        limit = _BODY_LIMITS.get(self.path)
+        if limit is None or scope['method'] != 'POST':
+            await super().handle(scope, receive, send)
+            return
+
+        request = Request(scope)
+        for value in request.headers.getlist('content-length'):
+            declared = value.strip().lstrip('0')
+            if declared.isascii() and declared.isdecimal():
+                if len(declared) > len(str(limit)) or int(declared) > limit:
+                    raise HTTPException(413, detail=_TOO_LARGE)
+
+        # FastAPI reads and decodes the body before resolving dependencies.
+        credentials = await _bearer(request)
+        actor = await run_in_threadpool(get_current_actor, request, credentials)
+        require_role(actor, {'doctor'})
+        request.state.excel_import_actor = actor
+
+        received = 0
+
+        async def bounded_receive():
+            nonlocal received
+            message = await receive()
+            if message['type'] == 'http.request':
+                received += len(message.get('body', b''))
+                if received > limit:
+                    raise HTTPException(413, detail=_TOO_LARGE)
+            return message
+
+        await super().handle(scope, bounded_receive, send)
+
+
+def _excel_actor(
+    request: Request,
+    _credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
+) -> Actor:
+    # The route checks credentials before reading the body; Depends exposes the scheme in OpenAPI.
+    return request.state.excel_import_actor
+
+
+router = APIRouter(prefix=_IMPORT_PREFIX, tags=['Nhập biểu mẫu'], route_class=ExcelImportRoute)
 LIMITS = {'records': 100, 'fields': 500,
           'array_items': 200, 'excel_bytes': 4194304, 'excel_expanded_bytes': 33554432,
           'excel_rows': 1000, 'excel_columns': 500, 'preview_seconds': 1800}
@@ -123,9 +187,8 @@ def limits(actor=Depends(form_actor)):
     return LIMITS
 
 
-@router.post('/excel/inspect')
-def excel_inspect(body: ExcelInspect, actor=Depends(form_actor)):
-    require_role(actor, {'doctor'})
+@router.post(_INSPECT_PATH, responses=_SIZE_RESPONSE)
+def excel_inspect(body: ExcelInspect, actor=Depends(_excel_actor)):
     book = workbook(body)
     try:
         result = {'sheets': book.sheetnames, 'limits': LIMITS, 'business_writes': False}
@@ -328,9 +391,8 @@ def response_for(request, plan):
             'business_writes': False, 'limits': LIMITS, 'mapping_version': '1.0'}
 
 
-@router.post('/excel/preview')
-def excel_preview(body: ExcelPreview, request: Request, actor=Depends(form_actor)):
-    require_role(actor, {'doctor'})
+@router.post(_PREVIEW_PATH, responses=_SIZE_RESPONSE)
+def excel_preview(body: ExcelPreview, request: Request, actor=Depends(_excel_actor)):
     book = workbook(body)
     try:
         sheet = sheet_for(book, body.sheet)
@@ -414,9 +476,8 @@ class Commit(Input):
     records: list[Decision] = Field(min_length=1, max_length=100)
 
 
-@router.post('/commit')
-def commit(body: Commit, request: Request, actor=Depends(form_actor)):
-    require_role(actor, {'doctor'})
+@router.post(_COMMIT_PATH, responses=_SIZE_RESPONSE)
+def commit(body: Commit, request: Request, actor=Depends(_excel_actor)):
     plan = read_plan(request, body.preview_token, actor)
     if len({d.index for d in body.records}) != len(body.records):
         problem('/records', 'Không chọn lặp bản ghi')

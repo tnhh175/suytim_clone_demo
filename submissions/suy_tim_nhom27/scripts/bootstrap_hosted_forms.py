@@ -1,6 +1,7 @@
 """Provision a new, dedicated PostgreSQL 16+ database for the hosted demo."""
 from __future__ import annotations
 
+import argparse
 import json
 import os
 from pathlib import Path
@@ -15,6 +16,35 @@ from seed_form_demo import ROOT, prepare
 SCHEMA = "d3_form_hosted"
 
 
+def restrict_runtime(admin_dsn: str) -> None:
+    """Grant the hosted routes their DML privileges and remove runtime owner access."""
+    with psycopg.connect(admin_dsn, connect_timeout=10) as conn:
+        conn.execute("SELECT pg_advisory_xact_lock(hashtext('suytim_hosted_forms_bootstrap'))")
+        owner = conn.execute("""
+            SELECT pg_get_userbyid(nspowner) FROM pg_namespace WHERE nspname = %s
+        """, (SCHEMA,)).fetchone()
+        if owner != ("hf_demo_owner",):
+            raise SystemExit("Expected a dedicated d3_form_hosted schema owned by hf_demo_owner.")
+        conn.execute("SET LOCAL ROLE hf_demo_owner")
+        conn.execute("SET LOCAL search_path TO d3_form_hosted")
+        conn.execute("GRANT USAGE ON SCHEMA d3_form_hosted TO hf_demo_runtime")
+        conn.execute("""
+            GRANT SELECT ON app_user, role, user_role, user_permission, form_access TO hf_demo_runtime
+        """)
+        conn.execute("""
+            GRANT SELECT, INSERT, UPDATE ON auth_session, form_field, form_patient, form_visit
+            TO hf_demo_runtime
+        """)
+        conn.execute("GRANT SELECT, UPDATE ON form_catalog TO hf_demo_runtime")
+        conn.execute("""
+            GRANT SELECT, INSERT ON form_field_history, form_patient_alias, form_patient_history,
+                form_history, form_import_preset, form_import_batch TO hf_demo_runtime
+        """)
+        conn.execute("GRANT SELECT, USAGE ON SEQUENCE form_patient_code_seq TO hf_demo_runtime")
+        conn.execute("RESET ROLE")
+        conn.execute("REVOKE hf_demo_owner FROM hf_demo_runtime")
+
+
 def password(name: str) -> str:
     value = os.environ.get(name, "")
     if not 20 <= len(value) <= 128 or not value.strip():
@@ -22,8 +52,7 @@ def password(name: str) -> str:
     return value
 
 
-def main() -> None:
-    admin_dsn = os.environ["BOOTSTRAP_DATABASE_URL"]
+def bootstrap(admin_dsn: str) -> None:
     runtime, admin, doctor = (
         password(name)
         for name in ("HF_RUNTIME_PASSWORD", "HF_ADMIN_PASSWORD", "HF_DOCTOR_PASSWORD")
@@ -56,7 +85,6 @@ def main() -> None:
                 sql.Literal(runtime)
             ))
             conn.execute("GRANT hf_demo_owner TO CURRENT_USER")
-            conn.execute("GRANT hf_demo_owner TO hf_demo_runtime WITH INHERIT FALSE, SET TRUE")
             conn.execute(sql.SQL("GRANT CREATE ON DATABASE {} TO hf_demo_owner").format(
                 sql.Identifier(conn.info.dbname)
             ))
@@ -79,6 +107,19 @@ def main() -> None:
             },
         }), encoding="utf-8")
         prepare(admin_dsn, SCHEMA, credentials_file)
+    restrict_runtime(admin_dsn)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--restrict-runtime", action="store_true",
+                        help="remove owner access from an already initialized hosted database")
+    args = parser.parse_args()
+    admin_dsn = os.environ["BOOTSTRAP_DATABASE_URL"]
+    if args.restrict_runtime:
+        restrict_runtime(admin_dsn)
+    else:
+        bootstrap(admin_dsn)
 
 
 if __name__ == "__main__":

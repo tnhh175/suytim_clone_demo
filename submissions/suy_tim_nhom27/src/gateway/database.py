@@ -41,13 +41,14 @@ def _pool_for(request: Request) -> ConnectionPool:
 
 @contextmanager
 def staff_connection(request: Request, actor: "Actor") -> Iterator[Connection]:
-    """Yield a transaction-scoped table-owner connection with a trusted actor.
+    """Yield a transaction-scoped staff connection with a trusted actor.
 
     API role and case-scope checks must run before repository work. The SET LOCAL
     statements are transaction-scoped and cannot leak through the connection pool.
     """
     with _pool_for(request).connection() as conn:
-        conn.execute("SET LOCAL ROLE hf_demo_owner")
+        if not getattr(request.app.state, "restricted_forms_runtime", False):
+            conn.execute("SET LOCAL ROLE hf_demo_owner")
         conn.execute(
             "SELECT set_config('app.user_id', %s, true)",
             (str(actor.user_id),),

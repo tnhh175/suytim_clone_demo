@@ -16,7 +16,7 @@ from psycopg_pool import ConnectionPool, PoolTimeout
 from .clinical import build_clinical_router
 from .database import check_pool, create_pool
 from .patient_portal import build_patient_portal_router
-from .routers.auth import RegistrationLimiter, registration_router, router as auth_router
+from .routers.auth import LoginLimiter, RegistrationLimiter, registration_router, router as auth_router
 from .routers.medications import build_medications_router
 from .routers.rules import build_rules_router
 from .forms.router import router as forms_router
@@ -53,6 +53,7 @@ def create_app(
     )
     app.state.pool = owned_pool
     app.state.form_preview_secret = secrets.token_bytes(32)
+    app.state.login_limiter = LoginLimiter()
     app.state.registration_limiter = RegistrationLimiter()
     app.add_middleware(
         CORSMiddleware,

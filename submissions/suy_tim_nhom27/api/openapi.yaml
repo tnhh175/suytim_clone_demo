@@ -77,6 +77,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TokenResponse'
+        '429':
+          description: Vượt giới hạn số lượt đăng nhập hoặc số lượt xử lý đồng thời
+          headers:
+            Retry-After:
+              description: Số giây trước khi thử lại
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '422':
           description: Dữ liệu không hợp lệ
           content:
@@ -144,6 +155,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TokenResponse'
+        '429':
+          description: Vượt giới hạn số lượt đăng nhập hoặc số lượt xử lý đồng thời
+          headers:
+            Retry-After:
+              description: Số giây trước khi thử lại
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '422':
           description: Dữ liệu không hợp lệ
           content:
@@ -169,6 +191,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TokenResponse'
+        '429':
+          description: Vượt giới hạn số lượt đăng nhập hoặc số lượt xử lý đồng thời
+          headers:
+            Retry-After:
+              description: Số giây trước khi thử lại
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '422':
           description: Dữ liệu không hợp lệ
           content:
@@ -576,6 +609,12 @@ paths:
           content:
             application/json:
               schema: {}
+        '413':
+          description: Dữ liệu nhập vượt giới hạn kích thước yêu cầu
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '422':
           description: Dữ liệu không hợp lệ
           content:
@@ -647,6 +686,12 @@ paths:
           content:
             application/json:
               schema: {}
+        '413':
+          description: Dữ liệu nhập vượt giới hạn kích thước yêu cầu
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '422':
           description: Dữ liệu không hợp lệ
           content:
@@ -673,6 +718,12 @@ paths:
           content:
             application/json:
               schema: {}
+        '413':
+          description: Dữ liệu nhập vượt giới hạn kích thước yêu cầu
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '422':
           description: Dữ liệu không hợp lệ
           content:

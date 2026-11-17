@@ -13,7 +13,7 @@ from psycopg.types.json import Jsonb
 
 from ..authorization import Actor, get_current_actor, require_role
 from ..database import staff_connection
-from ..routers.auth import LoginPayload, TokenResponse, login
+from ..routers.auth import LOGIN_RESPONSES, LoginPayload, TokenResponse, login
 from .validation import Input, FieldDefinition, value_for, with_constraints
 
 router = APIRouter(prefix='/api/forms', tags=['Biểu mẫu suy tim'])
@@ -24,12 +24,12 @@ class Credentials(Input):
     password: str = Field(min_length=1, max_length=200)
 
 
-@router.post('/auth/admin', response_model=TokenResponse)
+@router.post('/auth/admin', response_model=TokenResponse, responses=LOGIN_RESPONSES)
 def admin_login(body: Credentials, request: Request):
     return login(LoginPayload(**body.model_dump(), selected_role='admin'), request)
 
 
-@router.post('/auth/doctor', response_model=TokenResponse)
+@router.post('/auth/doctor', response_model=TokenResponse, responses=LOGIN_RESPONSES)
 def doctor_login(body: Credentials, request: Request):
     return login(LoginPayload(**body.model_dump(), selected_role='doctor'), request)
 
